@@ -120,13 +120,13 @@
 
   <div class="panel">
     <h2><span class="tag SOMBRA">SOMBRA</span> Familias denegadas acumulando sin capital (#S75)</h2>
-    <div class="hint">Sombrean las familias que el gate NO admite a capital real, con la misma disciplina de entrada/salida que el motor vivo.</div>
+    <div class="hint">Sombrean las familias que el gate NO admite a capital real, con la misma disciplina de entrada/salida que el motor vivo. uPnL estimado con el último close cacheado (refresca cada hora vía <code>hist_extiende</code>) — no es tick en vivo, es una foto.</div>
     <div class="tablewrap"><table id="tablaAbiertasSombra"><thead></thead><tbody></tbody></table></div>
   </div>
 
   <div class="panel">
     <h2><span class="badge-arm">ESPEJO</span> Mini-posiciones condicionales corriendo (#S81)</h2>
-    <div class="hint">Por cada fire de una familia con (familia, corte) armado, corre en paralelo esta sub-posición espejo — capital cero, mide si el segmento negativo detectado se confirma forward. "origen" = si nació sobre una apertura LIVE o SOMBRA.</div>
+    <div class="hint">Por cada fire de una familia con (familia, corte) armado, corre en paralelo esta sub-posición espejo — capital cero, mide si el segmento negativo detectado se confirma forward. "origen" = si nació sobre una apertura LIVE o SOMBRA. uPnL estimado con el último close cacheado (misma limitación que arriba).</div>
     <div class="tablewrap"><table id="tablaAbiertasEspejo"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
@@ -505,10 +505,18 @@ function renderAbiertas(){
     &middot; Confirmadas AHORA en Binance: <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>
     ${nBinance!==null && nBinance!==nLiveState ? ' <span class="neg">(el state va por detrás — no reconcilia cierres TP/SL hasta el próximo ciclo)</span>' : ''}${err}${huerf}`;
 
+  const upnlCell = (p) => {
+    if (p.upnl_pct == null) return '<td>—</td><td>—</td>';
+    const cls = p.upnl_pct >= 0 ? 'pos' : 'neg';
+    const pctTxt = (p.upnl_pct>=0?'+':'') + p.upnl_pct.toFixed(2) + '%';
+    const rTxt = p.upnl_R==null ? '—' : (p.upnl_R>=0?'+':'') + p.upnl_R.toFixed(2) + 'R';
+    return `<td class="${cls}">${pctTxt}</td><td class="${cls}">${rTxt}</td>`;
+  };
+
   // LIVE
   const theadL = document.querySelector('#tablaAbiertasLive thead');
   const tbodyL = document.querySelector('#tablaAbiertasLive tbody');
-  theadL.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>confirmado Binance</th><th>uPnL$ (Binance)</th></tr>';
+  theadL.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>confirmado Binance</th><th>uPnL$ (Binance)</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
   tbodyL.innerHTML = a.live.map(p=>{
     const conf = p.confirmado_binance;
     const confTxt = conf ? '<span class="badge-pos">sí</span>' : '<span class="badge-neg">no (state desactualizado o desync)</span>';
@@ -518,31 +526,34 @@ function renderAbiertas(){
       <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
       <td>${confTxt}</td>
       <td class="${upnl==null?'':(upnl>=0?'pos':'neg')}">${upnl==null?'—':(upnl>=0?'+':'')+upnl.toFixed(2)}</td>
+      ${upnlCell(p)}
     </tr>`;
-  }).join('') || '<tr><td colspan="9">Sin posiciones LIVE abiertas.</td></tr>';
+  }).join('') || '<tr><td colspan="11">Sin posiciones LIVE abiertas.</td></tr>';
 
   // SOMBRA
   const theadS = document.querySelector('#tablaAbiertasSombra thead');
   const tbodyS = document.querySelector('#tablaAbiertasSombra tbody');
-  theadS.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th></tr>';
+  theadS.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
   const sombraRows = [...a.sombra].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0)).slice(0, 200);
   tbodyS.innerHTML = sombraRows.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
-    </tr>`).join('') || '<tr><td colspan="7">Sin posiciones SOMBRA abiertas.</td></tr>';
+      ${upnlCell(p)}
+    </tr>`).join('') || '<tr><td colspan="9">Sin posiciones SOMBRA abiertas.</td></tr>';
   if (a.sombra.length > 200){
-    tbodyS.innerHTML += `<tr><td colspan="7" class="hint">... y ${a.sombra.length-200} más (mostrando las 200 más recientes)</td></tr>`;
+    tbodyS.innerHTML += `<tr><td colspan="9" class="hint">... y ${a.sombra.length-200} más (mostrando las 200 más recientes)</td></tr>`;
   }
 
   // ESPEJO
   const theadE = document.querySelector('#tablaAbiertasEspejo thead');
   const tbodyE = document.querySelector('#tablaAbiertasEspejo tbody');
-  theadE.innerHTML = '<tr><th>familia</th><th>corte</th><th>origen</th><th>dir espejo</th><th>símbolo</th><th>abierta hace</th><th>TP</th><th>SL</th></tr>';
+  theadE.innerHTML = '<tr><th>familia</th><th>corte</th><th>origen</th><th>dir espejo</th><th>símbolo</th><th>abierta hace</th><th>TP</th><th>SL</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
   tbodyE.innerHTML = a.espejo.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${p.origen_base}</span></td>
       <td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
-    </tr>`).join('') || '<tr><td colspan="8">Sin espejos condicionales abiertos.</td></tr>';
+      ${upnlCell(p)}
+    </tr>`).join('') || '<tr><td colspan="10">Sin espejos condicionales abiertos.</td></tr>';
 }
 
 document.getElementById('tabbar').addEventListener('click', (e)=>{
