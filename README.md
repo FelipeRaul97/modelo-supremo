@@ -1,10 +1,10 @@
-# SUPREMO - status_espejo
+# SUPREMO - dashboard
 
-Pagina HTML: ver GitHub Pages del repo.
+Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
-Actualizado automaticamente cada hora (tarea programada local).
+Actualizado automaticamente cada hora (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-21 15:08:55
+Ultima actualizacion: 2026-09-21 15:25:55
 
 ```
 ========================================================================================================
@@ -165,19 +165,19 @@ Ultima actualizacion: 2026-09-21 15:08:55
   ----------------------------------------------------------------------------------------------------------------------------------------
   20_tl_res_range         btc_range       SHORT     categ.     16   -1.002   [-1.65,-0.21]        0         2    +6.40%    50%           n/a (N<3)  R2 B0 Be0
   20_tl_res_range         celda_range_rangeSHORT     categ.     19   -1.031   [-1.61,-0.30]        0         0         —      —                   —  —
-  5_posicion_rango        alt1d_range     SHORT     categ.     47   -0.827   [-1.12,-0.50]        2         6   +84.08%   100%     [+10.44,+19.12]  R6 B0 Be0
+  5_posicion_rango        alt1d_range     SHORT     categ.     47   -0.827   [-1.12,-0.50]        1         6   +84.08%   100%     [+10.44,+19.12]  R6 B0 Be0
   5_posicion_rango        age4h_alto      SHORT       57.8     54   -0.547   [-0.86,-0.18]        2         5   +80.80%   100%     [+10.96,+21.69]  R4 B1 Be0
-  5_posicion_rango        btc_range       SHORT     categ.    133   -0.302   [-0.55,-0.05]        3         7  +108.53%   100%     [+11.27,+20.19]  R7 B0 Be0
+  5_posicion_rango        btc_range       SHORT     categ.    133   -0.302   [-0.55,-0.05]        2         7  +108.53%   100%     [+11.27,+20.19]  R7 B0 Be0
   5_posicion_rango        vol_rel_bajo    SHORT        0.6     61   -0.410   [-0.72,-0.09]        0         0         —      —                   —  —
   5_posicion_rango        celda_bear_rangeSHORT     categ.     19   -0.780   [-1.29,-0.21]        0         0         —      —                   —  —
   5_posicion_rango        celda_range_rangeSHORT     categ.    153   -0.350   [-0.58,-0.11]        0         0         —      —                   —  —
   41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]        1        17  -138.11%     0%       [-9.23,-7.02]  R8 B0 Be9
   41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]        5        21  -162.48%     0%       [-8.80,-6.77]  R14 B0 Be7
-  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]        2         8   -71.16%     0%      [-10.63,-7.25]  R2 B0 Be6
-  41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]        3        25  -190.39%     0%       [-8.55,-6.73]  R17 B0 Be8
+  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]        3         8   -71.16%     0%      [-10.63,-7.25]  R2 B0 Be6
+  41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]        2        25  -190.39%     0%       [-8.55,-6.73]  R17 B0 Be8
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]        4        26  -191.05%     0%       [-8.32,-6.46]  R19 B0 Be7
-  41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        0         5   -42.47%     0%      [-10.03,-6.89]  R2 B0 Be3
-  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]        3        22  -136.75%     0%       [-6.70,-5.75]  R22 B0 Be0
+  41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        1         5   -42.47%     0%      [-10.03,-6.89]  R2 B0 Be3
+  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]        2        22  -136.75%     0%       [-6.70,-5.75]  R22 B0 Be0
   47_lower_lows_bear      btc_range       LONG      categ.     16   -0.988   [-1.67,-0.09]        1         6   -43.22%     0%       [-8.07,-6.46]  R6 B0 Be0
   47_lower_lows_bear      alt1d_trend     LONG      categ.     15   -1.399   [-1.96,-0.68]        1         9   -68.34%     0%       [-8.47,-6.81]  R3 B0 Be6
   54_x_sma20x50_dn        btc_range       SHORT     categ.     26   -0.512   [-1.02,-0.04]        0         4   +32.39%   100%       [+6.95,+9.21]  R4 B0 Be0
