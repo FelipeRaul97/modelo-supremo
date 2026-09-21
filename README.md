@@ -4,15 +4,47 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada hora (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-21 22:48:35
+Ultima actualizacion: 2026-09-21 22:55:49
 
 ```
-OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
-OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+========================================================================================================
+  ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
+  pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
+========================================================================================================
+   (ninguna [familia,corte] nueva cruza el gate barato de armado)
+   total armadas históricamente: 28 (en 7 familias)
+      20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
+      20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
+      5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
+      5_posicion_rango · age4h_alto SHORT · umbral=57.76000000000005 · armada 2026-09-16
+      5_posicion_rango · btc_range SHORT · umbral=None · armada 2026-09-16
+      5_posicion_rango · vol_rel_bajo SHORT · umbral=0.6342811697344669 · armada 2026-09-20
+      5_posicion_rango · celda_bear_range SHORT · umbral=None · armada 2026-09-21
+      5_posicion_rango · celda_range_range SHORT · umbral=None · armada 2026-09-21
+      41a_a2_confirmador · alt1d_range LONG · umbral=None · armada 2026-09-16
+      41a_a2_confirmador · alt1d_trend LONG · umbral=None · armada 2026-09-16
+      41a_a2_confirmador · age4h_alto LONG · umbral=103.0 · armada 2026-09-16
+      41a_a2_confirmador · age4h_bajo LONG · umbral=34.0 · armada 2026-09-16
+      41a_a2_confirmador · vol_rel_alto LONG · umbral=0.6524064471036717 · armada 2026-09-16
+      41a_a2_confirmador · vol_rel_bajo LONG · umbral=0.4736853447841582 · armada 2026-09-16
+      41a_a2_confirmador · btc_range LONG · umbral=None · armada 2026-09-16
+      47_lower_lows_bear · btc_range LONG · umbral=None · armada 2026-09-16
+      47_lower_lows_bear · alt1d_trend LONG · umbral=None · armada 2026-09-16
+      54_x_sma20x50_dn · btc_range SHORT · umbral=None · armada 2026-09-16
+      54_x_sma20x50_dn · alt1d_trend SHORT · umbral=None · armada 2026-09-18
+      54_x_sma20x50_dn · alt1d_range SHORT · umbral=None · armada 2026-09-20
+      12a_cvd_distribucion · btc_range SHORT · umbral=None · armada 2026-09-17
+      12a_cvd_distribucion · alt1d_range SHORT · umbral=None · armada 2026-09-18
+      12a_cvd_distribucion · alt1d_trend SHORT · umbral=None · armada 2026-09-18
+      12a_cvd_distribucion · age4h_alto SHORT · umbral=50.76 · armada 2026-09-18
+      12a_cvd_distribucion · age4h_bajo SHORT · umbral=9.0 · armada 2026-09-18
+      12a_cvd_distribucion · vol_rel_alto SHORT · umbral=0.8329858677026768 · armada 2026-09-18
+      12a_cvd_distribucion · vol_rel_bajo SHORT · umbral=0.6281108456628851 · armada 2026-09-18
+      47_alcista_sweet · celda_range_range LONG · umbral=None · armada 2026-09-21
 ```
 
 ```
-  Régimen BTC: ret30d=+10.6%  ret7d=+8.6%  ·  fuera de régimen de impulso  ⚠️ CACHÉ STALE (7h) — refrescar con `python -m SUPREMO.hist_extiende`
+  Régimen BTC: ret30d=+12.5%  ret7d=+10.0%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
