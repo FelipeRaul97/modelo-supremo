@@ -51,11 +51,22 @@
   .badge-neg{font-size:0.68rem; background:rgba(239,111,111,.16); color:var(--neg); border-radius:5px; padding:1px 6px; font-weight:600;}
   tr.segrow td:first-child, tr.segrow td:nth-child(2){ color:var(--muted); }
   tr.totalrow{ background:var(--panel2); }
+  .tabbar{ display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); }
+  .tabbtn{ padding:9px 16px; color:var(--muted); cursor:pointer; font-size:0.88rem; font-weight:600; border-bottom:2px solid transparent; user-select:none; }
+  .tabbtn.active{ color:var(--text); border-bottom-color:var(--accent); }
+  .tabbtn:hover{ color:var(--text); }
 </style>
 </head>
 <body>
 <h1>SUPREMO &middot; Dashboard de trades</h1>
 <div class="meta">Régimen BTC: <b id="regimen-txt">—</b> &middot; Última actualización: <b id="ts-txt">—</b> &middot; fuente: <code>export_dashboard_data.py</code> (cada hora, automático)</div>
+
+<div class="tabbar" id="tabbar">
+  <div class="tabbtn active" data-tab="resumen">Resumen histórico</div>
+  <div class="tabbtn" data-tab="abiertas">Posiciones abiertas ahora</div>
+</div>
+
+<div id="tab-resumen">
 
 <div class="kpis" id="kpis"></div>
 
@@ -94,6 +105,30 @@
   <h2>Registro de espejos ARMADOS (#S81/#S82) — desempeño forward desde el armado</h2>
   <div class="hint">Umbral se congela al armar. "N cerr./PnL/WR/IC90" es el N FORWARD acumulado DESPUÉS del armado (nunca el histórico que lo disparó — sería circular); ese es el N que cuenta para el gate de graduación (N&ge;40, positivo, IC90 excluye 0).</div>
   <div class="tablewrap"><table id="tablaEspejos"><thead></thead><tbody></tbody></table></div>
+</div>
+
+</div>
+
+<div id="tab-abiertas" style="display:none;">
+  <div class="meta" id="abiertas-meta">—</div>
+
+  <div class="panel">
+    <h2><span class="tag LIVE">LIVE</span> Posiciones reales abiertas en Binance (motor vivo)</h2>
+    <div class="hint">Ejecutadas por el motor con capital real. <code>testnet_open=false</code> = desync (el motor la cree abierta pero el executor la rechazó).</div>
+    <div class="tablewrap"><table id="tablaAbiertasLive"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="tag SOMBRA">SOMBRA</span> Familias denegadas acumulando sin capital (#S75)</h2>
+    <div class="hint">Sombrean las familias que el gate NO admite a capital real, con la misma disciplina de entrada/salida que el motor vivo.</div>
+    <div class="tablewrap"><table id="tablaAbiertasSombra"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="panel">
+    <h2><span class="badge-arm">ESPEJO</span> Mini-posiciones condicionales corriendo (#S81)</h2>
+    <div class="hint">Por cada fire de una familia con (familia, corte) armado, corre en paralelo esta sub-posición espejo — capital cero, mide si el segmento negativo detectado se confirma forward. "origen" = si nació sobre una apertura LIVE o SOMBRA.</div>
+    <div class="tablewrap"><table id="tablaAbiertasEspejo"><thead></thead><tbody></tbody></table></div>
+  </div>
 </div>
 
 <script>
@@ -446,6 +481,80 @@ function renderEspejos(){
   });
 }
 
+function fmtAge(ts){
+  if (!ts) return '—';
+  const ms = Date.now() - ts;
+  const h = ms / 3600000;
+  if (h < 1) return Math.round(ms/60000) + 'min';
+  if (h < 48) return h.toFixed(1) + 'h';
+  return (h/24).toFixed(1) + 'd';
+}
+
+function renderAbiertas(){
+  const a = state.data.abiertas;
+  const meta = document.getElementById('abiertas-meta');
+  if (!a || !a.disponible){
+    meta.innerHTML = `<span class="neg">No disponible: ${a ? a.motivo : 'sin datos'}</span>`;
+    return;
+  }
+  const nLiveState = a.live.length;
+  const nBinance = a.binance_n_real;
+  const err = a.binance_error ? ` · <span class="neg">Binance no respondió: ${a.binance_error}</span>` : '';
+  const huerf = a.binance_huerfanas.length ? ` · <span class="neg">${a.binance_huerfanas.length} posición(es) en Binance sin registro en el motor</span>` : '';
+  meta.innerHTML = `Motor cree abiertas: <b>${nLiveState}</b> LIVE · <b>${a.sombra.length}</b> SOMBRA · <b>${a.espejo.length}</b> ESPEJO
+    &middot; Confirmadas AHORA en Binance: <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>
+    ${nBinance!==null && nBinance!==nLiveState ? ' <span class="neg">(el state va por detrás — no reconcilia cierres TP/SL hasta el próximo ciclo)</span>' : ''}${err}${huerf}`;
+
+  // LIVE
+  const theadL = document.querySelector('#tablaAbiertasLive thead');
+  const tbodyL = document.querySelector('#tablaAbiertasLive tbody');
+  theadL.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>confirmado Binance</th><th>uPnL$ (Binance)</th></tr>';
+  tbodyL.innerHTML = a.live.map(p=>{
+    const conf = p.confirmado_binance;
+    const confTxt = conf ? '<span class="badge-pos">sí</span>' : '<span class="badge-neg">no (state desactualizado o desync)</span>';
+    const upnl = p.upnl_binance;
+    return `<tr>
+      <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
+      <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
+      <td>${confTxt}</td>
+      <td class="${upnl==null?'':(upnl>=0?'pos':'neg')}">${upnl==null?'—':(upnl>=0?'+':'')+upnl.toFixed(2)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9">Sin posiciones LIVE abiertas.</td></tr>';
+
+  // SOMBRA
+  const theadS = document.querySelector('#tablaAbiertasSombra thead');
+  const tbodyS = document.querySelector('#tablaAbiertasSombra tbody');
+  theadS.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th></tr>';
+  const sombraRows = [...a.sombra].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0)).slice(0, 200);
+  tbodyS.innerHTML = sombraRows.map(p=>`<tr>
+      <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
+      <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
+    </tr>`).join('') || '<tr><td colspan="7">Sin posiciones SOMBRA abiertas.</td></tr>';
+  if (a.sombra.length > 200){
+    tbodyS.innerHTML += `<tr><td colspan="7" class="hint">... y ${a.sombra.length-200} más (mostrando las 200 más recientes)</td></tr>`;
+  }
+
+  // ESPEJO
+  const theadE = document.querySelector('#tablaAbiertasEspejo thead');
+  const tbodyE = document.querySelector('#tablaAbiertasEspejo tbody');
+  theadE.innerHTML = '<tr><th>familia</th><th>corte</th><th>origen</th><th>dir espejo</th><th>símbolo</th><th>abierta hace</th><th>TP</th><th>SL</th></tr>';
+  tbodyE.innerHTML = a.espejo.map(p=>`<tr>
+      <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${p.origen_base}</span></td>
+      <td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
+      <td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
+    </tr>`).join('') || '<tr><td colspan="8">Sin espejos condicionales abiertos.</td></tr>';
+}
+
+document.getElementById('tabbar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.tabbtn');
+  if (!btn) return;
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const tab = btn.dataset.tab;
+  document.getElementById('tab-resumen').style.display = tab==='resumen' ? '' : 'none';
+  document.getElementById('tab-abiertas').style.display = tab==='abiertas' ? '' : 'none';
+});
+
 fetch('data.json?_=' + Date.now())
   .then(r=>r.json())
   .then(d=>{
@@ -458,6 +567,7 @@ fetch('data.json?_=' + Date.now())
     buildFilterUI();
     render();
     renderEspejos();
+    renderAbiertas();
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;

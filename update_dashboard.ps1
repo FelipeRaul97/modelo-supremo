@@ -8,6 +8,15 @@
 
 $ErrorActionPreference = "Continue"
 
+# Bajo Task Scheduler (sin consola interactiva) PowerShell 5.1 captura la salida de
+# procesos externos con el codepage OEM del sistema, no UTF-8 - aunque Python emita
+# UTF-8 correctamente, se re-decodifica mal y el README/JSON quedan con mojibake
+# (visto 2026-09-21, corrida de las 16:53). Forzar UTF-8 en ambos lados lo evita.
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+$env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUTF8 = "1"
+
 $repoCripto    = "C:\Users\HP\OneDrive\Desktop\Cripto"
 $repoDashboard = "C:\Users\HP\OneDrive\Desktop\supremo-dashboard"
 $python        = "C:\Users\HP\AppData\Local\Programs\Python\Python314\python.exe"
