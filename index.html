@@ -50,6 +50,7 @@
   .badge-pos{font-size:0.68rem; background:rgba(79,209,139,.16); color:var(--pos); border-radius:5px; padding:1px 6px; font-weight:600;}
   .badge-neg{font-size:0.68rem; background:rgba(239,111,111,.16); color:var(--neg); border-radius:5px; padding:1px 6px; font-weight:600;}
   tr.segrow td:first-child, tr.segrow td:nth-child(2){ color:var(--muted); }
+  tr.totalrow{ background:var(--panel2); }
 </style>
 </head>
 <body>
@@ -355,7 +356,7 @@ function renderTable(filtered){
       Object.entries(buckets).forEach(([bk, brows])=>{
         if (brows.length < N_MIN) return;
         const bs = statsOf(brows);
-        rows.push({ familia:'', dir:'', origen:g.origen, segmento:`${info.label} = ${bk}`, esTotal:false, ...bs });
+        rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:`${info.label} = ${bk}`, esTotal:false, ...bs });
       });
     });
   });
@@ -370,11 +371,11 @@ function renderTable(filtered){
   tbody.innerHTML = rows.map(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
     const estado = r.esTotal ? '' : estadoDe(r.mean, excl);
-    return `<tr class="${r.esTotal?'':'segrow'}">
+    return `<tr class="${r.esTotal?'totalrow':'segrow'}">
       <td>${r.familia}</td>
       <td>${r.dir}</td>
       <td>${r.origen?`<span class="tag ${r.origen}">${r.origen}</span>`:''}</td>
-      <td>${r.segmento}</td>
+      <td>${r.esTotal?`<b>${r.segmento}</b>`:r.segmento}</td>
       <td>${r.n}</td>
       <td class="${r.mean>=0?'pos':'neg'}">${fmtR(r.mean)}</td>
       <td class="${r.sum>=0?'pos':'neg'}">${fmtR(r.sum)}</td>
