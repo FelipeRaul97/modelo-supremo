@@ -132,20 +132,60 @@
 </div>
 
 <script>
-const N_MIN = 15;
+const N_MIN = 15;   // mismo N_MIN que study_segmentos_por_familia.py
 
-const CORTES = {
-  btc_1h: { label: 'Régimen BTC', field: 'btc_1h', kind: 'categ' },
-  alt_1d: { label: 'Altcoin 1d', field: 'alt_1d', kind: 'categ' },
-  celda: { label: 'Celda conjunta', field: 'celda', kind: 'categ' },
-  age4h: { label: 'Edad régimen 4h (terciles)', field: 'age4h', kind: 'tercil' },
-  vol_rel: { label: 'Volumen relativo (terciles)', field: 'vol_rel', kind: 'tercil' },
+// Réplica EXACTA del MENU fijo de #S82 (study_segmentos_por_familia.py: CORTE_IDS,
+// MENU_LOOKUP) — mismos corte_id, mismos criterios, para que "segmento" en esta tabla
+// sea el mismo corte_id que usa el backend (y por tanto matchee 1:1 contra el registro
+// de armados, sin aproximaciones).
+const CELDAS_L2 = ['BULL|BULL','BULL|BEAR','BULL|RANGE','BEAR|BULL','BEAR|BEAR',
+                    'BEAR|RANGE','RANGE|BULL','RANGE|BEAR','RANGE|RANGE'];
+
+const MENU = [
+  { id:'alt1d_range', tipo:'categ', fn:r=>r.alt_1d==='RANGE' },
+  { id:'alt1d_trend', tipo:'categ', fn:r=>r.alt_1d==='BULL'||r.alt_1d==='BEAR' },
+  { id:'age4h_alto', tipo:'tercil', field:'age4h', q:66, cmp:'ge' },
+  { id:'age4h_bajo', tipo:'tercil', field:'age4h', q:33, cmp:'le' },
+  { id:'vol_rel_alto', tipo:'tercil', field:'vol_rel', q:66, cmp:'ge' },
+  { id:'vol_rel_bajo', tipo:'tercil', field:'vol_rel', q:33, cmp:'le' },
+  { id:'btc_range', tipo:'categ', fn:r=>r.btc_1h==='RANGE' },
+  { id:'btc_trend', tipo:'categ', fn:r=>r.btc_1h==='BULL'||r.btc_1h==='BEAR' },
+  ...CELDAS_L2.map(cc=>({ id:'celda_'+cc.replace('|','_').toLowerCase(), tipo:'categ', fn:r=>r.celda===cc })),
+];
+
+// Grupos de ejes para la UI de chips (agrupan varios corte_id bajo una etiqueta legible).
+const EJE_GROUPS = {
+  btc_1h: { label:'Régimen BTC', cortes:['btc_range','btc_trend'] },
+  alt_1d: { label:'Altcoin 1d', cortes:['alt1d_range','alt1d_trend'] },
+  celda: { label:'Celda conjunta', cortes: CELDAS_L2.map(cc=>'celda_'+cc.replace('|','_').toLowerCase()) },
+  age4h: { label:'Edad régimen 4h (terciles)', cortes:['age4h_alto','age4h_bajo'] },
+  vol_rel: { label:'Volumen relativo (terciles)', cortes:['vol_rel_alto','vol_rel_bajo'] },
 };
+
+function percentileLinear(sortedVals, p){
+  if (!sortedVals.length) return null;
+  const idx = (p/100) * (sortedVals.length-1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if (lo === hi) return sortedVals[lo];
+  return sortedVals[lo] + (sortedVals[hi]-sortedVals[lo]) * (idx-lo);
+}
+
+function computeSegment(rows, entry){
+  if (entry.tipo === 'categ') return rows.filter(entry.fn);
+  const vals = rows.map(r=>r[entry.field]).filter(v=>v!==null && v!==undefined).sort((a,b)=>a-b);
+  if (vals.length < 5) return [];
+  const p = percentileLinear(vals, entry.q);
+  return rows.filter(r=>{
+    const v = r[entry.field];
+    if (v === null || v === undefined) return false;
+    return entry.cmp === 'ge' ? v >= p : v <= p;
+  });
+}
 
 const state = {
   data: null,
   filters: { origen: new Set(), familia: new Set(), dir: new Set(), btc_1h: new Set() },
-  ejesActivos: new Set(Object.keys(CORTES)),   // todos los ejes visibles por defecto
+  ejesActivos: new Set(Object.keys(EJE_GROUPS)),   // todos los ejes visibles por defecto
   sort: { col: 'mean', dir: -1 },
   sortEspejos: { col: 'mean_R_al_armar', dir: 1 },
 };
@@ -224,10 +264,10 @@ function buildFilterUI(){
   const cname = document.createElement('div'); cname.className='fname'; cname.textContent='Ejes de corte activos (todos por defecto)';
   cdiv.appendChild(cname);
   const cchips = document.createElement('div'); cchips.className='chips';
-  Object.keys(CORTES).forEach(k=>{
+  Object.keys(EJE_GROUPS).forEach(k=>{
     const chip = document.createElement('div');
     chip.className='chip' + (state.ejesActivos.has(k)?' active':'');
-    chip.textContent = CORTES[k].label;
+    chip.textContent = EJE_GROUPS[k].label;
     chip.onclick = ()=>{
       if (state.ejesActivos.has(k)) state.ejesActivos.delete(k); else state.ejesActivos.add(k);
       chip.classList.toggle('active');
@@ -237,26 +277,6 @@ function buildFilterUI(){
   });
   cdiv.appendChild(cchips);
   cbox.appendChild(cdiv);
-}
-
-function terciles(vals, field){
-  const v = vals.map(x=>x[field]).filter(x=>x!==null && x!==undefined).sort((a,b)=>a-b);
-  if (v.length < 5) return null;
-  const pct = (p)=> v[Math.min(v.length-1, Math.floor(p/100*v.length))];
-  return { lo: pct(33), hi: pct(66) };
-}
-
-function groupKey(t, corteKey, tercilInfo){
-  const info = CORTES[corteKey];
-  if (info.kind === 'tercil'){
-    const val = t[info.field];
-    if (val === null || val === undefined || !tercilInfo) return null;
-    if (val >= tercilInfo.hi) return 'alto';
-    if (val <= tercilInfo.lo) return 'bajo';
-    return 'medio';
-  }
-  const val = t[info.field];
-  return (val === null || val === undefined) ? '(sin dato)' : val;
 }
 
 function aggregate(trades){
@@ -356,9 +376,9 @@ function render(){
   renderTable(filtered);
 }
 
-function estadoDe(mean, excl){
-  // El match EXACTO con el registro de armado vive en la tabla de espejos de abajo
-  // (usa el mismo corte_id que el backend); aquí solo señalamos candidatos por IC90.
+function estadoDe(familia, corteId, mean, excl){
+  const armadosFam = state.data.armados[familia];
+  if (corteId && armadosFam && armadosFam[corteId]) return '<span class="badge-arm">ARMADA</span>';
   if (excl && mean < 0) return '<span class="badge-neg">neg</span>';
   if (excl && mean > 0) return '<span class="badge-pos">pos</span>';
   return '';
@@ -379,20 +399,12 @@ function renderTable(filtered){
   Object.values(byGroup).forEach(g=>{
     const s = statsOf(g.rows);
     rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:'(TOTAL)', esTotal:true, corteId:null, ...s });
-    [...state.ejesActivos].forEach(corteKey=>{
-      const info = CORTES[corteKey];
-      const terc = info.kind==='tercil' ? terciles(g.rows, info.field) : null;
-      const buckets = {};
-      g.rows.forEach(t=>{
-        const gk = groupKey(t, corteKey, terc);
-        if (gk===null) return;
-        (buckets[gk] = buckets[gk]||[]).push(t);
-      });
-      Object.entries(buckets).forEach(([bk, brows])=>{
-        if (brows.length < N_MIN) return;
-        const bs = statsOf(brows);
-        rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:`${info.label} = ${bk}`, esTotal:false, ...bs });
-      });
+    const activeIds = new Set([...state.ejesActivos].flatMap(k=>EJE_GROUPS[k].cortes));
+    MENU.filter(entry=>activeIds.has(entry.id)).forEach(entry=>{
+      const sub = computeSegment(g.rows, entry);
+      if (sub.length < N_MIN) return;
+      const bs = statsOf(sub);
+      rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:entry.id, corteId:entry.id, esTotal:false, ...bs });
     });
   });
 
@@ -405,7 +417,7 @@ function renderTable(filtered){
 
   tbody.innerHTML = rows.map(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
-    const estado = r.esTotal ? '' : estadoDe(r.mean, excl);
+    const estado = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.mean, excl);
     return `<tr class="${r.esTotal?'totalrow':'segrow'}">
       <td>${r.familia}</td>
       <td>${r.dir}</td>
