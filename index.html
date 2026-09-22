@@ -170,16 +170,53 @@ function percentileLinear(sortedVals, p){
   return sortedVals[lo] + (sortedVals[hi]-sortedVals[lo]) * (idx-lo);
 }
 
-function computeSegment(rows, entry){
+// 🔧 2026-09-22 · `umbralFijo` opcional: si se pasa, se usa ESE umbral en vez de
+// recalcularlo sobre `rows`. Necesario para que un tercil (age4h_alto, vol_rel_bajo...)
+// signifique SIEMPRE lo mismo que en `armados` (backend `study_segmentos_por_familia.py`
+// calcula el percentil UNA vez sobre la población completa de (origen,familia,dir), sin
+// los filtros ad hoc del dashboard) — si acá se recalculaba sobre el subconjunto ya
+// filtrado por Régimen BTC/Familia, "age4h_alto" dejaba de ser el mismo corte que el
+// que está realmente armado, y el badge ARMADA quedaba mintiendo sobre qué se está
+// midiendo. Ver `caso-tercil-umbral-filtrado` (2026-09-22).
+function computeSegment(rows, entry, umbralFijo){
   if (entry.tipo === 'categ') return rows.filter(entry.fn);
-  const vals = rows.map(r=>r[entry.field]).filter(v=>v!==null && v!==undefined).sort((a,b)=>a-b);
-  if (vals.length < 5) return [];
-  const p = percentileLinear(vals, entry.q);
+  let p = umbralFijo;
+  if (p === undefined){
+    const vals = rows.map(r=>r[entry.field]).filter(v=>v!==null && v!==undefined).sort((a,b)=>a-b);
+    if (vals.length < 5) return [];
+    p = percentileLinear(vals, entry.q);
+  }
+  if (p === null || p === undefined) return [];
   return rows.filter(r=>{
     const v = r[entry.field];
     if (v === null || v === undefined) return false;
     return entry.cmp === 'ge' ? v >= p : v <= p;
   });
+}
+
+// Umbrales de tercil CONGELADOS por (origen·familia·dir), ajustados una sola vez sobre
+// la población COMPLETA de ese grupo (sin filtros de Régimen BTC/Familia/etc. aplicados)
+// — misma semántica que `_fit_tercil` en study_segmentos_por_familia.py. Se recalcula
+// solo cuando cambian los datos (fetch inicial), nunca al tocar un filtro.
+const TERCIL_ENTRIES = ['age4h_alto', 'age4h_bajo', 'vol_rel_alto', 'vol_rel_bajo'];
+let umbralesCongelados = {};   // {origen·familia·dir: {corte_id: umbral|null}}
+
+function fitUmbralesCongelados(allTrades){
+  const porGrupo = {};
+  allTrades.forEach(t=>{
+    const k = t.origen + '·' + t.familia + '·' + t.dir;
+    (porGrupo[k] = porGrupo[k] || []).push(t);
+  });
+  const out = {};
+  Object.entries(porGrupo).forEach(([k, rows])=>{
+    out[k] = {};
+    TERCIL_ENTRIES.forEach(id=>{
+      const entry = MENU.find(m=>m.id===id);
+      const vals = rows.map(r=>r[entry.field]).filter(v=>v!==null && v!==undefined).sort((a,b)=>a-b);
+      out[k][id] = vals.length < 5 ? null : percentileLinear(vals, entry.q);
+    });
+  });
+  return out;
 }
 
 const state = {
@@ -230,6 +267,29 @@ function buildFilterUI(){
   const trades = state.data.trades;
   const box = document.getElementById('filters');
   box.innerHTML = '';
+
+  // 🔧 2026-09-22 · presets rápidos — la separación LIVE/SOMBRA es la distinción más
+  // importante del dashboard (capital real vs papel) y antes requería 2 clicks
+  // (activar LIVE, dejar SOMBRA sin marcar via exclusión manual). Un chip por preset.
+  const pdiv = document.createElement('div');
+  pdiv.className = 'filtergroup';
+  const pname = document.createElement('div'); pname.className='fname'; pname.textContent='Presets';
+  pdiv.appendChild(pname);
+  const pchips = document.createElement('div'); pchips.className='chips';
+  [
+    { label:'Solo LIVE (capital real)', apply:()=>{ state.filters.origen = new Set(['LIVE']); } },
+    { label:'Solo SOMBRA (papel)', apply:()=>{ state.filters.origen = new Set(['SOMBRA']); } },
+    { label:'Limpiar filtros', apply:()=>{ state.filters = { origen:new Set(), familia:new Set(), dir:new Set(), btc_1h:new Set() }; } },
+  ].forEach(preset=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = preset.label;
+    chip.onclick = ()=>{ preset.apply(); buildFilterUI(); render(); };
+    pchips.appendChild(chip);
+  });
+  pdiv.appendChild(pchips);
+  box.appendChild(pdiv);
+
   const groups = [
     { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
@@ -244,7 +304,10 @@ function buildFilterUI(){
     const chips = document.createElement('div'); chips.className='chips';
     g.values.forEach(v=>{
       const chip = document.createElement('div');
-      chip.className='chip';
+      // 🔧 2026-09-22 · el estado activo ahora se lee de state.filters en vez de
+      // togglear la clase a mano — así un preset que muta state.filters directamente
+      // (sin pasar por este onclick) también queda reflejado al reconstruir la UI.
+      chip.className = 'chip' + (state.filters[g.key].has(v) ? ' active' : '');
       chip.textContent = v;
       chip.onclick = ()=>{
         const set = state.filters[g.key];
@@ -306,17 +369,31 @@ function render(){
   const filtered = applyFilters(state.data.trades);
 
   const kpis = document.getElementById('kpis');
-  const st = statsOf(filtered);
-  const nLive = filtered.filter(t=>t.origen==='LIVE').length;
-  const nSombra = filtered.filter(t=>t.origen==='SOMBRA').length;
+  const liveRows = filtered.filter(t=>t.origen==='LIVE');
+  const sombraRows = filtered.filter(t=>t.origen==='SOMBRA');
+  const stLive = statsOf(liveRows);
+  const stSombra = statsOf(sombraRows);
+  const soloUnOrigen = state.filters.origen.size === 1;
+  // 🔧 2026-09-22 · antes esto mezclaba LIVE (capital real) con SOMBRA (capital cero,
+  // papel) en un solo mean_R/Suma R/IC90 sin avisar — con ambos orígenes sin filtrar
+  // (el estado por defecto) esa mezcla infla la lectura de "rendimiento" con trades que
+  // nunca movieron un dólar. Separado en dos columnas; si el usuario ya filtró a un
+  // solo origen, no hace falta la advertencia (ambas columnas dirían lo mismo).
   kpis.innerHTML = `
     <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div></div>
-    <div class="kpi"><div class="label">LIVE / SOMBRA</div><div class="value">${nLive} / ${nSombra}</div></div>
-    <div class="kpi"><div class="label">mean_R</div><div class="value ${st.mean>=0?'pos':'neg'}">${filtered.length?fmtR(st.mean):'—'}</div></div>
-    <div class="kpi"><div class="label">Suma R</div><div class="value ${st.sum>=0?'pos':'neg'}">${filtered.length?fmtR(st.sum):'—'}</div></div>
-    <div class="kpi"><div class="label">Win rate</div><div class="value">${filtered.length?st.wr.toFixed(0)+'%':'—'}</div></div>
-    <div class="kpi"><div class="label">IC90 (clúster)</div><div class="value" style="font-size:1rem">${st.ic?`[${st.ic[0].toFixed(2)},${st.ic[1].toFixed(2)}]`:'n/a'}</div></div>
+    <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
+      <div class="value ${stLive.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${liveRows.length} · ${liveRows.length?fmtR(stLive.mean):'—'} · ${liveRows.length?fmtR(stLive.sum):'—'}</div></div>
+    <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
+      <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${sombraRows.length} · ${sombraRows.length?fmtR(stSombra.mean):'—'} · ${sombraRows.length?fmtR(stSombra.sum):'—'}</div></div>
+    <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${liveRows.length?stLive.wr.toFixed(0)+'%':'—'} / ${sombraRows.length?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
+    <div class="kpi"><div class="label">IC90 LIVE (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
   `;
+  if (!soloUnOrigen && liveRows.length && sombraRows.length){
+    kpis.innerHTML += `<div class="kpi" style="grid-column:1/-1;border-color:#ffcf5c66;">
+      <div class="label" style="color:#ffcf5c">⚠️ Origen mixto</div>
+      <div class="hint" style="margin-top:2px">Estás viendo LIVE (capital real) + SOMBRA (capital cero, acumulando sin operar) juntos. Los gráficos de abajo también mezclan ambos salvo que filtrés por Origen.</div>
+    </div>`;
+  }
 
   const byGroup = aggregate(filtered);
   const groupEntries = Object.entries(byGroup).map(([k,g])=>({...g, ...statsOf(g.rows)}))
@@ -333,21 +410,30 @@ function render(){
       scales:{ x:{ grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} }, y:{ grid:{display:false}, ticks:{color:'#8b96a8', font:{size:10}} } } }
   });
 
-  const sorted = [...filtered].sort((a,b)=>a.ts-b.ts);
-  let cum = 0;
-  const eqPoints = sorted.map(t=>{ cum += t.pnl_R; return {x:new Date(t.ts), y:cum}; });
+  // 🔧 2026-09-22 · antes una sola curva sumaba LIVE+SOMBRA en la misma línea, así que
+  // el "PnL_R acumulado" que se ve de entrada mezclaba dinero real con trades de papel.
+  // Dos series separadas (mismo eje, mismo gráfico) para que la diferencia salte a la
+  // vista en vez de necesitar filtrar primero.
+  const eqSeries = (rows) => { let cum=0; return [...rows].sort((a,b)=>a.ts-b.ts).map(t=>{ cum+=t.pnl_R; return {x:new Date(t.ts), y:cum}; }); };
   if (chartEquity) chartEquity.destroy();
   chartEquity = new Chart(document.getElementById('chartEquity'), {
     type:'line',
-    data:{ datasets:[{ label:'PnL_R acumulado', data:eqPoints, borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.1)', fill:true, pointRadius:0, borderWidth:2 }] },
+    data:{ datasets:[
+      { label:'LIVE (capital real)', data:eqSeries(liveRows), borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.08)', fill:true, pointRadius:0, borderWidth:2 },
+      { label:'SOMBRA (capital cero)', data:eqSeries(sombraRows), borderColor:'#c792ea', backgroundColor:'rgba(199,146,234,.06)', fill:true, pointRadius:0, borderWidth:2, borderDash:[4,3] },
+    ]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+      plugins:{legend:{display:true, labels:{color:'#8b96a8', font:{size:11}}}},
       scales:{ x:{ type:'time', time:{unit:'day'}, grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} }, y:{ grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} } } }
   });
 
   const bins = 24;
   const vals = filtered.map(t=>t.pnl_R);
-  const min = Math.min(...vals, -1), max = Math.max(...vals, 1);
+  // 🔧 2026-09-22 · Math.min(...vals) con spread revienta (RangeError: Maximum call
+  // stack size exceeded) si vals crece a decenas de miles de elementos — SOMBRA ya
+  // va en ~460 y sube todos los días. reduce() no tiene ese límite.
+  const min = Math.min(vals.length ? vals.reduce((a,b)=>a<b?a:b) : -1, -1);
+  const max = Math.max(vals.length ? vals.reduce((a,b)=>a>b?a:b) : 1, 1);
   const width = (max-min)/bins || 1;
   const counts = new Array(bins).fill(0);
   vals.forEach(v=>{ let idx = Math.floor((v-min)/width); if (idx>=bins) idx=bins-1; if(idx<0) idx=0; counts[idx]++; });
@@ -400,17 +486,37 @@ function renderTable(filtered){
     const s = statsOf(g.rows);
     rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:'(TOTAL)', esTotal:true, corteId:null, ...s });
     const activeIds = new Set([...state.ejesActivos].flatMap(k=>EJE_GROUPS[k].cortes));
+    const claveGrupo = g.origen + '·' + g.familia + '·' + g.dir;
+    const umbralesGrupo = umbralesCongelados[claveGrupo] || {};
     MENU.filter(entry=>activeIds.has(entry.id)).forEach(entry=>{
-      const sub = computeSegment(g.rows, entry);
+      // umbral congelado (population completa) para terciles; undefined para categ
+      // (computeSegment ignora `umbralFijo` en ese caso, sin cambio de comportamiento).
+      const umbralFijo = TERCIL_ENTRIES.includes(entry.id) ? umbralesGrupo[entry.id] : undefined;
+      const sub = computeSegment(g.rows, entry, umbralFijo);
       if (sub.length < N_MIN) return;
       const bs = statsOf(sub);
       rows.push({ familia:g.familia, dir:g.dir, origen:g.origen, segmento:entry.id, corteId:entry.id, esTotal:false, ...bs });
     });
   });
 
+  // 🔧 2026-09-22 · `estado` no existía todavía en `r` al momento de este sort (se
+  // calculaba recién al pintar la fila más abajo) — clickear el encabezado "estado" no
+  // hacía nada. `ic` es un array [lo,hi]; comparado con `(av||0)-(bv||0)` da NaN siempre
+  // (resta de arrays) — clickear "IC90" tampoco ordenaba. Se resuelven ambos acá,
+  // ANTES del sort: `estado` se computa ya mismo (texto plano, sin HTML, para que
+  // localeCompare tenga sentido) y se agrega `icLo` (cota inferior) como proxy numérico
+  // ordenable de IC90 — mismo criterio que usa `excl` para decidir significancia.
+  rows.forEach(r=>{
+    const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
+    r.estadoTxt = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.mean, excl).replace(/<[^>]+>/g, '');
+    r.icLo = r.ic ? r.ic[0] : null;
+  });
+
   rows.sort((a,b)=>{
-    const c = state.sort.col;
+    const c = state.sort.col === 'estado' ? 'estadoTxt' : (state.sort.col === 'ic' ? 'icLo' : state.sort.col);
     const av = a[c], bv = b[c];
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
     if (typeof av === 'string') return state.sort.dir * av.localeCompare(bv||'');
     return state.sort.dir * ((av||0) - (bv||0));
   });
@@ -531,7 +637,13 @@ function renderAbiertas(){
   theadL.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>confirmado Binance</th><th>uPnL$ (Binance)</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
   tbodyL.innerHTML = a.live.map(p=>{
     const conf = p.confirmado_binance;
-    const confTxt = conf ? '<span class="badge-pos">sí</span>' : '<span class="badge-neg">no (state desactualizado o desync)</span>';
+    // 🔧 2026-09-22 · si Binance no respondió (`a.binance_error`), `binance_real` llega
+    // vacío del backend y CADA posición marca confirmado_binance=false — antes esto se
+    // mostraba igual que un desync real ("no, state desactualizado"), acusando a todas
+    // las posiciones de algo que en realidad es una falla de red/API, no del motor.
+    const confTxt = conf ? '<span class="badge-pos">sí</span>'
+      : (a.binance_error ? '<span class="badge-neg">no verificado (Binance no respondió)</span>'
+                          : '<span class="badge-neg">no (state desactualizado o desync)</span>');
     const upnl = p.upnl_binance;
     return `<tr>
       <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
@@ -582,6 +694,7 @@ fetch('data.json?_=' + Date.now())
   .then(r=>r.json())
   .then(d=>{
     state.data = d;
+    umbralesCongelados = fitUmbralesCongelados(d.trades);   // una sola vez, sobre TODO
     document.getElementById('ts-txt').textContent = d.generado_ts;
     const rb = d.regimen_btc;
     document.getElementById('regimen-txt').textContent = rb && rb.disponible
