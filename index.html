@@ -646,9 +646,16 @@ function renderAbiertas(){
   const nBinance = a.binance_n_real;
   const err = a.binance_error ? ` · <span class="neg">Binance no respondió: ${a.binance_error}</span>` : '';
   const huerf = a.binance_huerfanas.length ? ` · <span class="neg">${a.binance_huerfanas.length} posición(es) en Binance sin registro en el motor</span>` : '';
+  // 🔧 2026-09-22 · `excluidas_no_reales` (E_K5_ONLY, GHOST_SYMBOLS) ya no entra en
+  // "live" ni cuenta como desync — antes se mostraban como posiciones reales
+  // desincronizadas cuando en realidad nunca pasaron por el executor. Se muestra la
+  // cuenta para que no desaparezcan en silencio, con su propio motivo (no es un error).
+  const exNoReales = a.excluidas_no_reales || {ek5:0, ghost:0};
+  const nExcl = (exNoReales.ek5||0) + (exNoReales.ghost||0);
+  const excl = nExcl ? ` · <span class="hint" style="margin:0">(+${nExcl} excluidas: ${exNoReales.ek5||0} lane de investigación E_K5, ${exNoReales.ghost||0} ghost — nunca fueron posiciones reales)</span>` : '';
   meta.innerHTML = `Motor cree abiertas: <b>${nLiveState}</b> LIVE · <b>${a.sombra.length}</b> SOMBRA · <b>${a.espejo.length}</b> ESPEJO
     &middot; Confirmadas AHORA en Binance: <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>
-    ${nBinance!==null && nBinance!==nLiveState ? ' <span class="neg">(el state va por detrás — no reconcilia cierres TP/SL hasta el próximo ciclo)</span>' : ''}${err}${huerf}`;
+    ${nBinance!==null && nBinance!==nLiveState ? ' <span class="neg">(el state va por detrás — no reconcilia cierres TP/SL hasta el próximo ciclo)</span>' : ''}${err}${huerf}${excl}`;
 
   const upnlCell = (p) => {
     if (p.upnl_pct == null) return '<td>—</td><td>—</td>';
