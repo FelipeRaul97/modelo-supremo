@@ -352,6 +352,22 @@ function aggregate(trades){
   return byGroup;
 }
 
+// 🔧 2026-09-22 · ROI = PnL$ / capital nocional desplegado — NO es lo mismo que mean_R
+// (múltiplo de riesgo: distancia al stop, no capital invertido). Dos trades con el mismo
+// R pueden tener notional muy distinto (el motor usó 50/70/100 en distintas épocas,
+// D-17). Para LIVE usa el notional REAL de cada trade; para SOMBRA (capital cero, nunca
+// ejecutado) usa el notional de referencia vigente que ya viene marcado desde el backend
+// (`notional_simulado: true`) — el llamador debe avisar que es simulado, no real.
+function roiOf(rows){
+  let pnlUsd = 0, notionalUsd = 0;
+  rows.forEach(r=>{
+    if (r.notional == null || r.pnl_pct == null) return;
+    pnlUsd += r.notional * r.pnl_pct / 100;
+    notionalUsd += r.notional;
+  });
+  return notionalUsd ? { roiPct: 100 * pnlUsd / notionalUsd, pnlUsd, notionalUsd } : null;
+}
+
 function statsOf(rows){
   const v = rows.map(r=>r.pnl_R);
   const n = v.length;
@@ -360,7 +376,8 @@ function statsOf(rows){
   const sum = n ? v.reduce((a,b)=>a+b,0) : 0;
   const syms = rows.map(r=>r.sym);
   const ic = ic90Cluster(v, syms);
-  return { n, mean, wr, sum, ic };
+  const roi = roiOf(rows);
+  return { n, mean, wr, sum, ic, roi };
 }
 
 let chartFamilias, chartEquity, chartHist, chartRegimen;
@@ -379,14 +396,24 @@ function render(){
   // (el estado por defecto) esa mezcla infla la lectura de "rendimiento" con trades que
   // nunca movieron un dólar. Separado en dos columnas; si el usuario ya filtró a un
   // solo origen, no hace falta la advertencia (ambas columnas dirían lo mismo).
+  const roiTxt = (roi) => roi ? (roi.roiPct>=0?'+':'') + roi.roiPct.toFixed(2) + '%' : '—';
+  const roiCls = (roi) => roi && roi.roiPct < 0 ? 'neg' : 'pos';
+  const notionalRefSombra = (sombraRows.find(r=>r.notional_simulado) || {}).notional || 0;
   kpis.innerHTML = `
     <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div></div>
     <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
       <div class="value ${stLive.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${liveRows.length} · ${liveRows.length?fmtR(stLive.mean):'—'} · ${liveRows.length?fmtR(stLive.sum):'—'}</div></div>
     <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
       <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${sombraRows.length} · ${sombraRows.length?fmtR(stSombra.mean):'—'} · ${sombraRows.length?fmtR(stSombra.sum):'—'}</div></div>
+    <div class="kpi"><div class="label">ROI LIVE (capital real desplegado)</div>
+      <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div></div>
+    <div class="kpi"><div class="label">ROI SOMBRA <span class="hint" style="margin:0">(simulado, nocional ref.)</span></div>
+      <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
     <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${liveRows.length?stLive.wr.toFixed(0)+'%':'—'} / ${sombraRows.length?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
     <div class="kpi"><div class="label">IC90 LIVE (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
+    <div class="kpi" style="grid-column:1/-1;background:transparent;border:none;padding:0;">
+      <div class="hint">ROI = ΣPnL$ / Σnocional desplegado por trade (no es retorno de cuenta ni está anualizado — el mismo capital se reutiliza trade tras trade, no está todo invertido a la vez). LIVE usa el nocional real de cada operación (50/70/100$ según la época, ver D-17); SOMBRA nunca tuvo capital, así que su ROI es SIMULADO con el nocional de referencia vigente ($${notionalRefSombra.toFixed(0)}) — es "cuánto habría rendido si hubiera operado", no una ganancia real.</div>
+    </div>
   `;
   if (!soloUnOrigen && liveRows.length && sombraRows.length){
     kpis.innerHTML += `<div class="kpi" style="grid-column:1/-1;border-color:#ffcf5c66;">
