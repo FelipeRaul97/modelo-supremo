@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-22 22:27:21
+Ultima actualizacion: 2026-09-22 23:34:59
 
 ```
 ========================================================================================================
@@ -44,7 +44,7 @@ Ultima actualizacion: 2026-09-22 22:27:21
 ```
 
 ```
-  Régimen BTC: ret30d=+11.7%  ret7d=+10.8%  ·  fuera de régimen de impulso  ⚠️ CACHÉ STALE (20h) — refrescar con `python -m SUPREMO.hist_extiende`
+  Régimen BTC: ret30d=+11.7%  ret7d=+10.8%  ·  fuera de régimen de impulso  ⚠️ CACHÉ STALE (22h) — refrescar con `python -m SUPREMO.hist_extiende`
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
@@ -72,6 +72,8 @@ Ultima actualizacion: 2026-09-22 22:27:21
 │ SOMBRA·54_ext_dn_4h     LONG  BEAR       26    +3.265  +84.90   96% [+2.88,+3.60]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT RANGE      33    -0.671  -22.16   39% [-1.12,-0.23]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
+│ SOMBRA·s84_volumen_regimLONG  BULL       10    +2.768  +27.68   80% [+1.56,+3.97]*                   │
+│ SOMBRA·s87_fib_cont_alciLONG  BULL        9    +3.301  +29.71   89% [+1.96,+3.97]*                   │
 │ SOMBRA·s87_fib_cont_bajiSHORT BULL       13    -2.020  -26.26    0% [-2.02,-2.02]*                   │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -156,8 +158,8 @@ Ultima actualizacion: 2026-09-22 22:27:21
 │                               age4h_alto      15   100%  -0.628   -9.42   47%       [-1.33,+0.04]  R14 B0 Be1       │
 │                               btc_range       33   100%  -0.671  -22.16   39%      [-1.12,-0.23]*  R33 B0 Be0   [ARMADA] │
 │ SOMBRA·s83_quiebre_retesLONG  (TOTAL)          2   100%  +3.972   +7.94  100%                 n/a  R0 B2 Be0        │
-│ SOMBRA·s84_volumen_regimLONG  (TOTAL)          8   100%  +2.466  +19.73   75%      [+0.96,+3.97]*  R0 B8 Be0        │
-│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          7   100%  +3.109  +21.76   86%      [+1.39,+3.97]*  R0 B7 Be0        │
+│ SOMBRA·s84_volumen_regimLONG  (TOTAL)         10   100%  +2.768  +27.68   80%      [+1.56,+3.97]*  R0 B10 Be0       │
+│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          9   100%  +3.301  +29.71   89%      [+1.96,+3.97]*  R0 B9 Be0        │
 │ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)         13   100%  -2.020  -26.26    0%      [-2.02,-2.02]*  R0 B13 Be0       │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
