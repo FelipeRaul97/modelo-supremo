@@ -4,7 +4,8 @@
 # logs locales + velas publicas de Binance via hist_extiende).
 #
 # index.html es ESTATICO (no lo genera este script) - solo hace fetch('data.json').
-# Este script regenera data.json cada hora y lo publica junto con README.md.
+# Este script regenera data.json cada 15 minutos (SUPREMO_Dashboard_Hourly, pese al
+# nombre) y lo publica junto con README.md.
 
 $ErrorActionPreference = "Continue"
 
@@ -16,9 +17,21 @@ $ErrorActionPreference = "Continue"
 $OutputEncoding = [System.Text.Encoding]::UTF8
 $env:PYTHONIOENCODING = "utf-8"
 $env:PYTHONUTF8 = "1"
+# 🔧 2026-09-22 · a 15 min de cadencia (antes 1h) esta corrida se puede solapar con el
+# resto de tareas programadas (motor vivo, backfill, hist_extiende) en momentos de poca
+# RAM libre — OpenBLAS intenta reservar buffers paralelos y aborta con "Memory
+# allocation still failed after 10 retries" (visto en update_dashboard.log). Forzar 1
+# solo hilo evita esa reserva paralela; status_espejo/export_dashboard_data no son
+# cuellos de botella de CPU, así que no hay costo real de performance.
+$env:OPENBLAS_NUM_THREADS = "1"
 
+# 🔧 2026-09-22 · $repoDashboard apuntaba a "supremo-dashboard", una carpeta local
+# duplicada del mismo repo remoto que quedó sin usarse y se eliminó (confirmado con
+# Felipe: "todo es en modelo-supremo"). Al borrarla, la tarea programada (que la
+# referenciaba vía run_hidden.vbs) empezó a fallar en silencio — el dashboard público
+# se quedó pegado en la última corrida manual. Unificado en una sola carpeta real.
 $repoCripto    = "C:\Users\HP\OneDrive\Desktop\Cripto"
-$repoDashboard = "C:\Users\HP\OneDrive\Desktop\supremo-dashboard"
+$repoDashboard = "C:\Users\HP\OneDrive\Desktop\modelo-supremo"
 $python        = "C:\Users\HP\AppData\Local\Programs\Python\Python314\python.exe"
 $logFile       = Join-Path $repoDashboard "update_dashboard.log"
 
@@ -67,7 +80,7 @@ try {
     $mdLines.Add("")
     $mdLines.Add("Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).")
     $mdLines.Add("")
-    $mdLines.Add("Actualizado automaticamente cada hora (tarea programada local, update_dashboard.ps1).")
+    $mdLines.Add("Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).")
     $mdLines.Add("")
     $mdLines.Add("Ultima actualizacion: $ts")
     $mdLines.Add("")
