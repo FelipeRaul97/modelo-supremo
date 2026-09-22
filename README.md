@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada hora (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-21 23:53:04
+Ultima actualizacion: 2026-09-22 02:09:19
 
 ```
 ========================================================================================================
@@ -44,7 +44,7 @@ Ultima actualizacion: 2026-09-21 23:53:04
 ```
 
 ```
-  Régimen BTC: ret30d=+12.5%  ret7d=+10.0%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=+11.7%  ret7d=+10.8%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
@@ -153,9 +153,9 @@ Ultima actualizacion: 2026-09-21 23:53:04
 │                               alt1d_trend     17   100%  -0.977  -16.60   24%      [-1.56,-0.38]*  R15 B0 Be2   [ARMADA] │
 │                               age4h_alto      15   100%  -0.628   -9.42   47%       [-1.33,+0.04]  R14 B0 Be1       │
 │                               btc_range       33   100%  -0.671  -22.16   39%      [-1.12,-0.23]*  R33 B0 Be0   [ARMADA] │
-│ SOMBRA·s84_volumen_regimLONG  (TOTAL)          2   100%  +0.975   +1.95   50%                 n/a  R0 B2 Be0        │
-│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          1   100%  +3.966   +3.97  100%                 n/a  R0 B1 Be0        │
-│ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)          3   100%  -2.020   -6.06    0%      [-2.02,-2.02]*  R0 B3 Be0        │
+│ SOMBRA·s84_volumen_regimLONG  (TOTAL)          4   100%  +0.964   +3.86   50%       [-2.03,+3.97]  R0 B4 Be0        │
+│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          4   100%  +2.462   +9.85   75%      [+0.95,+3.97]*  R0 B4 Be0        │
+│ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)          4   100%  -2.021   -8.08    0%      [-2.02,-2.02]*  R0 B4 Be0        │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
@@ -174,8 +174,8 @@ Ultima actualizacion: 2026-09-21 23:53:04
   5_posicion_rango        celda_bear_rangeSHORT     categ.     19   -0.780   [-1.29,-0.21]        0         0         —      —                   —  —
   5_posicion_rango        celda_range_rangeSHORT     categ.    153   -0.350   [-0.58,-0.11]        0         0         —      —                   —  —
   41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]        4        18  -115.89%     6%       [-8.79,-3.27]  R8 B1 Be9
-  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]        4        22  -167.86%     0%       [-8.64,-6.71]  R15 B0 Be7
-  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]        4         9   -48.94%    11%       [-9.92,+1.30]  R2 B1 Be6
+  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]        5        22  -167.86%     0%       [-8.64,-6.71]  R15 B0 Be7
+  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]        5         9   -48.94%    11%       [-9.92,+1.30]  R2 B1 Be6
   41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]        2        26  -195.77%     0%       [-8.46,-6.73]  R18 B0 Be8
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]        5        27  -196.43%     0%       [-8.18,-6.46]  R20 B0 Be7
   41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        1         5   -42.47%     0%      [-10.03,-6.89]  R2 B0 Be3
