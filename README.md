@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-23 22:56:12
+Ultima actualizacion: 2026-09-23 23:11:05
 
 ```
 ========================================================================================================
@@ -207,7 +207,7 @@ Ultima actualizacion: 2026-09-23 22:56:12
 │ SOMBRA·s83_quiebre_retesLONG  (TOTAL)          7   100%  +0.544   +3.81   43%       [-1.17,+2.26]  R0 B7 Be0        │
 │ SOMBRA·s84_volumen_regimLONG  (TOTAL)         14   100%  +2.248  +31.48   71%      [+1.16,+3.50]*  R0 B14 Be0       │
 │ SOMBRA·s85_vela_rev_alciSHORT (TOTAL)          3   100%  -2.021   -6.06    0%      [-2.03,-2.02]*  R0 B3 Be0        │
-│ SOMBRA·s85_vela_rev_bajiLONG  (TOTAL)          2   100%  -2.026   -4.05    0%                 n/a  R0 B2 Be0        │
+│ SOMBRA·s85_vela_rev_bajiLONG  (TOTAL)          3   100%  -2.024   -6.07    0%      [-2.03,-2.02]*  R0 B3 Be0        │
 │ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          9   100%  +3.301  +29.71   89%      [+1.96,+3.97]*  R0 B9 Be0        │
 │ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)         26   100%  -2.020  -52.53    0%      [-2.02,-2.02]*  R0 B26 Be0       │
 │                               alt1d_range     15   100%  -2.020  -30.30    0%      [-2.02,-2.02]*  R0 B15 Be0   [ARMADA] │
