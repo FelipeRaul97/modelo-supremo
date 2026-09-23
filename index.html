@@ -79,10 +79,7 @@
   .filterpill .x{ cursor:pointer; opacity:0.75; font-weight:700; padding:0 4px; }
   .filterpill .x:hover{ opacity:1; }
 
-  /* Graduación (#S81 §4) */
-  .progress-track{ width:100%; min-width:80px; height:8px; background:var(--panel2); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
-  .progress-fill{ height:100%; background:var(--accent); }
-  .progress-fill.full{ background:var(--pos); }
+  /* Graduación / veto de segmento (#S81 §4) */
   .checkcell{ font-size:0.9rem; }
   .checkcell.ok{ color:var(--pos); }
   .checkcell.bad{ color:var(--neg); }
@@ -178,15 +175,15 @@
 
 <div id="tab-graduacion" style="display:none;">
   <div class="panel">
-    <h2>Camino a graduación (#S81 §4)</h2>
+    <h2>Camino a veto/exclusión de segmento (#S81 §4)</h2>
     <div class="hint">
-      Un (familia, corte) armado pasa a capital real solo si cumple los 4 checks a la vez, evaluados <b>en</b> el N forward (nunca el histórico que disparó el armado — sería circular):
+      El mecanismo #S81 nunca "promueve a capital" — es un candidato a <b>vetar/excluir</b> ese segmento (LIVE o SOMBRA por igual): arma un espejo en dirección CONTRARIA sobre la subpoblación negativa; si el espejo se confirma forward, la propuesta es sacar ese segmento de la familia (de lo que ya opera en vivo, o de lo que algún día pudiera operar). Se confirma solo con los 4 checks a la vez, evaluados <b>en</b> el N forward (nunca el histórico que disparó el armado — sería circular):
       <b>1)</b> N&ge;40 forward &middot;
       <b>2)</b> mean_R forward &gt;0 con IC90 clúster que excluye 0 &middot;
       <b>3)</b> bate el aleatorio del mismo N (control C1) &middot;
       <b>4)</b> mejora el sistema completo (gate A-02).
-      Los checks 1 y 2 se calculan acá abajo; 3 y 4 hoy viven en scripts sueltos, no en este export — se marcan aparte, no se inventan.
-      N≥40 es un <b>piso</b>, no la meta: por debajo, ni el 1 ni el 2 dicen nada todavía.
+      Los checks 1 y 2 se calculan acá abajo; 3 y 4 hoy viven en scripts sueltos, no en este export — se marcan aparte ("—"), no se inventan.
+      <b>Muestra TODOS los segmentos con N&ge;15 (LIVE+SOMBRA, el mismo universo del tab Resumen)</b>, no solo los 35 ya armados — así se ve qué está por cruzar el gate de armado, no solo lo que ya lo cruzó.
     </div>
     <div class="grad-summary" id="gradSummary"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
@@ -787,13 +784,21 @@ function renderTable(filtered){
   });
 }
 
-// 🔧 2026-09-23 · tab GRADUACIÓN (reemplaza la vieja tabla plana de espejos,
-// movida aquí desde "Resumen histórico"). N_GRAD=40 es el PISO de #S81 §4, no
-// la meta — la discusión con Felipe fue clara en esto: lo que decide es el
-// IC90(R) del check 2, N≥40 solo habilita mirarlo en serio. Los checks 3
-// (bate el aleatorio) y 4 (mejora el sistema, gate A-02) NO se calculan en
-// ningún export automático hoy — se marcan "manual", nunca se simulan.
+// 🔧 2026-09-23 · tab VETO/EXCLUSIÓN (antes "Graduación" — renombrado en el
+// código tras aclarar con Felipe que #S81 NUNCA promueve a capital, ni para
+// LIVE ni para SOMBRA: siempre es un candidato a EXCLUIR un segmento negativo,
+// validado con un espejo en dirección contraria. N_GRAD=40 es el PISO de #S81
+// §4, no la meta — lo que decide es el check 2 (IC90 forward), N≥40 solo
+// habilita mirarlo en serio. Checks 3 (bate el aleatorio) y 4 (mejora el
+// sistema, gate A-02) NO se calculan en ningún export automático hoy — se
+// marcan "—" cuando el segmento ni siquiera está armado, "manual" cuando sí.
 const N_GRAD = 40;
+
+function estadoCheckN(n){
+  n = n || 0;
+  if (n >= N_GRAD) return { txt:`✅ ${n}/${N_GRAD}`, cls:'ok' };
+  return { txt:`${n}/${N_GRAD}`, cls:'wait' };
+}
 
 function estadoCheck2(r){
   if (!r.n_cerrados) return { txt:'sin N', cls:'wait' };
@@ -806,74 +811,148 @@ function estadoCheck2(r){
   return { txt:'IC90 no excluye 0', cls:'wait' };
 }
 
+// 🔧 2026-09-23 · antes esta tabla solo mostraba las 35 (familia,corte) YA
+// armadas (`state.data.espejos`). Felipe pidió ver el universo COMPLETO de
+// segmentos (N≥15, LIVE+SOMBRA — el mismo que alimenta la tabla de Resumen)
+// para poder mirar cuáles se acercan al gate de armado, no solo los que ya lo
+// cruzaron. Recorre TODO el MENU (#S82) sobre TODOS los trades, sin los
+// filtros del toolbar de Resumen (acá siempre es la población completa) y
+// cruza cada segmento contra `armados`/`espejos` si corresponde.
+function computeTodosSegmentos(){
+  const armados = state.data.armados || {};
+  const espejoIndex = {};
+  (state.data.espejos || []).forEach(e=>{ espejoIndex[e.familia+'|'+e.corte+'|'+e.dir] = e; });
+
+  const byGroup = aggregate(state.data.trades);
+  const out = [];
+  Object.values(byGroup).forEach(g=>{
+    const claveGrupo = g.origen + '·' + g.familia + '·' + g.dir;
+    const umbralesGrupo = umbralesCongelados[claveGrupo] || {};
+    MENU.forEach(entry=>{
+      const umbralFijo = TERCIL_ENTRIES.includes(entry.id) ? umbralesGrupo[entry.id] : undefined;
+      const sub = computeSegment(g.rows, entry, umbralFijo);
+      if (sub.length < N_MIN) return;
+      const s = statsOf(sub);
+      const exclHist = s.ic && (s.ic[0]>0 || s.ic[1]<0);
+      const armadoFam = armados[g.familia];
+      const armadoInfo = armadoFam && armadoFam[entry.id];
+      const armado = !!(armadoInfo && armadoInfo.direction === g.dir);
+      const esp = armado ? espejoIndex[g.familia+'|'+entry.id+'|'+g.dir] : null;
+      out.push({
+        familia: g.familia, corte: entry.id, dir: g.dir, origen: g.origen,
+        n_hist: s.n, mean_hist: s.mean, ic_hist: s.ic, excl_hist: exclHist,
+        armado, armado_ts: armado ? armadoInfo.armado_ts : null,
+        n_cerrados: esp ? esp.n_cerrados : 0,
+        mean_R_cerrados: esp ? esp.mean_R_cerrados : null,
+        ic90_R_cerrados: esp ? esp.ic90_R_cerrados : null,
+        wr_cerrados: esp ? esp.wr_cerrados : null,
+        regimen_cerrados: esp ? esp.regimen_cerrados : null,
+        abiertas: esp ? esp.abiertas : 0,
+      });
+    });
+  });
+  return out;
+}
+
 function renderGraduacion(){
-  const rows = [...state.data.espejos];
+  const rows = computeTodosSegmentos();
 
   const nTotal = rows.length;
+  const nArmados = rows.filter(r=>r.armado).length;
   const nPisoN = rows.filter(r=>r.n_cerrados>=N_GRAD).length;
-  const nCheck2Ok = rows.filter(r=>estadoCheck2(r).cls==='ok').length;
+  const nCheck2Ok = rows.filter(r=>r.armado && estadoCheck2(r).cls==='ok').length;
+  const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0).length;
   document.getElementById('gradSummary').innerHTML = `
-    <div><b>${nTotal}</b> (familia,corte) armadas</div>
-    <div><b>${nPisoN}</b> ya con N&ge;${N_GRAD} forward</div>
-    <div><b>${nCheck2Ok}</b> con check 2 (mean_R&gt;0 + IC90 excluye 0) en verde</div>
-    <div style="color:var(--muted)">0 graduadas — checks 3/4 sin automatizar, ver nota arriba</div>
+    <div><b>${nTotal}</b> segmentos con N&ge;15 (LIVE+SOMBRA)</div>
+    <div><b>${nArmados}</b> armados (candidatos a excluir)</div>
+    <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
+    <div><b>${nPisoN}</b> armados ya con N&ge;${N_GRAD} forward</div>
+    <div><b>${nCheck2Ok}</b> con check 2 en verde</div>
+    <div style="color:var(--muted)">0 excluidos aún — checks 3/4 sin automatizar</div>
   `;
 
   const thead = document.querySelector('#tablaGraduacion thead');
   const tbody = document.querySelector('#tablaGraduacion tbody');
   // 🔧 2026-09-23 · BUG (mismo patrón que ya se corrigió en la tabla de Resumen,
   // ver comentario del 22-sept): un `<th>` con `data-col` que apunta a un campo
-  // OBJETO/ARRAY (`ic90_R_cerrados`, `regimen_cerrados`) o INEXISTENTE (`check34`,
-  // texto estático) hace que `(av||0)-(bv||0)` compare objetos/undefined — NaN o
-  // "siempre 1", ambos casos barajan las filas sin ningún criterio real al
-  // clickear el encabezado. `sortable:false` saca esas 3 columnas del binding de
-  // click (quedan de solo lectura, con cursor normal) en vez de fingir que ordenan.
+  // OBJETO/ARRAY (`ic_hist`, `ic90_R_cerrados`, `regimen_cerrados`) hace que
+  // `(av||0)-(bv||0)` compare objetos — NaN, "siempre igual", clickear el
+  // encabezado no ordena nada. `sortable:false` saca esas columnas del binding
+  // de click en vez de fingir que ordenan.
   const cols = [
     {k:'familia', label:'familia'}, {k:'corte', label:'corte'}, {k:'dir', label:'dir'},
-    {k:'n_cerrados', label:'1) N forward'}, {k:'mean_R_cerrados', label:'mean_R fwd'},
-    {k:'ic90_R_cerrados', label:'IC90 (R) fwd', sortable:false}, {k:'check2', label:'2) check IC90'},
-    {k:'check34', label:'3+4', sortable:false}, {k:'wr_cerrados', label:'WR fwd'},
-    {k:'regimen_cerrados', label:'régimen fwd', sortable:false},
-    {k:'abiertas', label:'abiertas'},
+    {k:'origen', label:'origen'}, {k:'n_hist', label:'N hist.'}, {k:'mean_hist', label:'mean_R hist.'},
+    {k:'ic_hist', label:'IC90 hist.', sortable:false}, {k:'estado', label:'estado'},
+    {k:'n_cerrados', label:'1) N≥40'}, {k:'check2', label:'2) IC90 fwd'},
+    {k:'check3', label:'3) aleatorio', sortable:false}, {k:'check4', label:'4) mejora sistema', sortable:false},
+    {k:'wr_cerrados', label:'WR fwd'}, {k:'regimen_cerrados', label:'régimen fwd', sortable:false},
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>
     c.sortable===false ? `<th class="nosort">${c.label}</th>` : `<th data-col="${c.k}">${c.label}</th>`
   ).join('') + '</tr>';
 
-  // por defecto: más cerca de graduar primero (N desc, luego mean_R desc)
+  const PRIORIDAD_ESTADO = { armado:3, negativo:2, positivo:1, plano:0 };
+  function estadoDeFila(r){
+    if (r.armado) return 'armado';
+    if (r.excl_hist && r.mean_hist < 0) return 'negativo';
+    if (r.excl_hist && r.mean_hist > 0) return 'positivo';
+    return 'plano';
+  }
+  rows.forEach(r=>{ r.icLoHist = r.ic_hist ? r.ic_hist[0] : null; r.estadoRow = estadoDeFila(r); });
+
+  // por defecto: armados primero (más N forward primero), luego negativos sin
+  // armar (candidatos a que el próximo ciclo arme), luego el resto.
   rows.sort((a,b)=>{
     const c = state.sortEspejos.col;
-    if (!c) return (b.n_cerrados||0) - (a.n_cerrados||0) || (b.mean_R_cerrados||0) - (a.mean_R_cerrados||0);
-    const PRIORIDAD_CHECK2 = { ok:2, bad:1, wait:0 };   // ✅ primero al ordenar desc
-    const av = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(a).cls] : a[c];
-    const bv = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(b).cls] : b[c];
+    if (!c){
+      const pa = PRIORIDAD_ESTADO[a.estadoRow], pb = PRIORIDAD_ESTADO[b.estadoRow];
+      if (pa !== pb) return pb - pa;
+      if (a.armado) return (b.n_cerrados||0) - (a.n_cerrados||0);
+      return (a.mean_hist||0) - (b.mean_hist||0);   // más negativo primero
+    }
+    const PRIORIDAD_CHECK2 = { ok:2, bad:1, wait:0 };
+    const av = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(a).cls]
+             : c==='estado' ? PRIORIDAD_ESTADO[a.estadoRow] : a[c];
+    const bv = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(b).cls]
+             : c==='estado' ? PRIORIDAD_ESTADO[b.estadoRow] : b[c];
     if (av === null || av === undefined) return 1;
     if (bv === null || bv === undefined) return -1;
     if (typeof av === 'string') return state.sortEspejos.dir * av.localeCompare(bv);
     return state.sortEspejos.dir * ((av||0) - (bv||0));
   });
 
+  const ESTADO_BADGE = {
+    armado: '<span class="badge-arm">🎓 armado</span>',
+    negativo: '<span class="badge-neg">negativo, sin armar</span>',
+    positivo: '<span class="badge-pos">positivo</span>',
+    plano: '<span class="checkcell wait">sin significancia</span>',
+  };
+
   tbody.innerHTML = rows.map(r=>{
-    const ic = r.ic90_R_cerrados;
+    const icH = r.ic_hist;
+    const icF = r.ic90_R_cerrados;
     const rc = r.regimen_cerrados;
     const regTxt = rc ? `R${rc.RANGE} B${rc.BULL} Be${rc.BEAR}` : '—';
-    const pct = Math.min(100, 100 * (r.n_cerrados||0) / N_GRAD);
-    const c2 = estadoCheck2(r);
+    const c1 = r.armado ? estadoCheckN(r.n_cerrados) : { txt:'—', cls:'wait' };
+    const c2 = r.armado ? estadoCheck2(r) : { txt:'—', cls:'wait' };
+    const c34 = r.armado
+      ? `<span class="checkcell wait" title="No automatizado en este export; requiere correr el script dedicado a mano.">manual</span>`
+      : `<span class="checkcell wait">—</span>`;
     return `<tr>
       <td>${r.familia}</td>
       <td>${r.corte}</td>
       <td>${r.dir}</td>
-      <td>
-        <div class="progress-track"><div class="progress-fill${pct>=100?' full':''}" style="width:${pct}%"></div></div>
-        <div class="hint" style="margin-top:3px">${r.n_cerrados||0}/${N_GRAD}</div>
-      </td>
-      <td class="${(r.mean_R_cerrados||0)>=0?'pos':'neg'}">${r.mean_R_cerrados!=null?fmtR(r.mean_R_cerrados):'—'}</td>
-      <td>${ic?`[${ic[0].toFixed(2)},${ic[1].toFixed(2)}]`:(r.n_cerrados?'n/a (N<3)':'—')}</td>
-      <td class="checkcell ${c2.cls}">${c2.txt}</td>
-      <td class="checkcell wait" title="Bate el aleatorio (C1) y mejora el sistema (gate A-02) — no automatizados en este export; requieren correr los scripts dedicados a mano.">manual</td>
-      <td>${r.n_cerrados ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
-      <td>${regTxt}</td>
-      <td>${r.abiertas}</td>
+      <td><span class="tag ${r.origen}">${r.origen}</span></td>
+      <td>${r.n_hist}</td>
+      <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
+      <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}</td>
+      <td>${ESTADO_BADGE[r.estadoRow]}</td>
+      <td class="checkcell ${c1.cls}">${c1.txt}</td>
+      <td class="checkcell ${c2.cls}">${c2.txt}${r.armado && icF?` <span class="hint" style="margin:0">[${icF[0].toFixed(2)},${icF[1].toFixed(2)}]</span>`:''}</td>
+      <td>${c34}</td>
+      <td>${c34}</td>
+      <td>${r.armado && r.n_cerrados ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
+      <td>${r.armado ? regTxt : '—'}</td>
     </tr>`;
   }).join('');
 
