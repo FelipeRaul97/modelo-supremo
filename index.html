@@ -904,10 +904,17 @@ function renderGraduacion(){
   // (validación real, tamaño reducido) es una columna aparte — deliberadamente
   // sin construir (colocaría órdenes reales, decisión propia, no viene en esta
   // firma).
+  // 🔧 2026-09-23 · pedido de Felipe: separar "en qué mecanismo está" (origen:
+  // LIVE/SOMBRA/ESPEJO puro) de "en qué paso va" (columnas de check, una por
+  // paso, igual que Paso1/Paso2). Antes `origen` mezclaba las dos cosas
+  // ("SOMBRA + watch") — ahora Paso 0 tiene su propia columna con check, y
+  // origen queda limpio.
   const cols = [
     {k:'familia', label:'familia'}, {k:'corte', label:'segmento'}, {k:'dir', label:'dir. base'},
     {k:'origen', label:'origen'}, {k:'n_hist', label:'N hist. (segmento)'}, {k:'mean_hist', label:'mean_R hist. (segmento)'},
-    {k:'ic_hist', label:'IC90 hist. (segmento)', sortable:false}, {k:'estado', label:'estado'},
+    {k:'ic_hist', label:'IC90 hist. (segmento)', sortable:false},
+    {k:'paso0', label:'Paso0 · watch', sortable:false},
+    {k:'estado', label:'estado'},
     {k:'n_cerrados', label:'Paso1 · N fwd ≥40', espejo:true}, {k:'check2', label:'Paso1 · IC90 fwd', espejo:true},
     {k:'check3', label:'Paso1 · aleatorio', sortable:false, espejo:true},
     {k:'check4', label:'Paso1 · mejora sistema', sortable:false, espejo:true},
@@ -980,11 +987,16 @@ function renderGraduacion(){
     const paso2 = paso1Completo
       ? `<span class="checkcell wait" title="Requiere que el motor abra posiciones reales de tamaño reducido (~25-30% del nocional) — mecanismo deliberadamente sin construir todavía, es una decisión aparte con plata real.">pendiente de implementar</span>`
       : `<span class="checkcell wait">—</span>`;
-    // "+ espejo" (negativo, corre una posición contraria real-en-papel) vs "+ watch"
-    // (positivo, puro bookkeeping sobre su propio log — no abre nada nuevo).
-    const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`
-      + (r.armado && r.signo==='negativo' ? ` <span class="tag ESPEJO" title="Corre un espejo en dirección contraria sobre este segmento">+ espejo</span>` : '')
-      + (r.armado && r.signo==='positivo' ? ` <span class="tag ESPEJO" title="Watch: bookkeeping sobre el forward propio, sin abrir posiciones nuevas">+ watch</span>` : '');
+    // 🔧 2026-09-23 · `origen` ahora es LIMPIO: LIVE/SOMBRA (la familia base) o
+    // ESPEJO puro cuando el segmento es negativo-armado (ahí ya no importa si la
+    // base era LIVE o SOMBRA para efectos de capital — el espejo siempre es
+    // papel — pero se deja de dónde viene en el title para no perder el dato).
+    const origenTag = r.armado && r.signo==='negativo'
+      ? `<span class="tag ESPEJO" title="Espejo en dirección contraria, corre en papel">ESPEJO (${r.origen})</span>`
+      : `<span class="tag ${r.origen}">${r.origen}</span>`;
+    const paso0 = r.armado
+      ? `<span class="checkcell ok">✅ armado</span>`
+      : `<span class="checkcell wait">—</span>`;
     return `<tr>
       <td>${r.familia}</td>
       <td>${r.corte}</td>
@@ -993,6 +1005,7 @@ function renderGraduacion(){
       <td>${r.n_hist}</td>
       <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
       <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}</td>
+      <td class="nosort">${paso0}</td>
       <td>${ESTADO_BADGE[r.estadoRow]}</td>
       <td class="checkcell ${c1.cls} col-espejo">${c1.txt}</td>
       <td class="checkcell ${c2.cls}">${c2.txt}${r.armado && icF?` <span class="hint" style="margin:0">[${icF[0].toFixed(2)},${icF[1].toFixed(2)}]</span>`:''}</td>
