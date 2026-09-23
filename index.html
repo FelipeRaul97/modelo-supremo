@@ -42,6 +42,9 @@
   .tag{font-size:0.68rem; padding:1px 6px; border-radius:5px; font-weight:600;}
   .tag.LIVE{background:rgba(94,176,239,.18); color:var(--live);}
   .tag.SOMBRA{background:rgba(199,146,234,.18); color:var(--sombra);}
+  .tag.ESPEJO{background:rgba(255,196,0,.16); color:#ffcf5c;}
+  /* separador visual entre columnas del segmento BASE y del ESPEJO (dir. contraria) */
+  .col-espejo{border-left:2px solid var(--border);}
   .chart-wrap{position:relative; height:340px;}
   .chart-wrap.small{height:260px;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
@@ -175,15 +178,19 @@
 
 <div id="tab-graduacion" style="display:none;">
   <div class="panel">
-    <h2>Camino a veto/exclusión de segmento (#S81 §4)</h2>
+    <h2>Sistema maestro de graduación por segmento — firmado 2026-09-23</h2>
     <div class="hint">
-      El mecanismo #S81 nunca "promueve a capital" — es un candidato a <b>vetar/excluir</b> ese segmento (LIVE o SOMBRA por igual): arma un espejo en dirección CONTRARIA sobre la subpoblación negativa; si el espejo se confirma forward, la propuesta es sacar ese segmento de la familia (de lo que ya opera en vivo, o de lo que algún día pudiera operar). Se confirma solo con los 4 checks a la vez, evaluados <b>en</b> el N forward (nunca el histórico que disparó el armado — sería circular):
-      <b>1)</b> N&ge;40 forward &middot;
-      <b>2)</b> mean_R forward &gt;0 con IC90 clúster que excluye 0 &middot;
-      <b>3)</b> bate el aleatorio del mismo N (control C1) &middot;
-      <b>4)</b> mejora el sistema completo (gate A-02).
-      Los checks 1 y 2 se calculan acá abajo; 3 y 4 hoy viven en scripts sueltos, no en este export — se marcan aparte ("—"), no se inventan.
-      <b>Muestra TODOS los segmentos con N&ge;15 (LIVE+SOMBRA, el mismo universo del tab Resumen)</b>, no solo los 35 ya armados — así se ve qué está por cruzar el gate de armado, no solo lo que ya lo cruzó.
+      <b>3 pasos, iguales para LIVE, SOMBRA y ESPEJO</b> (<code>ESTUDIO_GRADUACION_MAESTRA.md</code> §3bis):
+      <b>Paso 0 (watch)</b> N&ge;15 e IC90 excluye 0, cualquier signo &middot;
+      <b>Paso 1 (candidata, forward N&ge;40 desde que se armó)</b> mean_R fwd &gt;0 con IC90 excluye 0, bate aleatorio, mejora el sistema &middot;
+      <b>Paso 2 (validación real, tamaño ~25-30%, N&ge;15)</b> sin bandera roja.
+      Nunca se cuenta el histórico que disparó el armado como prueba — sería circular.
+      <br><br>
+      <b>Negativo armado</b> (candidato a <u>excluir</u>) corre un <b>espejo</b> en dirección contraria, capital cero — mecanismo #S81 original.
+      <b>Positivo armado</b> (candidato a <u>graduar</u>) es puro <b>watch</b>: su forward se lee de su propio log desde que se armó, sin abrir ninguna posición nueva.
+      Paso 1 (checks 1-2) se calcula abajo con datos reales; checks 3-4 y el Paso 2 completo están <b>deliberadamente sin construir</b> — 3/4 porque <code>graduar()</code> es un <code>NotImplementedError</code> a propósito, Paso 2 porque significa colocar órdenes reales nuevas y es una decisión aparte, recién cuando haya un candidato real que la necesite.
+      <br><br>
+      Muestra TODOS los segmentos con N&ge;15 (LIVE+SOMBRA, "segmento" = "corte"), no solo los ya armados — para ver qué se acerca al Paso 0, no solo lo que ya lo cruzó.
     </div>
     <div class="grad-summary" id="gradSummary"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
@@ -842,6 +849,7 @@ function computeTodosSegmentos(){
         familia: g.familia, corte: entry.id, dir: g.dir, origen: g.origen,
         n_hist: s.n, mean_hist: s.mean, ic_hist: s.ic, excl_hist: exclHist,
         armado, armado_ts: armado ? armadoInfo.armado_ts : null,
+        signo: armado ? (armadoInfo.signo || 'negativo') : null,
         n_cerrados: esp ? esp.n_cerrados : 0,
         mean_R_cerrados: esp ? esp.mean_R_cerrados : null,
         ic90_R_cerrados: esp ? esp.ic90_R_cerrados : null,
@@ -858,17 +866,18 @@ function renderGraduacion(){
   const rows = computeTodosSegmentos();
 
   const nTotal = rows.length;
-  const nArmados = rows.filter(r=>r.armado).length;
+  const nArmadosNeg = rows.filter(r=>r.armado && r.signo==='negativo').length;
+  const nArmadosPos = rows.filter(r=>r.armado && r.signo==='positivo').length;
   const nPisoN = rows.filter(r=>r.n_cerrados>=N_GRAD).length;
   const nCheck2Ok = rows.filter(r=>r.armado && estadoCheck2(r).cls==='ok').length;
   const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0).length;
   document.getElementById('gradSummary').innerHTML = `
     <div><b>${nTotal}</b> segmentos con N&ge;15 (LIVE+SOMBRA)</div>
-    <div><b>${nArmados}</b> armados (candidatos a excluir)</div>
+    <div><b>${nArmadosNeg}</b> armados negativo (candidatos a excluir, con espejo) · <b>${nArmadosPos}</b> armados positivo (candidatos a graduar, watch)</div>
     <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
-    <div><b>${nPisoN}</b> armados ya con N&ge;${N_GRAD} forward</div>
-    <div><b>${nCheck2Ok}</b> con check 2 en verde</div>
-    <div style="color:var(--muted)">0 excluidos aún — checks 3/4 sin automatizar</div>
+    <div><b>${nPisoN}</b> ya con N&ge;${N_GRAD} forward (paso 1)</div>
+    <div><b>${nCheck2Ok}</b> con check IC90 en verde</div>
+    <div style="color:var(--muted)">0 en paso 2 (validación real) — mecanismo sin construir a propósito, ver hint arriba</div>
   `;
 
   const thead = document.querySelector('#tablaGraduacion thead');
@@ -879,21 +888,41 @@ function renderGraduacion(){
   // `(av||0)-(bv||0)` compare objetos — NaN, "siempre igual", clickear el
   // encabezado no ordena nada. `sortable:false` saca esas columnas del binding
   // de click en vez de fingir que ordenan.
+  // 🔧 2026-09-23 · aclarado con Felipe: cada FILA es el segmento BASE (la
+  // dirección original de la familia), no el espejo. `corte` = `segmento`
+  // (mismo término que el tab Resumen, solo cambiaba el nombre de columna).
+  // Las columnas de la derecha (grupo `.col-espejo`) describen la posición
+  // ESPEJO que corre en dirección CONTRARIA — población DISTINTA de las
+  // columnas "hist." de la izquierda (esa es la que disparó el armado, ya
+  // usada; nunca se re-cuenta, sería circular). Separador visual entre ambos
+  // grupos + "(espejo)" en cada label para que no se lean como lo mismo.
+  // 🔧 2026-09-23 · sistema maestro firmado: el armado ahora cubre POSITIVOS
+  // (watch, candidatos a graduar — bookkeeping puro sobre su propio log, SIN
+  // espejo) además de NEGATIVOS (candidatos a excluir, CON espejo — #S81
+  // original). Las columnas "fwd" ya no son solo "del espejo": para un
+  // positivo son el forward del segmento mismo desde que se armó. Paso 2
+  // (validación real, tamaño reducido) es una columna aparte — deliberadamente
+  // sin construir (colocaría órdenes reales, decisión propia, no viene en esta
+  // firma).
   const cols = [
-    {k:'familia', label:'familia'}, {k:'corte', label:'corte'}, {k:'dir', label:'dir'},
-    {k:'origen', label:'origen'}, {k:'n_hist', label:'N hist.'}, {k:'mean_hist', label:'mean_R hist.'},
-    {k:'ic_hist', label:'IC90 hist.', sortable:false}, {k:'estado', label:'estado'},
-    {k:'n_cerrados', label:'1) N≥40'}, {k:'check2', label:'2) IC90 fwd'},
-    {k:'check3', label:'3) aleatorio', sortable:false}, {k:'check4', label:'4) mejora sistema', sortable:false},
-    {k:'wr_cerrados', label:'WR fwd'}, {k:'regimen_cerrados', label:'régimen fwd', sortable:false},
+    {k:'familia', label:'familia'}, {k:'corte', label:'segmento'}, {k:'dir', label:'dir. base'},
+    {k:'origen', label:'origen'}, {k:'n_hist', label:'N hist. (segmento)'}, {k:'mean_hist', label:'mean_R hist. (segmento)'},
+    {k:'ic_hist', label:'IC90 hist. (segmento)', sortable:false}, {k:'estado', label:'estado'},
+    {k:'n_cerrados', label:'Paso1 · N fwd ≥40', espejo:true}, {k:'check2', label:'Paso1 · IC90 fwd', espejo:true},
+    {k:'check3', label:'Paso1 · aleatorio', sortable:false, espejo:true},
+    {k:'check4', label:'Paso1 · mejora sistema', sortable:false, espejo:true},
+    {k:'paso2', label:'Paso2 · validación real', sortable:false, espejo:true},
+    {k:'wr_cerrados', label:'WR fwd', espejo:true}, {k:'regimen_cerrados', label:'régimen fwd', sortable:false, espejo:true},
   ];
-  thead.innerHTML = '<tr>' + cols.map(c=>
-    c.sortable===false ? `<th class="nosort">${c.label}</th>` : `<th data-col="${c.k}">${c.label}</th>`
-  ).join('') + '</tr>';
+  thead.innerHTML = '<tr>' + cols.map(c=>{
+    const cls = [c.sortable===false ? 'nosort' : '', c.espejo ? 'col-espejo' : ''].filter(Boolean).join(' ');
+    const clsAttr = cls ? ` class="${cls}"` : '';
+    return c.sortable===false ? `<th${clsAttr}>${c.label}</th>` : `<th${clsAttr} data-col="${c.k}">${c.label}</th>`;
+  }).join('') + '</tr>';
 
-  const PRIORIDAD_ESTADO = { armado:3, negativo:2, positivo:1, plano:0 };
+  const PRIORIDAD_ESTADO = { armado_negativo:4, armado_positivo:3, negativo:2, positivo:1, plano:0 };
   function estadoDeFila(r){
-    if (r.armado) return 'armado';
+    if (r.armado) return r.signo === 'positivo' ? 'armado_positivo' : 'armado_negativo';
     if (r.excl_hist && r.mean_hist < 0) return 'negativo';
     if (r.excl_hist && r.mean_hist > 0) return 'positivo';
     return 'plano';
@@ -922,9 +951,10 @@ function renderGraduacion(){
   });
 
   const ESTADO_BADGE = {
-    armado: '<span class="badge-arm">🎓 armado</span>',
-    negativo: '<span class="badge-neg">negativo, sin armar</span>',
-    positivo: '<span class="badge-pos">positivo</span>',
+    armado_negativo: '<span class="badge-neg">🎓 vetando (espejo)</span>',
+    armado_positivo: '<span class="badge-pos">🎓 candidato (watch)</span>',
+    negativo: '<span class="checkcell wait">negativo, sin armar</span>',
+    positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
   };
 
@@ -935,23 +965,41 @@ function renderGraduacion(){
     const regTxt = rc ? `R${rc.RANGE} B${rc.BULL} Be${rc.BEAR}` : '—';
     const c1 = r.armado ? estadoCheckN(r.n_cerrados) : { txt:'—', cls:'wait' };
     const c2 = r.armado ? estadoCheck2(r) : { txt:'—', cls:'wait' };
+    // 🔧 2026-09-23 · "manual" sugería que existe un script para correr a mano.
+    // Revisado: `espejo_condicional.py::graduar()` es un `raise NotImplementedError`
+    // — no hay NADA que correr todavía (0 segmentos llegan a N≥40 forward, así
+    // que nadie necesitó programar el control de aleatorio ni el gate A-02 aún).
     const c34 = r.armado
-      ? `<span class="checkcell wait" title="No automatizado en este export; requiere correr el script dedicado a mano.">manual</span>`
+      ? `<span class="checkcell wait" title="No existe ningún script todavía — espejo_condicional.py::graduar() es un NotImplementedError. Se programará cuando el primer segmento llegue a N≥40 forward.">sin script</span>`
       : `<span class="checkcell wait">—</span>`;
+    // 🔧 2026-09-23 · Paso 2 (validación real, tamaño reducido, H1) es DISTINTO de los
+    // checks 3/4 (que son parte del Paso 1, "candidata"). Solo tiene sentido mostrarlo
+    // una vez el Paso 1 completo pasó — antes de eso ni aplica. Deliberadamente sin
+    // construir: colocaría órdenes reales nuevas, decisión aparte (ver hint del tab).
+    const paso1Completo = c1.cls === 'ok' && c2.cls === 'ok';
+    const paso2 = paso1Completo
+      ? `<span class="checkcell wait" title="Requiere que el motor abra posiciones reales de tamaño reducido (~25-30% del nocional) — mecanismo deliberadamente sin construir todavía, es una decisión aparte con plata real.">pendiente de implementar</span>`
+      : `<span class="checkcell wait">—</span>`;
+    // "+ espejo" (negativo, corre una posición contraria real-en-papel) vs "+ watch"
+    // (positivo, puro bookkeeping sobre su propio log — no abre nada nuevo).
+    const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`
+      + (r.armado && r.signo==='negativo' ? ` <span class="tag ESPEJO" title="Corre un espejo en dirección contraria sobre este segmento">+ espejo</span>` : '')
+      + (r.armado && r.signo==='positivo' ? ` <span class="tag ESPEJO" title="Watch: bookkeeping sobre el forward propio, sin abrir posiciones nuevas">+ watch</span>` : '');
     return `<tr>
       <td>${r.familia}</td>
       <td>${r.corte}</td>
       <td>${r.dir}</td>
-      <td><span class="tag ${r.origen}">${r.origen}</span></td>
+      <td>${origenTag}</td>
       <td>${r.n_hist}</td>
       <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
       <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}</td>
       <td>${ESTADO_BADGE[r.estadoRow]}</td>
-      <td class="checkcell ${c1.cls}">${c1.txt}</td>
+      <td class="checkcell ${c1.cls} col-espejo">${c1.txt}</td>
       <td class="checkcell ${c2.cls}">${c2.txt}${r.armado && icF?` <span class="hint" style="margin:0">[${icF[0].toFixed(2)},${icF[1].toFixed(2)}]</span>`:''}</td>
       <td>${c34}</td>
       <td>${c34}</td>
-      <td>${r.armado && r.n_cerrados ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
+      <td>${paso2}</td>
+      <td>${r.armado && r.n_cerrados && r.wr_cerrados!=null ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
       <td>${r.armado ? regTxt : '—'}</td>
     </tr>`;
   }).join('');
