@@ -4,14 +4,14 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-23 12:07:39
+Ultima actualizacion: 2026-09-23 12:10:54
 
 ```
 ========================================================================================================
   ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
-   🟢 ARMADAS hoy: 5_posicion_rango::alt1d_trend, s87_fib_cont_bajista::alt1d_range, s87_fib_cont_bajista::btc_trend
+   (ninguna [familia,corte] nueva cruza el gate barato de armado)
    total armadas históricamente: 31 (en 8 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
@@ -124,7 +124,7 @@ Ultima actualizacion: 2026-09-23 12:07:39
 │                               vol_rel_alto    22   100%  -1.253  -27.57   23%      [-1.62,-0.86]*  R21 B0 Be1   [ARMADA] │
 │                               vol_rel_bajo    21   100%  -1.293  -27.16   19%      [-1.78,-0.77]*  R21 B0 Be0   [ARMADA] │
 │                               btc_range       61   100%  -1.431  -87.28   18%      [-1.66,-1.19]*  R61 B0 Be0   [ARMADA] │
-│                               celda_range_bear  15   100%  +0.173   +2.59   73%       [-0.53,+0.88]  R15 B0 Be0     │
+│                               celda_range_bear  24   100%  -0.514  -12.34   46%       [-1.03,+0.04]  R24 B0 Be0     │
 │ SOMBRA·12a_cvd_fade     LONG  (TOTAL)          1   100%  +1.809   +1.81  100%                 n/a  R1 B0 Be0        │
 │ SOMBRA·20_tl_sup_bear   SHORT (TOTAL)          1   100%  -2.027   -2.03    0%                 n/a  R1 B0 Be0        │
 │ SOMBRA·20_tl_sup_bull   LONG  (TOTAL)          8   100%  -0.488   -3.91   12%       [-1.40,+0.62]  R7 B1 Be0        │
@@ -141,7 +141,7 @@ Ultima actualizacion: 2026-09-23 12:07:39
 │                               btc_trend       33   100%  +3.111 +102.67   97%      [+2.71,+3.46]*  R0 B1 Be32   [pos] │
 │                               celda_bear_range  34   100%  -0.319  -10.85   24%       [-0.67,+0.09]  R33 B0 Be1     │
 │                               celda_range_bull  19   100%  -1.665  -31.63    5%      [-1.90,-1.39]*  R19 B0 Be0   [neg] │
-│                               celda_range_range  31   100%  -0.622  -19.27   32%      [-1.06,-0.11]*  R31 B0 Be0   [neg] │
+│                               celda_range_range  40   100%  -0.278  -11.12   40%       [-0.73,+0.17]  R40 B0 Be0    │
 │ SOMBRA·47_bajista_sweet LONG  (TOTAL)          5   100%  +0.126   +0.63   40%       [-2.03,+2.29]  R4 B0 Be1        │
 │ SOMBRA·47_lower_lows_beaLONG  (TOTAL)         75   100%  +1.903 +142.69   72%      [+1.54,+2.30]*  R37 B0 Be38      │
 │                               alt1d_range     30   100%  +2.211  +66.32   77%      [+1.55,+2.92]*  R19 B0 Be11  [pos] │
@@ -152,6 +152,7 @@ Ultima actualizacion: 2026-09-23 12:07:39
 │                               vol_rel_bajo    25   100%  +2.729  +68.21   84%      [+2.08,+3.36]*  R10 B0 Be15  [pos] │
 │                               btc_range       37   100%  +1.168  +43.23   57%      [+0.49,+1.87]*  R37 B0 Be0   [ARMADA] │
 │                               btc_trend       38   100%  +2.618  +99.47   87%      [+2.16,+3.12]*  R0 B0 Be38   [pos] │
+│                               celda_range_bear  29   100%  +0.517  +15.01   45%       [-0.32,+1.31]  R29 B0 Be0     │
 │ SOMBRA·54_ext_dn_1h     LONG  (TOTAL)         27   100%  +3.121  +84.27   93%      [+2.57,+3.58]*  R3 B1 Be23       │
 │                               alt1d_trend     15   100%  +2.755  +41.33   87%      [+1.85,+3.53]*  R2 B0 Be13   [pos] │
 │                               btc_trend       24   100%  +3.520  +84.48  100%      [+3.25,+3.75]*  R0 B1 Be23   [pos] │
