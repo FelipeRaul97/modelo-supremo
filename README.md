@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-23 06:55:50
+Ultima actualizacion: 2026-09-23 07:11:03
 
 ```
 ========================================================================================================
@@ -74,7 +74,7 @@ Ultima actualizacion: 2026-09-23 06:55:50
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
 │ SOMBRA·s84_volumen_regimLONG  BULL       11    +2.878  +31.66   82% [+1.78,+3.97]*                   │
 │ SOMBRA·s87_fib_cont_alciLONG  BULL        9    +3.301  +29.71   89% [+1.96,+3.97]*                   │
-│ SOMBRA·s87_fib_cont_bajiSHORT BULL       24    -2.020  -48.48    0% [-2.02,-2.02]*                   │
+│ SOMBRA·s87_fib_cont_bajiSHORT BULL       25    -2.020  -50.51    0% [-2.02,-2.02]*                   │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -161,8 +161,9 @@ Ultima actualizacion: 2026-09-23 06:55:50
 │ SOMBRA·s84_volumen_regimLONG  (TOTAL)         11   100%  +2.878  +31.66   82%      [+1.78,+3.97]*  R0 B11 Be0       │
 │ SOMBRA·s85_vela_rev_alciSHORT (TOTAL)          2   100%  -2.017   -4.03    0%                 n/a  R0 B2 Be0        │
 │ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)          9   100%  +3.301  +29.71   89%      [+1.96,+3.97]*  R0 B9 Be0        │
-│ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)         24   100%  -2.020  -48.48    0%      [-2.02,-2.02]*  R0 B24 Be0       │
-│                               btc_trend       24   100%  -2.020  -48.48    0%      [-2.02,-2.02]*  R0 B24 Be0   [neg] │
+│ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)         25   100%  -2.020  -50.51    0%      [-2.02,-2.02]*  R0 B25 Be0       │
+│                               alt1d_range     15   100%  -2.020  -30.30    0%      [-2.02,-2.02]*  R0 B15 Be0   [neg] │
+│                               btc_trend       25   100%  -2.020  -50.51    0%      [-2.02,-2.02]*  R0 B25 Be0   [neg] │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
