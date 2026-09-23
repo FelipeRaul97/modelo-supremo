@@ -324,7 +324,48 @@ const state = {
   // era "mean_R al armar ascendente" (silencioso, no lo que decía el comentario).
   // `col: null` deja que el fallback aplique hasta el primer click de encabezado.
   sortEspejos: { col: null, dir: -1 },
+  // 🔧 2026-09-24 · click-para-ordenar extendido a Embudo y Posiciones abiertas
+  // (antes solo Resumen/Graduación/Por símbolo lo tenían — uPnL en "abiertas
+  // ahora" solo se podía leer en el orden que mandaba el backend). `col: null`
+  // en cada una = orden por defecto (más reciente primero / más crudos primero,
+  // igual que antes de que existiera el click), hasta el primer click de header.
+  sortEmbudo: { col: null, dir: -1 },
+  sortAbiertas: {
+    live:   { col: null, dir: -1 },
+    sombra: { col: null, dir: -1 },
+    espejo: { col: null, dir: -1 },
+  },
 };
+
+// Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
+// que cada tabla aplique su propio default antes de llamar a esto). Mismo
+// criterio que ya usaban `renderTable`/`renderGraduacion`/`renderSimbolo`
+// (numérico si no es string, nulls al final) — factorizado acá el 2026-09-24
+// para no repetirlo en las 4 tablas nuevas que se suman al click-to-sort.
+function sortRows(rows, sortState){
+  if (!sortState.col) return rows;
+  const c = sortState.col;
+  return [...rows].sort((a, b) => {
+    const av = a[c], bv = b[c];
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    if (typeof av === 'string') return sortState.dir * av.localeCompare(bv);
+    return sortState.dir * ((av || 0) - (bv || 0));
+  });
+}
+
+// Cablea el click de cada <th data-col> de `theadEl` contra `sortState`,
+// re-renderizando con `rerender` al cambiar. `th.nosort` (columnas con
+// objetos/arrays, p.ej. régimen fwd) queda fuera porque no lleva `data-col`.
+function bindSort(theadEl, sortState, rerender){
+  theadEl.querySelectorAll('th[data-col]').forEach(th=>{
+    th.onclick = ()=>{
+      const col = th.dataset.col;
+      if (sortState.col === col) sortState.dir *= -1; else { sortState.col = col; sortState.dir = -1; }
+      rerender();
+    };
+  });
+}
 
 function fmtR(x){ return (x>=0?'+':'') + x.toFixed(3); }
 function colorFor(origen){ return origen === 'LIVE' ? '#5eb0ef' : '#c792ea'; }
@@ -1058,22 +1099,34 @@ function renderEmbudo(){
   vacio.style.display = 'none';
 
   const motivos = emb.orden_motivos.filter(m=>m!=='candidato_crudo' && m!=='abierto');
-  thead.innerHTML = '<tr><th>familia</th><th>crudos</th>'
-    + motivos.map(m=>`<th>${MOTIVO_LABELS[m]||m}</th>`).join('')
-    + '<th>abiertos</th></tr>';
+  // 🔧 2026-09-24 · click-para-ordenar (`fam` string, `candidato_crudo`/cada
+  // motivo/`abierto` numéricos). Default sin col elegida: crudos desc, mismo
+  // orden que había antes de que las columnas fueran clickeables.
+  thead.innerHTML = '<tr><th data-col="fam">familia</th><th data-col="candidato_crudo">crudos</th>'
+    + motivos.map(m=>`<th data-col="${m}">${MOTIVO_LABELS[m]||m}</th>`).join('')
+    + '<th data-col="abierto">abiertos</th></tr>';
 
-  nombres.sort((a,b)=> (familias[b].candidato_crudo||0) - (familias[a].candidato_crudo||0));
-  tbody.innerHTML = nombres.map(fam=>{
+  let rows = nombres.map(fam=>{
     const m = familias[fam];
-    const crudo = m.candidato_crudo || 0;
+    const r = { fam, candidato_crudo: m.candidato_crudo || 0, abierto: m.abierto || 0 };
+    motivos.forEach(mv => r[mv] = m[mv] || 0);
+    return r;
+  });
+  rows = state.sortEmbudo.col ? sortRows(rows, state.sortEmbudo)
+                               : rows.sort((a,b)=> b.candidato_crudo - a.candidato_crudo);
+
+  tbody.innerHTML = rows.map(r=>{
+    const crudo = r.candidato_crudo;
     const cell = (v)=>{
       const pct = crudo ? Math.min(100, 100*v/crudo) : 0;
       return `<td class="embudo-cell"><div class="embudo-bar" style="width:${pct}%"></div><span class="embudo-val">${v||0}</span></td>`;
     };
-    return `<tr><td>${fam}</td><td><b>${crudo}</b></td>`
-      + motivos.map(mv=>cell(m[mv]||0)).join('')
-      + `<td class="pos"><b>${m.abierto||0}</b></td></tr>`;
+    return `<tr><td>${r.fam}</td><td><b>${crudo}</b></td>`
+      + motivos.map(mv=>cell(r[mv])).join('')
+      + `<td class="pos"><b>${r.abierto}</b></td></tr>`;
   }).join('');
+
+  bindSort(thead, state.sortEmbudo, renderEmbudo);
 }
 
 // 🔧 2026-09-23 · tab POR SÍMBOLO — cruza LIVE/SOMBRA (`state.data.trades`) con
@@ -1272,11 +1325,27 @@ function renderAbiertas(){
     return `<td class="${cls}">${pctTxt}</td><td class="${cls}">${rTxt}</td>`;
   };
 
+  // 🔧 2026-09-24 · click-para-ordenar en las 3 tablas de "abiertas ahora"
+  // (pedido explícito: uPnL era imposible de ordenar acá). Cada `<th data-col>`
+  // apunta a un campo NUMÉRICO/STRING real del objeto `p` que ya viene del
+  // backend (`entry_ts`, `entry_price`, `upnl_pct`, `upnl_R`, `upnl_binance`,
+  // `confirmado_binance`...) — se ordena el dato crudo, no el texto formateado
+  // (así "abierta hace" ordena por antigüedad real, no alfabéticamente por
+  // "1.2h"/"3d"). Sin click todavía (`col:null`): más reciente primero, igual
+  // que el comportamiento de antes de que hubiera sort.
+  const sortA = state.sortAbiertas;
+
   // LIVE
   const theadL = document.querySelector('#tablaAbiertasLive thead');
   const tbodyL = document.querySelector('#tablaAbiertasLive tbody');
-  theadL.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>confirmado Binance</th><th>uPnL$ (Binance)</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
-  tbodyL.innerHTML = a.live.map(p=>{
+  theadL.innerHTML = '<tr><th data-col="familia">familia</th><th data-col="dir">dir</th>'
+    + '<th data-col="sym">símbolo</th><th data-col="entry_ts">abierta hace</th>'
+    + '<th data-col="entry_price">entry</th><th data-col="TP_price">TP</th><th data-col="SL_price">SL</th>'
+    + '<th data-col="confirmado_binance">confirmado Binance</th>'
+    + '<th data-col="upnl_binance">uPnL$ (Binance)</th><th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
+  const liveRows = sortA.live.col ? sortRows(a.live, sortA.live)
+                                   : [...a.live].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
+  tbodyL.innerHTML = liveRows.map(p=>{
     const conf = p.confirmado_binance;
     // 🔧 2026-09-22 · si Binance no respondió (`a.binance_error`), `binance_real` llega
     // vacío del backend y CADA posición marca confirmado_binance=false — antes esto se
@@ -1294,31 +1363,47 @@ function renderAbiertas(){
       ${upnlCell(p)}
     </tr>`;
   }).join('') || '<tr><td colspan="11">Sin posiciones LIVE abiertas.</td></tr>';
+  bindSort(theadL, sortA.live, renderAbiertas);
 
   // SOMBRA
   const theadS = document.querySelector('#tablaAbiertasSombra thead');
   const tbodyS = document.querySelector('#tablaAbiertasSombra tbody');
-  theadS.innerHTML = '<tr><th>familia</th><th>dir</th><th>símbolo</th><th>abierta hace</th><th>entry</th><th>TP</th><th>SL</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
-  const sombraRows = [...a.sombra].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0)).slice(0, 200);
+  theadS.innerHTML = '<tr><th data-col="familia">familia</th><th data-col="dir">dir</th>'
+    + '<th data-col="sym">símbolo</th><th data-col="entry_ts">abierta hace</th>'
+    + '<th data-col="entry_price">entry</th><th data-col="TP_price">TP</th><th data-col="SL_price">SL</th>'
+    + '<th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
+  // El tope de 200 filas se aplica DESPUÉS de ordenar — con un click activo
+  // (p.ej. uPnL%) muestra las 200 mejores/peores de esa columna, no siempre
+  // las 200 más recientes.
+  const sombraSorted = sortA.sombra.col ? sortRows(a.sombra, sortA.sombra)
+                                         : [...a.sombra].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
+  const sombraRows = sombraSorted.slice(0, 200);
   tbodyS.innerHTML = sombraRows.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
       ${upnlCell(p)}
     </tr>`).join('') || '<tr><td colspan="9">Sin posiciones SOMBRA abiertas.</td></tr>';
   if (a.sombra.length > 200){
-    tbodyS.innerHTML += `<tr><td colspan="9" class="hint">... y ${a.sombra.length-200} más (mostrando las 200 más recientes)</td></tr>`;
+    tbodyS.innerHTML += `<tr><td colspan="9" class="hint">... y ${a.sombra.length-200} más (mostrando 200 según el orden actual)</td></tr>`;
   }
+  bindSort(theadS, sortA.sombra, renderAbiertas);
 
   // ESPEJO
   const theadE = document.querySelector('#tablaAbiertasEspejo thead');
   const tbodyE = document.querySelector('#tablaAbiertasEspejo tbody');
-  theadE.innerHTML = '<tr><th>familia</th><th>corte</th><th>origen</th><th>dir espejo</th><th>símbolo</th><th>abierta hace</th><th>TP</th><th>SL</th><th>uPnL%</th><th>uPnL (R)</th></tr>';
-  tbodyE.innerHTML = a.espejo.map(p=>`<tr>
+  theadE.innerHTML = '<tr><th data-col="familia">familia</th><th data-col="corte">corte</th>'
+    + '<th data-col="origen_base">origen</th><th data-col="dir">dir espejo</th><th data-col="sym">símbolo</th>'
+    + '<th data-col="entry_ts">abierta hace</th><th data-col="TP_price">TP</th><th data-col="SL_price">SL</th>'
+    + '<th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
+  const espejoRows = sortA.espejo.col ? sortRows(a.espejo, sortA.espejo)
+                                       : [...a.espejo].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
+  tbodyE.innerHTML = espejoRows.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${p.origen_base}</span></td>
       <td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
       ${upnlCell(p)}
     </tr>`).join('') || '<tr><td colspan="10">Sin espejos condicionales abiertos.</td></tr>';
+  bindSort(theadE, sortA.espejo, renderAbiertas);
 }
 
 document.getElementById('tabbar').addEventListener('click', (e)=>{
