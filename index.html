@@ -31,10 +31,13 @@
   .chips{display:flex; flex-wrap:wrap; gap:6px;}
   .chip{border:1px solid var(--border); background:var(--panel2); color:var(--muted); padding:3px 9px; border-radius:999px; font-size:0.78rem; cursor:pointer; user-select:none;}
   .chip.active{background:var(--accent); color:#08131c; border-color:var(--accent); font-weight:600;}
+  .chip.chip-empty{opacity:0.35;}
+  .chip.chip-empty.active{opacity:0.7;}
   table{width:100%; border-collapse:collapse; font-size:0.82rem;}
   th,td{padding:6px 8px; text-align:right; border-bottom:1px solid var(--border); white-space:nowrap;}
   th:first-child,td:first-child{text-align:left;}
   th{color:var(--muted); font-weight:500; cursor:pointer; position:sticky; top:0; background:var(--panel);}
+  th.nosort{cursor:default;}
   tbody tr:hover{background:var(--panel2);}
   .tag{font-size:0.68rem; padding:1px 6px; border-radius:5px; font-weight:600;}
   .tag.LIVE{background:rgba(94,176,239,.18); color:var(--live);}
@@ -51,10 +54,46 @@
   .badge-neg{font-size:0.68rem; background:rgba(239,111,111,.16); color:var(--neg); border-radius:5px; padding:1px 6px; font-weight:600;}
   tr.segrow td:first-child, tr.segrow td:nth-child(2){ color:var(--muted); }
   tr.totalrow{ background:var(--panel2); }
-  .tabbar{ display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); }
+  .tabbar{ display:flex; gap:4px; margin-bottom:18px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
   .tabbtn{ padding:9px 16px; color:var(--muted); cursor:pointer; font-size:0.88rem; font-weight:600; border-bottom:2px solid transparent; user-select:none; }
   .tabbtn.active{ color:var(--text); border-bottom-color:var(--accent); }
   .tabbtn:hover{ color:var(--text); }
+
+  /* 🔧 2026-09-23 · toolbar rediseñado — antes "Presets" era un chip más, del
+     mismo tamaño/color que un filtro de facet, mezclado en la misma fila: no se
+     distinguía "modo de vista" (reemplaza TODO el filtro) de "afinar un eje"
+     (suma una condición). Separados en dos bloques con estilos distintos. */
+  .toolbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
+  .segmented{ display:inline-flex; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:3px; gap:2px; }
+  .seg-btn{ padding:7px 16px; border-radius:7px; font-size:0.84rem; font-weight:600; color:var(--muted); cursor:pointer; user-select:none; }
+  .seg-btn:hover{ color:var(--text); }
+  .seg-btn.active{ background:var(--accent); color:#08131c; }
+  .toolbar-right{ display:flex; align-items:center; gap:10px; }
+  .filtercount{ font-size:0.78rem; color:var(--muted); }
+  .filtercount b{ color:var(--text); }
+  .clearlink{ font-size:0.78rem; color:var(--accent); cursor:pointer; user-select:none; background:none; border:none; }
+  .clearlink:hover{ text-decoration:underline; }
+  .activefilters{ display:flex; flex-wrap:wrap; gap:6px; margin:-6px 0 14px; }
+  .activefilters:empty{ margin:0; }
+  .filterpill{ display:inline-flex; align-items:center; gap:6px; background:rgba(94,176,239,.12); border:1px solid rgba(94,176,239,.35); color:var(--accent); padding:3px 6px 3px 10px; border-radius:999px; font-size:0.76rem; }
+  .filterpill .x{ cursor:pointer; opacity:0.75; font-weight:700; padding:0 4px; }
+  .filterpill .x:hover{ opacity:1; }
+
+  /* Graduación (#S81 §4) */
+  .progress-track{ width:100%; min-width:80px; height:8px; background:var(--panel2); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
+  .progress-fill{ height:100%; background:var(--accent); }
+  .progress-fill.full{ background:var(--pos); }
+  .checkcell{ font-size:0.9rem; }
+  .checkcell.ok{ color:var(--pos); }
+  .checkcell.bad{ color:var(--neg); }
+  .checkcell.wait{ color:var(--muted); }
+  .grad-summary{ display:flex; gap:22px; flex-wrap:wrap; margin-bottom:14px; font-size:0.84rem; color:var(--muted); }
+  .grad-summary b{ color:var(--text); font-size:1rem; }
+
+  /* Embudo */
+  .embudo-cell{ position:relative; text-align:right; }
+  .embudo-bar{ position:absolute; inset:0; background:rgba(94,176,239,.14); z-index:0; }
+  .embudo-val{ position:relative; z-index:1; }
 </style>
 </head>
 <body>
@@ -62,13 +101,25 @@
 <div class="meta">Régimen BTC: <b id="regimen-txt">—</b> &middot; Última actualización: <b id="ts-txt">—</b> &middot; fuente: <code>export_dashboard_data.py</code> (cada hora, automático)</div>
 
 <div class="tabbar" id="tabbar">
-  <div class="tabbtn active" data-tab="resumen">Resumen histórico</div>
-  <div class="tabbtn" data-tab="abiertas">Posiciones abiertas ahora</div>
+  <div class="tabbtn active" data-tab="resumen">📊 Resumen histórico</div>
+  <div class="tabbtn" data-tab="abiertas">🟢 Posiciones abiertas ahora</div>
+  <div class="tabbtn" data-tab="graduacion">🎓 Graduación</div>
+  <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
+  <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
 </div>
 
 <div id="tab-resumen">
 
 <div class="kpis" id="kpis"></div>
+
+<div class="toolbar">
+  <div class="segmented" id="vistaSegmented"></div>
+  <div class="toolbar-right">
+    <span class="filtercount" id="filtercount"></span>
+    <button class="clearlink" id="clearAllBtn">Limpiar todo</button>
+  </div>
+</div>
+<div class="activefilters" id="activeFilters"></div>
 
 <div class="filters" id="filters"></div>
 
@@ -101,12 +152,6 @@
   <div class="tablewrap"><table id="tabla"><thead></thead><tbody></tbody></table></div>
 </div>
 
-<div class="panel">
-  <h2>Registro de espejos ARMADOS (#S81/#S82) — desempeño forward desde el armado</h2>
-  <div class="hint">Umbral se congela al armar. "N cerr./PnL/WR/IC90" es el N FORWARD acumulado DESPUÉS del armado (nunca el histórico que lo disparó — sería circular); ese es el N que cuenta para el gate de graduación (N&ge;40, positivo, IC90 excluye 0).</div>
-  <div class="tablewrap"><table id="tablaEspejos"><thead></thead><tbody></tbody></table></div>
-</div>
-
 </div>
 
 <div id="tab-abiertas" style="display:none;">
@@ -128,6 +173,50 @@
     <h2><span class="badge-arm">ESPEJO</span> Mini-posiciones condicionales corriendo (#S81)</h2>
     <div class="hint">Por cada fire de una familia con (familia, corte) armado, corre en paralelo esta sub-posición espejo — capital cero, mide si el segmento negativo detectado se confirma forward. "origen" = si nació sobre una apertura LIVE o SOMBRA. uPnL estimado con el último close cacheado (misma limitación que arriba).</div>
     <div class="tablewrap"><table id="tablaAbiertasEspejo"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-graduacion" style="display:none;">
+  <div class="panel">
+    <h2>Camino a graduación (#S81 §4)</h2>
+    <div class="hint">
+      Un (familia, corte) armado pasa a capital real solo si cumple los 4 checks a la vez, evaluados <b>en</b> el N forward (nunca el histórico que disparó el armado — sería circular):
+      <b>1)</b> N&ge;40 forward &middot;
+      <b>2)</b> mean_R forward &gt;0 con IC90 clúster que excluye 0 &middot;
+      <b>3)</b> bate el aleatorio del mismo N (control C1) &middot;
+      <b>4)</b> mejora el sistema completo (gate A-02).
+      Los checks 1 y 2 se calculan acá abajo; 3 y 4 hoy viven en scripts sueltos, no en este export — se marcan aparte, no se inventan.
+      N≥40 es un <b>piso</b>, no la meta: por debajo, ni el 1 ni el 2 dicen nada todavía.
+    </div>
+    <div class="grad-summary" id="gradSummary"></div>
+    <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-embudo" style="display:none;">
+  <div class="panel">
+    <h2>Embudo de señales denegadas</h2>
+    <div class="hint">
+      Cada familia denegada corre su detector sobre cada símbolo/barra. No todo candidato crudo termina abriendo un trade sombra — pasa por R1 (una posición por familia&times;símbolo&times;dirección), no-opuesto, STRIDE (cooldown), y una revalidación CAUSAL (¿el fire sobrevive si se reconstruye el contexto sin mirar al futuro?). Este panel muestra en qué escalón se pierde cada candidato — diagnostica por qué una familia armada (ver tab Graduación) acumula N lento hacia el piso de 40.
+    </div>
+    <div class="hint" id="embudoVacio" style="display:none"></div>
+    <div class="tablewrap"><table id="tablaEmbudo"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-simbolo" style="display:none;">
+  <div class="panel">
+    <h2>Rendimiento por símbolo</h2>
+    <div class="hint">Cruza LIVE (capital real), SOMBRA (familias denegadas, #S75) y ESPEJO (mini-posiciones condicionales, #S81) por símbolo — cada origen es una posición DISTINTA aunque compartan símbolo/barra, no se suman entre sí salvo que quieras verlas juntas. N mínimo 3 para IC90 clúster.</div>
+    <div class="filters" id="simboloFilters" style="margin-top:10px;"></div>
+  </div>
+  <div class="panel">
+    <h2>mean_R por símbolo (top/bottom 15, filtros aplicados)</h2>
+    <div class="chart-wrap"><canvas id="chartSimbolo"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>Tabla completa por símbolo (click en encabezado para ordenar)</h2>
+    <div class="tablewrap"><table id="tablaSimbolo"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -224,24 +313,57 @@ const state = {
   filters: { origen: new Set(), familia: new Set(), dir: new Set(), btc_1h: new Set() },
   ejesActivos: new Set(Object.keys(EJE_GROUPS)),   // todos los ejes visibles por defecto
   sort: { col: 'mean', dir: -1 },
-  sortEspejos: { col: 'mean_R_al_armar', dir: 1 },
+  // 🔧 2026-09-23 · BUG: `col` arrancaba en 'mean_R_al_armar' (default de la
+  // vieja tabla de espejos, ya removida) — el fallback "más cerca de graduar
+  // primero" de `renderGraduacion` (`if (!c) return ...`) nunca se ejecutaba
+  // porque `c` nunca era falsy al cargar, así que el orden real al abrir el tab
+  // era "mean_R al armar ascendente" (silencioso, no lo que decía el comentario).
+  // `col: null` deja que el fallback aplique hasta el primer click de encabezado.
+  sortEspejos: { col: null, dir: -1 },
 };
 
 function fmtR(x){ return (x>=0?'+':'') + x.toFixed(3); }
 function colorFor(origen){ return origen === 'LIVE' ? '#5eb0ef' : '#c792ea'; }
 
+// 🔧 2026-09-23 · BUG: `Math.random()` sin semilla + recalculado en CADA render
+// (cada click de filtro, cada click de columna para ordenar) hacía que la estrella
+// "IC90 excluye 0" parpadeara sin que cambiara ningún dato — verificado: 12
+// re-renders de la MISMA tabla filtrada, 4/93 filas cambiaron de estrella solo por
+// ruido de muestreo. Fix: PRNG sembrado DETERMINÍSTICAMENTE a partir de los propios
+// datos del segmento (mulberry32 + hash de vals+syms) — mismo input siempre da el
+// mismo IC90, estable entre renders/sorts, distinto entre segmentos distintos. No
+// pretende coincidir número-a-número con el backend (que usa n=1500-2000 y otra
+// semilla, `study_segmentos_por_familia.py`) — sí garantiza que el frontend no se
+// contradiga a sí mismo.
+function _hashStr(s){
+  let h = 2166136261;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function _mulberry32(seed){
+  let s = seed >>> 0;
+  return function(){
+    s = (s + 0x6D2B79F5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 function ic90Cluster(vals, syms, n=600){
   if (vals.length < 3) return null;
   const bySym = {};
   syms.forEach((s,i)=>{ (bySym[s] = bySym[s]||[]).push(vals[i]); });
-  const keys = Object.keys(bySym);
+  const keys = Object.keys(bySym).sort();
+  const sig = keys.length + '|' + vals.length + '|'
+    + vals.reduce((a,b)=>a+b,0).toFixed(6) + '|' + keys.join(',');
+  const rng = _mulberry32(_hashStr(sig));
   const means = [];
   for (let k=0;k<n;k++){
     let sum=0, cnt=0;
     for (let i=0;i<keys.length;i++){
-      const pick = keys[Math.floor(Math.random()*keys.length)];
+      const pick = keys[Math.floor(rng()*keys.length)];
       const arr = bySym[pick];
-      const v = arr[Math.floor(Math.random()*arr.length)];
+      const v = arr[Math.floor(rng()*arr.length)];
       sum += v; cnt++;
     }
     means.push(sum/cnt);
@@ -252,14 +374,110 @@ function ic90Cluster(vals, syms, n=600){
   return [lo, hi];
 }
 
-function applyFilters(trades){
+const FILTER_KEYS = ['origen', 'familia', 'dir', 'btc_1h'];
+
+function applyFilters(trades, excludeKey){
   const f = state.filters;
   return trades.filter(t=>{
-    if (f.origen.size && !f.origen.has(t.origen)) return false;
-    if (f.familia.size && !f.familia.has(t.familia)) return false;
-    if (f.dir.size && !f.dir.has(t.dir)) return false;
-    if (f.btc_1h.size && !f.btc_1h.has(t.btc_1h)) return false;
+    for (const k of FILTER_KEYS){
+      if (k === excludeKey) continue;
+      if (f[k].size && !f[k].has(t[k])) return false;
+    }
     return true;
+  });
+}
+
+// 🔧 2026-09-23 · mejora de filtrado: cuenta cuántos trades quedarían si se
+// activara `value` en el grupo `key`, respetando los DEMÁS filtros activos (el
+// propio grupo se excluye — es "qué pasaría si sumo esta opción", no una
+// intersección con la selección actual de ese mismo grupo). Antes los chips de
+// "Familia" mostraban las 13 familias de SOMBRA aunque el usuario ya hubiera
+// filtrado a Origen=LIVE (donde ninguna aparece) — clickearlas daba tabla vacía
+// sin aviso. Ahora cada chip trae su propio recuento y se atenúa en 0.
+function countForChip(key, value){
+  const base = applyFilters(state.data.trades, key);
+  let n = 0;
+  for (const t of base) if (t[key] === value) n++;
+  return n;
+}
+
+// 🔧 2026-09-23 · estado de filtros en la URL (hash) — antes vivía solo en memoria
+// del navegador: no había forma de mandar un link con un filtro ya aplicado, y
+// recargar la página perdía todo. Se serializa `state.filters` + `ejesActivos` al
+// hash en cada cambio (sin recargar) y se restaura al cargar, antes del primer render.
+function syncURL(){
+  const parts = [];
+  FILTER_KEYS.forEach(k=>{
+    const set = state.filters[k];
+    if (set.size) parts.push(k + '=' + [...set].map(encodeURIComponent).join(','));
+  });
+  const todosEjes = Object.keys(EJE_GROUPS).length;
+  if (state.ejesActivos.size !== todosEjes){
+    parts.push('ejes=' + [...state.ejesActivos].map(encodeURIComponent).join(','));
+  }
+  const hash = parts.join('&');
+  history.replaceState(null, '', hash ? ('#' + hash) : location.pathname + location.search);
+}
+
+function loadURL(){
+  const raw = location.hash.replace(/^#/, '');
+  if (!raw) return;
+  raw.split('&').forEach(part=>{
+    const eq = part.indexOf('=');
+    if (eq < 0) return;
+    const k = decodeURIComponent(part.slice(0, eq));
+    const vals = part.slice(eq+1).split(',').map(decodeURIComponent).filter(Boolean);
+    if (k === 'ejes'){ state.ejesActivos = new Set(vals); return; }
+    if (FILTER_KEYS.includes(k)) state.filters[k] = new Set(vals);
+  });
+}
+
+const GROUP_LABELS = { origen:'Origen', dir:'Dirección', btc_1h:'Régimen BTC', familia:'Familia' };
+
+// 🔧 2026-09-23 · el segmented control reemplaza TODO el filtro de origen (es un
+// "modo de vista": Todo / Solo LIVE / Solo SOMBRA) — visualmente distinto de un
+// chip de facet, que SUMA una condición sobre lo que ya está filtrado. Antes los
+// dos vivían mezclados como chips idénticos en la misma fila.
+function renderToolbar(){
+  const seg = document.getElementById('vistaSegmented');
+  const modos = [
+    { id:'todo', label:'Todo', test:()=>state.filters.origen.size===0 },
+    { id:'live', label:'Solo LIVE', test:()=>state.filters.origen.size===1 && state.filters.origen.has('LIVE') },
+    { id:'sombra', label:'Solo SOMBRA', test:()=>state.filters.origen.size===1 && state.filters.origen.has('SOMBRA') },
+  ];
+  seg.innerHTML = '';
+  modos.forEach(m=>{
+    const btn = document.createElement('div');
+    btn.className = 'seg-btn' + (m.test() ? ' active' : '');
+    btn.textContent = m.label;
+    btn.onclick = ()=>{
+      state.filters.origen = m.id==='live' ? new Set(['LIVE']) : m.id==='sombra' ? new Set(['SOMBRA']) : new Set();
+      syncURL(); buildFilterUI(); render();
+    };
+    seg.appendChild(btn);
+  });
+
+  const nActivos = FILTER_KEYS.reduce((a,k)=>a+state.filters[k].size, 0);
+  document.getElementById('filtercount').innerHTML = nActivos
+    ? `<b>${nActivos}</b> filtro${nActivos>1?'s':''} activo${nActivos>1?'s':''}` : 'sin filtros activos';
+  document.getElementById('clearAllBtn').onclick = ()=>{
+    state.filters = { origen:new Set(), familia:new Set(), dir:new Set(), btc_1h:new Set() };
+    syncURL(); buildFilterUI(); render();
+  };
+
+  const afbox = document.getElementById('activeFilters');
+  afbox.innerHTML = '';
+  FILTER_KEYS.forEach(k=>{
+    [...state.filters[k]].forEach(v=>{
+      const pill = document.createElement('div');
+      pill.className = 'filterpill';
+      pill.innerHTML = `${GROUP_LABELS[k]}: <b>${v}</b> <span class="x">&times;</span>`;
+      pill.querySelector('.x').onclick = ()=>{
+        state.filters[k].delete(v);
+        syncURL(); buildFilterUI(); render();
+      };
+      afbox.appendChild(pill);
+    });
   });
 }
 
@@ -267,29 +485,13 @@ function buildFilterUI(){
   const trades = state.data.trades;
   const box = document.getElementById('filters');
   box.innerHTML = '';
+  renderToolbar();
 
-  // 🔧 2026-09-22 · presets rápidos — la separación LIVE/SOMBRA es la distinción más
-  // importante del dashboard (capital real vs papel) y antes requería 2 clicks
-  // (activar LIVE, dejar SOMBRA sin marcar via exclusión manual). Un chip por preset.
-  const pdiv = document.createElement('div');
-  pdiv.className = 'filtergroup';
-  const pname = document.createElement('div'); pname.className='fname'; pname.textContent='Presets';
-  pdiv.appendChild(pname);
-  const pchips = document.createElement('div'); pchips.className='chips';
-  [
-    { label:'Solo LIVE (capital real)', apply:()=>{ state.filters.origen = new Set(['LIVE']); } },
-    { label:'Solo SOMBRA (papel)', apply:()=>{ state.filters.origen = new Set(['SOMBRA']); } },
-    { label:'Limpiar filtros', apply:()=>{ state.filters = { origen:new Set(), familia:new Set(), dir:new Set(), btc_1h:new Set() }; } },
-  ].forEach(preset=>{
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.textContent = preset.label;
-    chip.onclick = ()=>{ preset.apply(); buildFilterUI(); render(); };
-    pchips.appendChild(chip);
-  });
-  pdiv.appendChild(pchips);
-  box.appendChild(pdiv);
-
+  // 🔧 2026-09-23 · universo de valores fijo (no `[...new Set(trades.map(...))]`
+  // recortado por ningún filtro previo) — la LISTA de chips nunca desaparece; lo que
+  // cambia es su CONTEO y si están atenuados, así el usuario ve que la opción existe
+  // pero no tiene resultados con el resto de filtros activos, en vez de que el chip
+  // simplemente no aparezca (que es indistinguible de "no existe esa combinación").
   const groups = [
     { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
@@ -303,16 +505,19 @@ function buildFilterUI(){
     div.appendChild(fname);
     const chips = document.createElement('div'); chips.className='chips';
     g.values.forEach(v=>{
+      const n = countForChip(g.key, v);
       const chip = document.createElement('div');
       // 🔧 2026-09-22 · el estado activo ahora se lee de state.filters en vez de
       // togglear la clase a mano — así un preset que muta state.filters directamente
       // (sin pasar por este onclick) también queda reflejado al reconstruir la UI.
-      chip.className = 'chip' + (state.filters[g.key].has(v) ? ' active' : '');
-      chip.textContent = v;
+      chip.className = 'chip' + (state.filters[g.key].has(v) ? ' active' : '') + (n===0 ? ' chip-empty' : '');
+      chip.textContent = v + ' (' + n + ')';
+      chip.title = n === 0 ? 'Sin trades con los demás filtros activos' : '';
       chip.onclick = ()=>{
         const set = state.filters[g.key];
         if (set.has(v)) set.delete(v); else set.add(v);
-        chip.classList.toggle('active');
+        syncURL();
+        buildFilterUI();   // recuenta TODOS los chips (los otros grupos también cambian)
         render();
       };
       chips.appendChild(chip);
@@ -334,6 +539,7 @@ function buildFilterUI(){
     chip.onclick = ()=>{
       if (state.ejesActivos.has(k)) state.ejesActivos.delete(k); else state.ejesActivos.add(k);
       chip.classList.toggle('active');
+      syncURL();
       renderTable(applyFilters(state.data.trades));
     };
     cchips.appendChild(chip);
@@ -411,6 +617,7 @@ function render(){
       <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
     <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${liveRows.length?stLive.wr.toFixed(0)+'%':'—'} / ${sombraRows.length?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
     <div class="kpi"><div class="label">IC90 LIVE (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
+    <div class="kpi"><div class="label">IC90 SOMBRA (clúster)</div><div class="value" style="font-size:1rem">${stSombra.ic?`[${stSombra.ic[0].toFixed(2)},${stSombra.ic[1].toFixed(2)}]`:'n/a'}</div></div>
     <div class="kpi" style="grid-column:1/-1;background:transparent;border:none;padding:0;">
       <div class="hint">ROI = ΣPnL$ / Σnocional desplegado por trade (no es retorno de cuenta ni está anualizado — el mismo capital se reutiliza trade tras trade, no está todo invertido a la vez). LIVE usa el nocional real de cada operación (50/70/100$ según la época, ver D-17); SOMBRA nunca tuvo capital, así que su ROI es SIMULADO con el nocional de referencia vigente ($${notionalRefSombra.toFixed(0)}) — es "cuánto habría rendido si hubiera operado", no una ganancia real.</div>
     </div>
@@ -489,9 +696,15 @@ function render(){
   renderTable(filtered);
 }
 
-function estadoDe(familia, corteId, mean, excl){
+// 🔧 2026-09-23 · BUG (latente, sin manifestarse aún con los datos de hoy):
+// `armadosFam[corteId]` no chequeaba `direction` — si una familia alguna vez opera
+// en las dos direcciones y solo una tiene el corte armado, la OTRA dirección
+// también se pintaba "ARMADA" por compartir el nombre de familia+corte. `armados`
+// SÍ guarda `direction` (espejo_condicional.py:evaluar_armado) — solo faltaba leerla.
+function estadoDe(familia, corteId, dir, mean, excl){
   const armadosFam = state.data.armados[familia];
-  if (corteId && armadosFam && armadosFam[corteId]) return '<span class="badge-arm">ARMADA</span>';
+  const armado = corteId && armadosFam && armadosFam[corteId];
+  if (armado && armado.direction === dir) return '<span class="badge-arm">ARMADA</span>';
   if (excl && mean < 0) return '<span class="badge-neg">neg</span>';
   if (excl && mean > 0) return '<span class="badge-pos">pos</span>';
   return '';
@@ -535,7 +748,7 @@ function renderTable(filtered){
   // ordenable de IC90 — mismo criterio que usa `excl` para decidir significancia.
   rows.forEach(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
-    r.estadoTxt = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.mean, excl).replace(/<[^>]+>/g, '');
+    r.estadoTxt = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.dir, r.mean, excl).replace(/<[^>]+>/g, '');
     r.icLo = r.ic ? r.ic[0] : null;
   });
 
@@ -550,7 +763,7 @@ function renderTable(filtered){
 
   tbody.innerHTML = rows.map(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
-    const estado = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.mean, excl);
+    const estado = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.dir, r.mean, excl);
     return `<tr class="${r.esTotal?'totalrow':'segrow'}">
       <td>${r.familia}</td>
       <td>${r.dir}</td>
@@ -574,54 +787,308 @@ function renderTable(filtered){
   });
 }
 
-function renderEspejos(){
-  const thead = document.querySelector('#tablaEspejos thead');
-  const tbody = document.querySelector('#tablaEspejos tbody');
+// 🔧 2026-09-23 · tab GRADUACIÓN (reemplaza la vieja tabla plana de espejos,
+// movida aquí desde "Resumen histórico"). N_GRAD=40 es el PISO de #S81 §4, no
+// la meta — la discusión con Felipe fue clara en esto: lo que decide es el
+// IC90(R) del check 2, N≥40 solo habilita mirarlo en serio. Los checks 3
+// (bate el aleatorio) y 4 (mejora el sistema, gate A-02) NO se calculan en
+// ningún export automático hoy — se marcan "manual", nunca se simulan.
+const N_GRAD = 40;
+
+function estadoCheck2(r){
+  if (!r.n_cerrados) return { txt:'sin N', cls:'wait' };
+  if (!r.ic90_R_cerrados) return { txt:`N=${r.n_cerrados} (<3, sin IC90)`, cls:'wait' };
+  const [lo, hi] = r.ic90_R_cerrados;
+  const excl = lo>0 || hi<0;
+  const pos = (r.mean_R_cerrados||0) > 0;
+  if (excl && pos) return { txt:'✅ pasa', cls:'ok' };
+  if (excl && !pos) return { txt:'❌ negativo', cls:'bad' };
+  return { txt:'IC90 no excluye 0', cls:'wait' };
+}
+
+function renderGraduacion(){
+  const rows = [...state.data.espejos];
+
+  const nTotal = rows.length;
+  const nPisoN = rows.filter(r=>r.n_cerrados>=N_GRAD).length;
+  const nCheck2Ok = rows.filter(r=>estadoCheck2(r).cls==='ok').length;
+  document.getElementById('gradSummary').innerHTML = `
+    <div><b>${nTotal}</b> (familia,corte) armadas</div>
+    <div><b>${nPisoN}</b> ya con N&ge;${N_GRAD} forward</div>
+    <div><b>${nCheck2Ok}</b> con check 2 (mean_R&gt;0 + IC90 excluye 0) en verde</div>
+    <div style="color:var(--muted)">0 graduadas — checks 3/4 sin automatizar, ver nota arriba</div>
+  `;
+
+  const thead = document.querySelector('#tablaGraduacion thead');
+  const tbody = document.querySelector('#tablaGraduacion tbody');
+  // 🔧 2026-09-23 · BUG (mismo patrón que ya se corrigió en la tabla de Resumen,
+  // ver comentario del 22-sept): un `<th>` con `data-col` que apunta a un campo
+  // OBJETO/ARRAY (`ic90_R_cerrados`, `regimen_cerrados`) o INEXISTENTE (`check34`,
+  // texto estático) hace que `(av||0)-(bv||0)` compare objetos/undefined — NaN o
+  // "siempre 1", ambos casos barajan las filas sin ningún criterio real al
+  // clickear el encabezado. `sortable:false` saca esas 3 columnas del binding de
+  // click (quedan de solo lectura, con cursor normal) en vez de fingir que ordenan.
   const cols = [
     {k:'familia', label:'familia'}, {k:'corte', label:'corte'}, {k:'dir', label:'dir'},
-    {k:'umbral', label:'umbral'}, {k:'n_al_armar', label:'N al armar'}, {k:'mean_R_al_armar', label:'mean_R al armar'},
-    {k:'abiertas', label:'abiertas'}, {k:'n_cerrados', label:'N cerr.'}, {k:'pnl_cerrados_pct', label:'PnL cerr.'},
-    {k:'wr_cerrados', label:'WR cerr.'}, {k:'ic90_cerrados', label:'IC90 cerr.'}, {k:'regimen_cerrados', label:'régimen cerr.'},
+    {k:'n_cerrados', label:'1) N forward'}, {k:'mean_R_cerrados', label:'mean_R fwd'},
+    {k:'ic90_R_cerrados', label:'IC90 (R) fwd', sortable:false}, {k:'check2', label:'2) check IC90'},
+    {k:'check34', label:'3+4', sortable:false}, {k:'wr_cerrados', label:'WR fwd'},
+    {k:'regimen_cerrados', label:'régimen fwd', sortable:false},
+    {k:'abiertas', label:'abiertas'},
   ];
-  thead.innerHTML = '<tr>' + cols.map(c=>`<th data-col="${c.k}">${c.label}</th>`).join('') + '</tr>';
+  thead.innerHTML = '<tr>' + cols.map(c=>
+    c.sortable===false ? `<th class="nosort">${c.label}</th>` : `<th data-col="${c.k}">${c.label}</th>`
+  ).join('') + '</tr>';
 
-  let rows = [...state.data.espejos];
+  // por defecto: más cerca de graduar primero (N desc, luego mean_R desc)
   rows.sort((a,b)=>{
     const c = state.sortEspejos.col;
-    const av = a[c], bv = b[c];
+    if (!c) return (b.n_cerrados||0) - (a.n_cerrados||0) || (b.mean_R_cerrados||0) - (a.mean_R_cerrados||0);
+    const PRIORIDAD_CHECK2 = { ok:2, bad:1, wait:0 };   // ✅ primero al ordenar desc
+    const av = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(a).cls] : a[c];
+    const bv = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(b).cls] : b[c];
     if (av === null || av === undefined) return 1;
     if (bv === null || bv === undefined) return -1;
     if (typeof av === 'string') return state.sortEspejos.dir * av.localeCompare(bv);
-    return state.sortEspejos.dir * (av - bv);
+    return state.sortEspejos.dir * ((av||0) - (bv||0));
   });
 
   tbody.innerHTML = rows.map(r=>{
-    const ic = r.ic90_cerrados;
-    const excl = ic && (ic[0]>0 || ic[1]<0);
+    const ic = r.ic90_R_cerrados;
     const rc = r.regimen_cerrados;
     const regTxt = rc ? `R${rc.RANGE} B${rc.BULL} Be${rc.BEAR}` : '—';
-    const umbralTxt = (r.umbral===null || r.umbral===undefined) ? 'categ.' : Number(r.umbral).toFixed(1);
+    const pct = Math.min(100, 100 * (r.n_cerrados||0) / N_GRAD);
+    const c2 = estadoCheck2(r);
     return `<tr>
       <td>${r.familia}</td>
       <td>${r.corte}</td>
       <td>${r.dir}</td>
-      <td>${umbralTxt}</td>
-      <td>${r.n_al_armar}</td>
-      <td class="${r.mean_R_al_armar>=0?'pos':'neg'}">${fmtR(r.mean_R_al_armar)}</td>
-      <td>${r.abiertas}</td>
-      <td>${r.n_cerrados}</td>
-      <td class="${(r.pnl_cerrados_pct||0)>=0?'pos':'neg'}">${r.n_cerrados ? (r.pnl_cerrados_pct>=0?'+':'')+r.pnl_cerrados_pct.toFixed(2)+'%' : '—'}</td>
+      <td>
+        <div class="progress-track"><div class="progress-fill${pct>=100?' full':''}" style="width:${pct}%"></div></div>
+        <div class="hint" style="margin-top:3px">${r.n_cerrados||0}/${N_GRAD}</div>
+      </td>
+      <td class="${(r.mean_R_cerrados||0)>=0?'pos':'neg'}">${r.mean_R_cerrados!=null?fmtR(r.mean_R_cerrados):'—'}</td>
+      <td>${ic?`[${ic[0].toFixed(2)},${ic[1].toFixed(2)}]`:(r.n_cerrados?'n/a (N<3)':'—')}</td>
+      <td class="checkcell ${c2.cls}">${c2.txt}</td>
+      <td class="checkcell wait" title="Bate el aleatorio (C1) y mejora el sistema (gate A-02) — no automatizados en este export; requieren correr los scripts dedicados a mano.">manual</td>
       <td>${r.n_cerrados ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
-      <td>${ic?`[${ic[0].toFixed(2)},${ic[1].toFixed(2)}]${excl?'<span class="star">*</span>':''}`:(r.n_cerrados?'n/a (N<3)':'—')}</td>
       <td>${regTxt}</td>
+      <td>${r.abiertas}</td>
     </tr>`;
   }).join('');
 
-  thead.querySelectorAll('th').forEach(th=>{
+  thead.querySelectorAll('th[data-col]').forEach(th=>{
     th.onclick = ()=>{
       const col = th.dataset.col;
       if (state.sortEspejos.col === col) state.sortEspejos.dir *= -1; else { state.sortEspejos.col = col; state.sortEspejos.dir = -1; }
-      renderEspejos();
+      renderGraduacion();
+    };
+  });
+}
+
+// 🔧 2026-09-23 · tab EMBUDO — matriz familia × motivo de descarte. Instrumentación
+// generalizada hoy a TODAS las familias denegadas (antes solo 2 en watch, ver
+// `sombra_familias.py::_watched`) — es forward-only, así que puede estar vacía
+// hasta que el motor corra su próximo ciclo. La intensidad de fondo de cada
+// celda es relativa a `candidato_crudo` DE ESA FILA (no global) — así una
+// familia con pocos candidatos totales sigue siendo legible.
+const MOTIVO_LABELS = {
+  candidato_crudo: 'candidato crudo', bloqueado_r1: 'bloq. R1',
+  bloqueado_no_opuesto: 'bloq. no-opuesto', bloqueado_stride: 'bloq. STRIDE',
+  detector_exception: 'excepción detector', ctx_causal_no_disponible: 'sin ctx causal',
+  barra_ausente_causal: 'barra ausente (causal)', detector_causal_exception: 'excepción (causal)',
+  fire_no_repro_causal: 'no repro (causal = look-ahead)', ek3_fail_causal: 'falla E_K3 (causal)',
+  atr_nan: 'ATR NaN', x1_setup_none: 'sin geometría X1', abierto: 'ABIERTO',
+};
+
+function renderEmbudo(){
+  const emb = state.data.embudo || { orden_motivos: [], familias: {} };
+  const familias = emb.familias || {};
+  const nombres = Object.keys(familias);
+  const thead = document.querySelector('#tablaEmbudo thead');
+  const tbody = document.querySelector('#tablaEmbudo tbody');
+  const vacio = document.getElementById('embudoVacio');
+
+  if (!nombres.length){
+    thead.innerHTML = ''; tbody.innerHTML = '';
+    vacio.style.display = '';
+    vacio.innerHTML = '<b style="color:var(--muted)">Sin datos todavía: la instrumentación se generalizó a todas las familias el 2026-09-23, acumulando desde el próximo ciclo del motor.</b>';
+    return;
+  }
+  vacio.style.display = 'none';
+
+  const motivos = emb.orden_motivos.filter(m=>m!=='candidato_crudo' && m!=='abierto');
+  thead.innerHTML = '<tr><th>familia</th><th>crudos</th>'
+    + motivos.map(m=>`<th>${MOTIVO_LABELS[m]||m}</th>`).join('')
+    + '<th>abiertos</th></tr>';
+
+  nombres.sort((a,b)=> (familias[b].candidato_crudo||0) - (familias[a].candidato_crudo||0));
+  tbody.innerHTML = nombres.map(fam=>{
+    const m = familias[fam];
+    const crudo = m.candidato_crudo || 0;
+    const cell = (v)=>{
+      const pct = crudo ? Math.min(100, 100*v/crudo) : 0;
+      return `<td class="embudo-cell"><div class="embudo-bar" style="width:${pct}%"></div><span class="embudo-val">${v||0}</span></td>`;
+    };
+    return `<tr><td>${fam}</td><td><b>${crudo}</b></td>`
+      + motivos.map(mv=>cell(m[mv]||0)).join('')
+      + `<td class="pos"><b>${m.abierto||0}</b></td></tr>`;
+  }).join('');
+}
+
+// 🔧 2026-09-23 · tab POR SÍMBOLO — cruza LIVE/SOMBRA (`state.data.trades`) con
+// ESPEJO (`state.data.espejo_trades`, cierres forward de espejos condicionales,
+// #S81) en una sola vista por símbolo. Universo propio (no reusa `state.filters`
+// del tab Resumen — son ejes distintos: acá "origen" incluye ESPEJO, que no
+// existe como trade individual en ningún otro lado del dashboard).
+const simboloState = { filters: { origen: new Set(), dir: new Set() }, sort: { col:'mean', dir:-1 } };
+
+function universoSimbolo(){
+  const base = state.data.trades.map(t=>({ sym:t.sym, origen:t.origen, dir:t.dir, pnl_R:t.pnl_R }));
+  const esp = (state.data.espejo_trades||[]).map(t=>({ sym:t.sym, origen:'ESPEJO', dir:t.dir, pnl_R:t.pnl_R }));
+  return base.concat(esp).filter(t=>t.pnl_R!=null && t.sym);
+}
+
+function colorForOrigenSimbolo(o){ return o==='LIVE' ? '#5eb0ef' : o==='SOMBRA' ? '#c792ea' : '#ffcf5c'; }
+
+function renderSimboloFilters(universo){
+  const box = document.getElementById('simboloFilters');
+  box.innerHTML = '';
+  const countFor = (key, value) => universo.filter(t=>{
+    for (const k of ['origen','dir']){
+      if (k===key) continue;
+      const set = simboloState.filters[k];
+      if (set.size && !set.has(t[k])) return false;
+    }
+    return t[key]===value;
+  }).length;
+  const groups = [
+    { key:'origen', label:'Origen', values:['LIVE','SOMBRA','ESPEJO'] },
+    { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
+  ];
+  groups.forEach(g=>{
+    const div = document.createElement('div'); div.className='filtergroup';
+    const fname = document.createElement('div'); fname.className='fname'; fname.textContent=g.label;
+    div.appendChild(fname);
+    const chips = document.createElement('div'); chips.className='chips';
+    g.values.forEach(v=>{
+      const n = countFor(g.key, v);
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (simboloState.filters[g.key].has(v)?' active':'') + (n===0?' chip-empty':'');
+      chip.textContent = v + ' (' + n + ')';
+      chip.onclick = ()=>{
+        const set = simboloState.filters[g.key];
+        if (set.has(v)) set.delete(v); else set.add(v);
+        renderSimbolo();
+      };
+      chips.appendChild(chip);
+    });
+    div.appendChild(chips);
+    box.appendChild(div);
+  });
+}
+
+// IC90 SIN clúster por símbolo — `ic90Cluster` asume que `vals` mezcla varios
+// símbolos y remuestrea POR símbolo (evita pseudo-replicación al agregar). Acá
+// cada fila YA ES un símbolo: lo que hace falta es el bootstrap estándar sobre
+// sus propios N trades (remuestrea PUNTOS, no clústeres de 1 solo símbolo —
+// pasarle `ic90Cluster` con todos los syms iguales colapsaría a 1 clúster y
+// cada resample devolvería un solo trade, no la media de N).
+function ic90Simple(vals, n=600){
+  if (vals.length < 3) return null;
+  const sig = vals.length + '|' + vals.reduce((a,b)=>a+b,0).toFixed(6);
+  const rng = _mulberry32(_hashStr(sig));
+  const means = [];
+  for (let k=0;k<n;k++){
+    let sum=0;
+    for (let i=0;i<vals.length;i++) sum += vals[Math.floor(rng()*vals.length)];
+    means.push(sum/vals.length);
+  }
+  means.sort((a,b)=>a-b);
+  return [means[Math.floor(0.05*n)], means[Math.floor(0.95*n)]];
+}
+
+let chartSimbolo;
+
+function renderSimbolo(){
+  const universoTotal = universoSimbolo();
+  renderSimboloFilters(universoTotal);
+
+  const f = simboloState.filters;
+  const universo = universoTotal.filter(t=>{
+    if (f.origen.size && !f.origen.has(t.origen)) return false;
+    if (f.dir.size && !f.dir.has(t.dir)) return false;
+    return true;
+  });
+
+  const bySym = {};
+  universo.forEach(t=>{
+    const g = (bySym[t.sym] = bySym[t.sym] || { sym:t.sym, vals:[], origenes:{LIVE:0,SOMBRA:0,ESPEJO:0} });
+    g.vals.push(t.pnl_R);
+    g.origenes[t.origen] = (g.origenes[t.origen]||0) + 1;
+  });
+  let rows = Object.values(bySym).map(g=>{
+    const n = g.vals.length;
+    const mean = g.vals.reduce((a,b)=>a+b,0) / n;
+    const sum = g.vals.reduce((a,b)=>a+b,0);
+    const wr = 100 * g.vals.filter(v=>v>0).length / n;
+    const ic = ic90Simple(g.vals);
+    return { sym:g.sym, n, mean, sum, wr, ic, origenes:g.origenes };
+  });
+
+  // chart: top/bottom 15 por mean_R (con N>=3, para no graficar ruido de 1 trade)
+  const conN = rows.filter(r=>r.n>=3).sort((a,b)=>b.mean-a.mean);
+  const chartRows = conN.length>30 ? conN.slice(0,15).concat(conN.slice(-15)) : conN;
+  chartRows.sort((a,b)=>b.mean-a.mean);
+  if (chartSimbolo) chartSimbolo.destroy();
+  chartSimbolo = new Chart(document.getElementById('chartSimbolo'), {
+    type:'bar',
+    data:{ labels:chartRows.map(r=>r.sym), datasets:[{ label:'mean_R', data:chartRows.map(r=>r.mean),
+      backgroundColor:chartRows.map(r=>r.mean>=0?'#4fd18b':'#ef6f6f') }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`mean_R ${fmtR(c.raw)} · N=${chartRows[c.dataIndex].n}`}}},
+      scales:{ x:{ grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} }, y:{ grid:{display:false}, ticks:{color:'#8b96a8', font:{size:10}} } } }
+  });
+
+  const thead = document.querySelector('#tablaSimbolo thead');
+  const tbody = document.querySelector('#tablaSimbolo tbody');
+  // `mix` no es un campo de `r` (se arma al pintar la fila, no antes) — mismo
+  // patrón de bug que en Graduación: sortable:false para no fingir que ordena.
+  const cols = [
+    {k:'sym', label:'símbolo'}, {k:'n', label:'N'}, {k:'mean', label:'mean_R'},
+    {k:'sum', label:'Suma R'}, {k:'wr', label:'WR'}, {k:'ic', label:'IC90'},
+    {k:'mix', label:'LIVE/SOMBRA/ESPEJO', sortable:false},
+  ];
+  thead.innerHTML = '<tr>' + cols.map(c=>
+    c.sortable===false ? `<th class="nosort">${c.label}</th>` : `<th data-col="${c.k}">${c.label}</th>`
+  ).join('') + '</tr>';
+  rows.forEach(r=>{ r.icLo = r.ic ? r.ic[0] : null; });
+  rows.sort((a,b)=>{
+    const c = simboloState.sort.col === 'ic' ? 'icLo' : simboloState.sort.col;
+    const av = a[c], bv = b[c];
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    if (typeof av === 'string') return simboloState.sort.dir * av.localeCompare(bv);
+    return simboloState.sort.dir * ((av||0)-(bv||0));
+  });
+  tbody.innerHTML = rows.map(r=>{
+    const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
+    const mix = ['LIVE','SOMBRA','ESPEJO'].filter(o=>r.origenes[o]).map(o=>
+      `<span class="tag" style="background:${colorForOrigenSimbolo(o)}22;color:${colorForOrigenSimbolo(o)}">${o} ${r.origenes[o]}</span>`).join(' ');
+    return `<tr>
+      <td>${r.sym}</td><td>${r.n}</td>
+      <td class="${r.mean>=0?'pos':'neg'}">${fmtR(r.mean)}</td>
+      <td class="${r.sum>=0?'pos':'neg'}">${fmtR(r.sum)}</td>
+      <td>${r.wr.toFixed(0)}%</td>
+      <td>${r.ic?`[${r.ic[0].toFixed(2)},${r.ic[1].toFixed(2)}]${excl?'<span class="star">*</span>':''}`:'n/a (N<3)'}</td>
+      <td>${mix}</td>
+    </tr>`;
+  }).join('');
+  thead.querySelectorAll('th[data-col]').forEach(th=>{
+    th.onclick = ()=>{
+      const col = th.dataset.col;
+      if (simboloState.sort.col === col) simboloState.sort.dir *= -1; else { simboloState.sort.col = col; simboloState.sort.dir = -1; }
+      renderSimbolo();
     };
   });
 }
@@ -720,8 +1187,13 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  document.getElementById('tab-resumen').style.display = tab==='resumen' ? '' : 'none';
-  document.getElementById('tab-abiertas').style.display = tab==='abiertas' ? '' : 'none';
+  ['resumen','abiertas','graduacion','embudo','simbolo'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
+  });
+  // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
+  // ancho 0 y queda pintado en blanco para siempre — pasó con chartSimbolo (el
+  // tab nace oculto). Redibujar al mostrar el tab, no solo al cargar los datos.
+  if (tab === 'simbolo' && chartSimbolo) chartSimbolo.resize();
 });
 
 fetch('data.json?_=' + Date.now())
@@ -734,9 +1206,12 @@ fetch('data.json?_=' + Date.now())
     document.getElementById('regimen-txt').textContent = rb && rb.disponible
       ? `ret30d ${rb.ret30d>=0?'+':''}${rb.ret30d.toFixed(1)}% · ret7d ${rb.ret7d>=0?'+':''}${rb.ret7d.toFixed(1)}% · ${rb.estado || 'fuera de régimen de impulso'}${rb.stale?' (caché stale)':''}`
       : 'no disponible';
+    loadURL();   // restaura filtros/ejes desde el link, ANTES del primer render
     buildFilterUI();
     render();
-    renderEspejos();
+    renderGraduacion();
+    renderEmbudo();
+    renderSimbolo();
     renderAbiertas();
   })
   .catch(e=>{
