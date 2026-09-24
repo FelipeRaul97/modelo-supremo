@@ -1101,13 +1101,13 @@ function renderGraduacion(){
     const paso2 = paso1Completo
       ? `<span class="checkcell wait" title="Requiere que el motor abra posiciones reales de tamaño reducido (~25-30% del nocional) — mecanismo deliberadamente sin construir todavía, es una decisión aparte con plata real.">pendiente de implementar</span>`
       : `<span class="checkcell wait">—</span>`;
-    // 🔧 2026-09-23 · `origen` ahora es LIMPIO: LIVE/SOMBRA (la familia base) o
-    // ESPEJO puro cuando el segmento es negativo-armado (ahí ya no importa si la
-    // base era LIVE o SOMBRA para efectos de capital — el espejo siempre es
-    // papel — pero se deja de dónde viene en el title para no perder el dato).
-    const origenTag = r.armado && r.signo==='negativo'
-      ? `<span class="tag ESPEJO" title="Espejo en dirección contraria, corre en papel">ESPEJO (${r.origen})</span>`
-      : `<span class="tag ${r.origen}">${r.origen}</span>`;
+    // 🔧 2026-09-25 · revertido el prefijo "ESPEJO (...)" (pedido de Felipe): la fila
+    // sigue siendo el segmento BASE (ver nota 2026-09-23 arriba) — "N hist." es su
+    // histórico, nunca el del espejo. Reescribir `origen` a "ESPEJO (SOMBRA)" leía como
+    // si el espejo tuviera ese N histórico, imposible (el espejo nace DESPUÉS del
+    // armado, con N=0). La columna "estado" ya dice `🎓 vetando (espejo)` — no hace
+    // falta duplicarlo aquí cambiando el significado de `origen`.
+    const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`;
     const paso0 = r.armado
       ? `<span class="checkcell ok">✅ armado</span>`
       : `<span class="checkcell wait">—</span>`;
