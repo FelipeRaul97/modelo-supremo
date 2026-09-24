@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-25 00:12:31
+Ultima actualizacion: 2026-09-25 00:26:48
 
 ```
 ========================================================================================================
@@ -241,9 +241,9 @@ Ultima actualizacion: 2026-09-25 00:12:31
   5_posicion_rango        alt1d_trend     SHORT     categ.     47   -0.426   [-0.78,-0.04]        3         0            —                   —      —                   —  —  0/40
   5_posicion_rango        btc_trend       SHORT     categ.     31   +0.484   [+0.06,+0.91]        0         0            —                   —      —                   —  —  0/40
   5_posicion_rango        celda_bull_rangeSHORT     categ.     29   +0.722   [+0.32,+1.11]        0         0            —                   —      —                   —  —  0/40
-  41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       18        18       -1.712       [-2.00,-1.24]     6%            -115.89%  R8 B1 Be9  18/40
+  41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       19        18       -1.712       [-2.00,-1.24]     6%            -115.89%  R8 B1 Be9  18/40
   41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       11        23       -2.000       [-2.00,-2.00]     0%            -177.75%  R16 B0 Be7  23/40
-  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]        9         9       -1.524       [-2.00,-0.57]    11%             -48.94%  R2 B1 Be6  9/40
+  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]       10         9       -1.524       [-2.00,-0.57]    11%             -48.94%  R2 B1 Be6  9/40
   41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]       12        26       -1.965       [-2.00,-1.90]     0%            -195.77%  R18 B0 Be8  26/40
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]       15        28       -1.968       [-2.00,-1.90]     0%            -206.33%  R21 B0 Be7  28/40
   41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        5         5       -2.000       [-2.00,-2.00]     0%             -42.47%  R2 B0 Be3  5/40
