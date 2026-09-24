@@ -726,16 +726,30 @@ function render(){
   // vista en vez de necesitar filtrar primero.
   //
   // 🔧 2026-09-25 · período (7/14/21/todo, `renderEquityPeriodToolbar`): RECORTA la
-  // ventana Y reinicia el acumulado en 0 al principio de esa ventana — no es solo un
-  // zoom del eje X sobre la curva completa. Con 2 meses de histórico acumulado (~50-90
-  // en R), "últimos 7 días" sobre la curva sin rebasear se vería casi plano y offseteado
-  // — lo que se quiere ver es cuánto rindió ESA ventana, no el nivel absoluto heredado.
+  // ventana del eje X, pero el acumulado sigue siendo ABSOLUTO (el mismo nivel que se
+  // ve en "Todo") — NO se reinicia en 0. Reiniciar en 0 hacía que LIVE (que viene bajando
+  // desde ~+65 el 15-sep hasta ~+49 hoy) se viera arrancando en cero y cruzando a negativo,
+  // que es lo contrario de lo que dice la curva completa. El punto de anclaje al INICIO
+  // de la ventana es el acumulado heredado de todo lo anterior (`cumAlCorte`), no cero.
+  //
+  // 🔧 2026-09-25 · además: si el último trade de una serie es anterior a "ahora" (p.ej.
+  // LIVE sin trades nuevos desde el 21-sep), la línea antes terminaba ahí en vez de seguir
+  // plana hasta hoy — parecía "morir" aunque la posición acumulada sigue vigente. Se agrega
+  // un punto final en `Date.now()` con el mismo valor que el último trade real.
   const cutoffTs = state.equityPeriodDays ? Date.now() - state.equityPeriodDays*86400000 : null;
   const eqSeries = (rows) => {
-    let cum=0;
     const ordenado = [...rows].sort((a,b)=>a.ts-b.ts);
-    const ventana = cutoffTs ? ordenado.filter(t=>t.ts >= cutoffTs) : ordenado;
-    return ventana.map(t=>{ cum+=t.pnl_R; return {x:new Date(t.ts), y:cum}; });
+    let cum = 0, cumAlCorte = 0;
+    const puntos = [];
+    ordenado.forEach(t=>{
+      cum += t.pnl_R;
+      if (cutoffTs && t.ts < cutoffTs) { cumAlCorte = cum; return; }
+      puntos.push({x:new Date(t.ts), y:cum});
+    });
+    if (cutoffTs) puntos.unshift({x:new Date(cutoffTs), y:cumAlCorte});
+    const ultimo = puntos[puntos.length-1];
+    if (ultimo && Date.now() - ultimo.x.getTime() > 3600000) puntos.push({x:new Date(), y:ultimo.y});
+    return puntos;
   };
   if (chartEquity) chartEquity.destroy();
   chartEquity = new Chart(document.getElementById('chartEquity'), {
