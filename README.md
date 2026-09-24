@@ -4,15 +4,15 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-24 23:42:18
+Ultima actualizacion: 2026-09-24 23:56:46
 
 ```
 ========================================================================================================
   ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
-   (ninguna [familia,corte] nueva cruza el gate barato de armado)
-   total armadas históricamente: 63 (en 12 familias)
+   🟢 ARMADAS hoy: s84_volumen_regimen::btc_trend, s84_volumen_regimen::celda_bull_bull
+   total armadas históricamente: 65 (en 13 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -76,6 +76,8 @@ Ultima actualizacion: 2026-09-24 23:42:18
       54_ext_dn_4h · alt1d_trend LONG · umbral=None · armada 2026-09-23
       54_ext_dn_4h · btc_trend LONG · umbral=None · armada 2026-09-23
       54_ext_dn_4h · celda_bear_bear LONG · umbral=None · armada 2026-09-23
+      s84_volumen_regimen · btc_trend LONG · umbral=None · armada 2026-09-24
+      s84_volumen_regimen · celda_bull_bull LONG · umbral=None · armada 2026-09-24
 ```
 
 ```
@@ -207,8 +209,8 @@ Ultima actualizacion: 2026-09-24 23:42:18
 │ SOMBRA·s100_macd_cruce_bSHORT (TOTAL)          1   100%  -2.021   -2.02    0%                 n/a  R0 B1 Be0        │
 │ SOMBRA·s83_quiebre_retesLONG  (TOTAL)          8   100%  +0.973   +7.78   50%       [-0.53,+2.48]  R0 B8 Be0        │
 │ SOMBRA·s84_volumen_regimLONG  (TOTAL)         19   100%  +2.388  +45.37   74%      [+1.51,+3.30]*  R0 B19 Be0       │
-│                               btc_trend       19   100%  +2.388  +45.37   74%      [+1.51,+3.30]*  R0 B19 Be0   [pos] │
-│                               celda_bull_bull  16   100%  +2.847  +45.55   81%      [+2.08,+3.58]*  R0 B16 Be0   [pos] │
+│                               btc_trend       19   100%  +2.388  +45.37   74%      [+1.51,+3.30]*  R0 B19 Be0   [ARMADA] │
+│                               celda_bull_bull  16   100%  +2.847  +45.55   81%      [+2.08,+3.58]*  R0 B16 Be0   [ARMADA] │
 │ SOMBRA·s85_vela_rev_alciSHORT (TOTAL)          3   100%  -2.021   -6.06    0%      [-2.03,-2.02]*  R0 B3 Be0        │
 │ SOMBRA·s85_vela_rev_bajiLONG  (TOTAL)          4   100%  -2.026   -8.10    0%      [-2.03,-2.02]*  R0 B4 Be0        │
 │ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)         13   100%  +3.509  +45.62   92%      [+2.58,+3.98]*  R0 B13 Be0       │
@@ -222,7 +224,7 @@ Ultima actualizacion: 2026-09-24 23:42:18
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
-  REGISTRO COMPLETO DE ESPEJOS ARMADOS (63) — sin filtrar por si tienen trades abiertos
+  REGISTRO COMPLETO DE ESPEJOS ARMADOS (65) — sin filtrar por si tienen trades abiertos
   (la categoría existe por el IC90 negativo al armar; N=0 abiertas/cerradas es normal y válido)
 ==================================================================================================================================
 
@@ -291,6 +293,8 @@ Ultima actualizacion: 2026-09-24 23:42:18
   54_ext_dn_4h            alt1d_trend     LONG      categ.     20   +2.800   [+2.36,+3.26]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            btc_trend       LONG      categ.     26   +3.265   [+2.88,+3.60]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            celda_bear_bear LONG      categ.     20   +3.336   [+2.88,+3.73]        0         0            —                   —      —                   —  —  0/40
+  s84_volumen_regimen     btc_trend       LONG      categ.     19   +2.388   [+1.51,+3.30]        0         0            —                   —      —                   —  —  0/40
+  s84_volumen_regimen     celda_bull_bull LONG      categ.     16   +2.847   [+2.08,+3.58]        0         0            —                   —      —                   —  —  0/40
 
   N≥40+IC90R: piso N≥40 (#S81 §4) Y mean_R forward>0 Y IC90(R) excluye 0 — SOLO 2
   de los 4 checks de graduación (faltan: bate el aleatorio, mejora el sistema A-02,
