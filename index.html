@@ -129,7 +129,10 @@
     <div class="chart-wrap"><canvas id="chartFamilias"></canvas></div>
   </div>
   <div class="panel">
-    <h2>PnL_R acumulado en el tiempo (equity curve, filtros aplicados)</h2>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+      <h2 style="margin:0">PnL_R acumulado en el tiempo (equity curve, filtros aplicados)</h2>
+      <div class="segmented" id="equityPeriodSegmented"></div>
+    </div>
     <div class="chart-wrap"><canvas id="chartEquity"></canvas></div>
   </div>
 </div>
@@ -190,7 +193,7 @@
       <b>Positivo armado</b> (candidato a <u>graduar</u>) es puro <b>watch</b>: su forward se lee de su propio log desde que se armó, sin abrir ninguna posición nueva.
       Paso 1 (checks 1-2) se calcula abajo con datos reales; checks 3-4 y el Paso 2 completo están <b>deliberadamente sin construir</b> — 3/4 porque <code>graduar()</code> es un <code>NotImplementedError</code> a propósito, Paso 2 porque significa colocar órdenes reales nuevas y es una decisión aparte, recién cuando haya un candidato real que la necesite.
       <br><br>
-      Muestra TODOS los segmentos con N&ge;15 (LIVE+SOMBRA, "segmento" = "corte"), no solo los ya armados — para ver qué se acerca al Paso 0, no solo lo que ya lo cruzó.
+      Muestra TODOS los segmentos de TODAS las familias × todos los cortes del menú (LIVE+SOMBRA, "segmento" = "corte"), incluyendo los que aún tienen N&lt;15 (badge "poca muestra") — no solo los ya armados, para ver también las familias recién nacidas (0-14 trades) que antes desaparecían enteras de la tabla si ningún corte suyo llegaba a 15.
     </div>
     <div class="grad-summary" id="gradSummary"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
@@ -315,6 +318,10 @@ function fitUmbralesCongelados(allTrades){
 const state = {
   data: null,
   filters: { origen: new Set(), familia: new Set(), dir: new Set(), btc_1h: new Set() },
+  // 🔧 2026-09-25 · período de la equity curve (tab Resumen histórico), independiente
+  // de `filters` (esos son facets sobre QUÉ trades, esto es sobre CUÁNTO tiempo hacia
+  // atrás mostrar en el gráfico). `null` = todo el histórico (comportamiento previo).
+  equityPeriodDays: null,
   ejesActivos: new Set(Object.keys(EJE_GROUPS)),   // todos los ejes visibles por defecto
   sort: { col: 'mean', dir: -1 },
   // 🔧 2026-09-23 · BUG: `col` arrancaba en 'mean_R_al_armar' (default de la
@@ -526,6 +533,29 @@ function renderToolbar(){
   });
 }
 
+// 🔧 2026-09-25 · pedido de Felipe: la equity curve mostraba SIEMPRE el histórico
+// completo (jul27→hoy) — un movimiento de los últimos días queda aplastado contra
+// 2 meses de eje X. Segmented control propio (mismo estilo que Todo/LIVE/SOMBRA)
+// para acotar la curva a los últimos 7/14/21 días o el histórico completo, sin
+// tocar `state.filters` (es un recorte temporal del gráfico, no un filtro de datos
+// que afecte KPIs/tablas — mismo criterio que ya separa "Resumen" de "Graduación").
+function renderEquityPeriodToolbar(){
+  const seg = document.getElementById('equityPeriodSegmented');
+  if (!seg) return;
+  const opciones = [
+    { dias:7, label:'7d' }, { dias:14, label:'14d' }, { dias:21, label:'21d' },
+    { dias:null, label:'Todo' },
+  ];
+  seg.innerHTML = '';
+  opciones.forEach(o=>{
+    const btn = document.createElement('div');
+    btn.className = 'seg-btn' + (state.equityPeriodDays === o.dias ? ' active' : '');
+    btn.textContent = o.label;
+    btn.onclick = ()=>{ state.equityPeriodDays = o.dias; render(); };
+    seg.appendChild(btn);
+  });
+}
+
 function buildFilterUI(){
   const trades = state.data.trades;
   const box = document.getElementById('filters');
@@ -635,6 +665,7 @@ let chartFamilias, chartEquity, chartHist, chartRegimen;
 
 function render(){
   const filtered = applyFilters(state.data.trades);
+  renderEquityPeriodToolbar();
 
   const kpis = document.getElementById('kpis');
   const liveRows = filtered.filter(t=>t.origen==='LIVE');
@@ -693,7 +724,19 @@ function render(){
   // el "PnL_R acumulado" que se ve de entrada mezclaba dinero real con trades de papel.
   // Dos series separadas (mismo eje, mismo gráfico) para que la diferencia salte a la
   // vista en vez de necesitar filtrar primero.
-  const eqSeries = (rows) => { let cum=0; return [...rows].sort((a,b)=>a.ts-b.ts).map(t=>{ cum+=t.pnl_R; return {x:new Date(t.ts), y:cum}; }); };
+  //
+  // 🔧 2026-09-25 · período (7/14/21/todo, `renderEquityPeriodToolbar`): RECORTA la
+  // ventana Y reinicia el acumulado en 0 al principio de esa ventana — no es solo un
+  // zoom del eje X sobre la curva completa. Con 2 meses de histórico acumulado (~50-90
+  // en R), "últimos 7 días" sobre la curva sin rebasear se vería casi plano y offseteado
+  // — lo que se quiere ver es cuánto rindió ESA ventana, no el nivel absoluto heredado.
+  const cutoffTs = state.equityPeriodDays ? Date.now() - state.equityPeriodDays*86400000 : null;
+  const eqSeries = (rows) => {
+    let cum=0;
+    const ordenado = [...rows].sort((a,b)=>a.ts-b.ts);
+    const ventana = cutoffTs ? ordenado.filter(t=>t.ts >= cutoffTs) : ordenado;
+    return ventana.map(t=>{ cum+=t.pnl_R; return {x:new Date(t.ts), y:cum}; });
+  };
   if (chartEquity) chartEquity.destroy();
   chartEquity = new Chart(document.getElementById('chartEquity'), {
     type:'line',
@@ -866,6 +909,15 @@ function estadoCheck2(r){
 // cruzaron. Recorre TODO el MENU (#S82) sobre TODOS los trades, sin los
 // filtros del toolbar de Resumen (acá siempre es la población completa) y
 // cruza cada segmento contra `armados`/`espejos` si corresponde.
+//
+// 🔧 2026-09-24 · el filtro `sub.length < N_MIN` (el mismo N_MIN=15 que usa
+// `study_segmentos_por_familia.py` para decidir si vale la pena calcular el
+// corte) escondía la fila ENTERA cuando ninguna corte de una familia llegaba
+// a 15 — p.ej. `s99_squeeze_cono` (1 solo cierre histórico) no aparecía en
+// NINGUNA fila, ni siquiera con N=1. Felipe pidió ver TODAS las familias y
+// segmentos aunque tengan 0 trades acumulados, para poder mirar el progreso
+// desde cero — el filtro de significancia (N≥15, IC90 excluye 0) sigue
+// aplicándose en `estadoDeFila`/`excl_hist`, acá ya no se descarta la fila.
 function computeTodosSegmentos(){
   const armados = state.data.armados || {};
   const espejoIndex = {};
@@ -879,7 +931,6 @@ function computeTodosSegmentos(){
     MENU.forEach(entry=>{
       const umbralFijo = TERCIL_ENTRIES.includes(entry.id) ? umbralesGrupo[entry.id] : undefined;
       const sub = computeSegment(g.rows, entry, umbralFijo);
-      if (sub.length < N_MIN) return;
       const s = statsOf(sub);
       const exclHist = s.ic && (s.ic[0]>0 || s.ic[1]<0);
       const armadoFam = armados[g.familia];
@@ -912,8 +963,9 @@ function renderGraduacion(){
   const nPisoN = rows.filter(r=>r.n_cerrados>=N_GRAD).length;
   const nCheck2Ok = rows.filter(r=>r.armado && estadoCheck2(r).cls==='ok').length;
   const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0).length;
+  const nPocaMuestra = rows.filter(r=>r.n_hist < N_MIN).length;
   document.getElementById('gradSummary').innerHTML = `
-    <div><b>${nTotal}</b> segmentos con N&ge;15 (LIVE+SOMBRA)</div>
+    <div><b>${nTotal}</b> segmentos totales (LIVE+SOMBRA, todas las familias × ${MENU.length} cortes del menú — incluye N&lt;15) · <b>${nPocaMuestra}</b> aún con poca muestra (N&lt;15)</div>
     <div><b>${nArmadosNeg}</b> armados negativo (candidatos a excluir, con espejo) · <b>${nArmadosPos}</b> armados positivo (candidatos a graduar, watch)</div>
     <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
     <div><b>${nPisoN}</b> ya con N&ge;${N_GRAD} forward (paso 1)</div>
@@ -968,11 +1020,17 @@ function renderGraduacion(){
     return c.sortable===false ? `<th${clsAttr}>${c.label}</th>` : `<th${clsAttr} data-col="${c.k}">${c.label}</th>`;
   }).join('') + '</tr>';
 
-  const PRIORIDAD_ESTADO = { armado_negativo:4, armado_positivo:3, negativo:2, positivo:1, plano:0 };
+  const PRIORIDAD_ESTADO = { armado_negativo:5, armado_positivo:4, negativo:3, positivo:2, plano:1, poca_muestra:0 };
   function estadoDeFila(r){
     if (r.armado) return r.signo === 'positivo' ? 'armado_positivo' : 'armado_negativo';
     if (r.excl_hist && r.mean_hist < 0) return 'negativo';
     if (r.excl_hist && r.mean_hist > 0) return 'positivo';
+    // 🔧 2026-09-24 · N<N_MIN (incl. N=0) ya no se descarta (ver computeTodosSegmentos)
+    // pero tampoco es "sin significancia" — ese estado implica que SÍ hubo muestra
+    // suficiente para calcular IC90 y no excluyó 0. Con N<15 el IC90 ni se calculó
+    // (`ic90Cluster` exige n≥3, y aun con eso sería ruido) — badge propio para no
+    // confundir "no hay edge" con "todavía no hay datos".
+    if (r.n_hist < N_MIN) return 'poca_muestra';
     return 'plano';
   }
   rows.forEach(r=>{ r.icLoHist = r.ic_hist ? r.ic_hist[0] : null; r.estadoRow = estadoDeFila(r); });
@@ -1004,6 +1062,7 @@ function renderGraduacion(){
     negativo: '<span class="checkcell wait">negativo, sin armar</span>',
     positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
+    poca_muestra: '<span class="checkcell wait" title="N<15 — ni siquiera se calculó IC90 (ic90Cluster exige n≥3, y con eso sería ruido). No es falta de edge, es falta de datos todavía.">poca muestra</span>',
   };
 
   tbody.innerHTML = rows.map(r=>{
