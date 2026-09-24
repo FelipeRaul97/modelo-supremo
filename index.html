@@ -1383,9 +1383,19 @@ function renderAbiertas(){
   // "live" ni cuenta como desync — antes se mostraban como posiciones reales
   // desincronizadas cuando en realidad nunca pasaron por el executor. Se muestra la
   // cuenta para que no desaparezcan en silencio, con su propio motivo (no es un error).
-  const exNoReales = a.excluidas_no_reales || {ek5:0, ghost:0};
-  const nExcl = (exNoReales.ek5||0) + (exNoReales.ghost||0);
-  const excl = nExcl ? ` · <span class="hint" style="margin:0">(+${nExcl} excluidas: ${exNoReales.ek5||0} lane de investigación E_K5, ${exNoReales.ghost||0} ghost — nunca fueron posiciones reales)</span>` : '';
+  //
+  // 🔧 2026-09-25 · mismo patrón sumado a `no_ejecutadas` (testnet_open=False: barra
+  // atrasada, drenaje, sin margen o rechazo del executor — nunca llegó a ser una
+  // posición real). Verificado en vivo: LINK/1INCH/TRX/XLM/BCH del 24-sept eran las 5,
+  // todas BARRA_ATRASADA — antes salían como "no (state desactualizado o desync)",
+  // indistinguibles de un desync genuino.
+  const exNoReales = a.excluidas_no_reales || {ek5:0, ghost:0, no_ejecutadas:0, no_ejecutadas_motivos:{}};
+  const nExcl = (exNoReales.ek5||0) + (exNoReales.ghost||0) + (exNoReales.no_ejecutadas||0);
+  const motivosTxt = Object.entries(exNoReales.no_ejecutadas_motivos||{})
+    .map(([m,n])=>`${n} ${m.toLowerCase()}`).join(', ');
+  const excl = nExcl ? ` · <span class="hint" style="margin:0">(+${nExcl} excluidas: ${exNoReales.ek5||0} lane de investigación E_K5, `
+    + `${exNoReales.ghost||0} ghost, ${exNoReales.no_ejecutadas||0} nunca ejecutadas${motivosTxt?` [${motivosTxt}]`:''}`
+    + ` — ninguna fue nunca una posición real)</span>` : '';
   meta.innerHTML = `Motor cree abiertas: <b>${nLiveState}</b> LIVE · <b>${a.sombra.length}</b> SOMBRA · <b>${a.espejo.length}</b> ESPEJO
     &middot; Confirmadas AHORA en Binance: <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>
     ${nBinance!==null && nBinance!==nLiveState ? ' <span class="neg">(el state va por detrás — no reconcilia cierres TP/SL hasta el próximo ciclo)</span>' : ''}${err}${huerf}${excl}`;
@@ -1424,7 +1434,14 @@ function renderAbiertas(){
     // vacío del backend y CADA posición marca confirmado_binance=false — antes esto se
     // mostraba igual que un desync real ("no, state desactualizado"), acusando a todas
     // las posiciones de algo que en realidad es una falla de red/API, no del motor.
+    // 🔧 2026-09-25 · `real_closed` (el motor ya detectó el cierre real, TP/SL tocado y
+    // confirmado, pero el registro TRADE_CLOSED oficial espera a que TODAS las sombras
+    // de investigación paralelas de esa posición también cierren — tope 98h,
+    // sim_supremo_live.py) es una demora ESPERADA del diseño, no un desync. Antes se
+    // mostraba igual que un desync genuino. Verificado en vivo: FILUSDT/PEOPLEUSDT
+    // (SL tocado, confirmado contra Binance en vivo, cerrarán del todo en <98h).
     const confTxt = conf ? '<span class="badge-pos">sí</span>'
+      : p.real_closed ? `<span class="checkcell wait" title="El motor ya detectó el cierre real (${p.real_exit_reason||'?'}) y Binance ya no la tiene — el registro oficial espera a que cierren las sombras de investigación paralelas de esta posición, tope 98h. No es un desync: el dinero ya está resuelto.">cerrado (${p.real_exit_reason||'?'}), esperando sombras</span>`
       : (a.binance_error ? '<span class="badge-neg">no verificado (Binance no respondió)</span>'
                           : '<span class="badge-neg">no (state desactualizado o desync)</span>');
     const upnl = p.upnl_binance;
