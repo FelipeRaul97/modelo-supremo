@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-24 18:56:29
+Ultima actualizacion: 2026-09-24 19:11:48
 
 ```
 ========================================================================================================
@@ -215,7 +215,7 @@ Ultima actualizacion: 2026-09-24 18:56:29
 │                               alt1d_range     16   100%  -2.020  -32.32    0%      [-2.02,-2.02]*  R0 B16 Be0   [ARMADA] │
 │                               btc_trend       27   100%  -2.020  -54.55    0%      [-2.02,-2.02]*  R0 B27 Be0   [ARMADA] │
 │                               celda_bull_bull  25   100%  -2.020  -50.51    0%      [-2.02,-2.02]*  R0 B25 Be0   [ARMADA] │
-│ SOMBRA·s95_rebote_ma_bajSHORT (TOTAL)          1   100%  -2.017   -2.02    0%                 n/a  R0 B1 Be0        │
+│ SOMBRA·s95_rebote_ma_bajSHORT (TOTAL)          2   100%  -2.019   -4.04    0%                 n/a  R0 B2 Be0        │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
