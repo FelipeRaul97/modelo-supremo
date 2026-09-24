@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-25 00:56:30
+Ultima actualizacion: 2026-09-25 01:11:54
 
 ```
 ========================================================================================================
@@ -110,7 +110,7 @@ Ultima actualizacion: 2026-09-25 00:56:30
 │ SOMBRA·54_x_sma20x50_dn SHORT RANGE      33    -0.671  -22.16   39% [-1.12,-0.23]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
 │ SOMBRA·s84_volumen_regimLONG  BULL       20    +2.468  +49.35   75% [+1.57,+3.34]*                   │
-│ SOMBRA·s87_fib_cont_alciLONG  BULL       13    +3.509  +45.62   92% [+2.58,+3.98]*                   │
+│ SOMBRA·s87_fib_cont_alciLONG  BULL       14    +3.543  +49.60   93% [+2.68,+3.98]*                   │
 │ SOMBRA·s87_fib_cont_bajiSHORT BULL       29    -2.020  -58.57    0% [-2.02,-2.02]*                   │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
@@ -213,7 +213,7 @@ Ultima actualizacion: 2026-09-25 00:56:30
 │                               celda_bull_bull  17   100%  +2.914  +49.53   82%      [+2.17,+3.60]*  R0 B17 Be0   [ARMADA] │
 │ SOMBRA·s85_vela_rev_alciSHORT (TOTAL)          3   100%  -2.021   -6.06    0%      [-2.03,-2.02]*  R0 B3 Be0        │
 │ SOMBRA·s85_vela_rev_bajiLONG  (TOTAL)          4   100%  -2.026   -8.10    0%      [-2.03,-2.02]*  R0 B4 Be0        │
-│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)         13   100%  +3.509  +45.62   92%      [+2.58,+3.98]*  R0 B13 Be0       │
+│ SOMBRA·s87_fib_cont_alciLONG  (TOTAL)         14   100%  +3.543  +49.60   93%      [+2.68,+3.98]*  R0 B14 Be0       │
 │ SOMBRA·s87_fib_cont_bajiSHORT (TOTAL)         29   100%  -2.020  -58.57    0%      [-2.02,-2.02]*  R0 B29 Be0       │
 │                               alt1d_range     18   100%  -2.019  -36.35    0%      [-2.02,-2.02]*  R0 B18 Be0   [ARMADA] │
 │                               btc_trend       29   100%  -2.020  -58.57    0%      [-2.02,-2.02]*  R0 B29 Be0   [ARMADA] │
