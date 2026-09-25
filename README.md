@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-25 12:56:38
+Ultima actualizacion: 2026-09-25 13:12:05
 
 ```
 ========================================================================================================
@@ -110,7 +110,7 @@ Ultima actualizacion: 2026-09-25 12:56:38
 │ SOMBRA·54_ext_dn_4h     LONG  BEAR       26    +3.265  +84.90   96% [+2.88,+3.60]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT RANGE      33    -0.671  -22.16   39% [-1.12,-0.23]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
-│ SOMBRA·s83_quiebre_retesLONG  BULL       14    +0.895  +12.53   57% [-0.20,+1.86]                    │
+│ SOMBRA·s83_quiebre_retesLONG  BULL       17    +0.796  +13.53   53% [-0.07,+1.65]                    │
 │ SOMBRA·s84_volumen_regimLONG  BULL       63    +1.482  +93.37   86% [+1.16,+1.81]*                   │
 │ SOMBRA·s85_vela_rev_bajiLONG  BULL       16    +0.002   +0.03   62% [-0.53,+0.51]                    │
 │ SOMBRA·s87_fib_cont_alciLONG  BULL       52    +1.604  +83.40   90% [+1.23,+2.00]*                   │
@@ -210,7 +210,9 @@ Ultima actualizacion: 2026-09-25 12:56:38
 │                               btc_range       33   100%  -0.671  -22.16   39%      [-1.12,-0.23]*  R33 B0 Be0   [ARMADA] │
 │                               celda_bear_range  21   100%  -0.713  -14.98   38%      [-1.26,-0.18]*  R18 B0 Be3   [ARMADA] │
 │ SOMBRA·s100_macd_cruce_bSHORT (TOTAL)          1   100%  -2.021   -2.02    0%                 n/a  R0 B1 Be0        │
-│ SOMBRA·s83_quiebre_retesLONG  (TOTAL)         14   100%  +0.895  +12.53   57%       [-0.20,+1.86]  R0 B14 Be0       │
+│ SOMBRA·s83_quiebre_retesLONG  (TOTAL)         17   100%  +0.796  +13.53   53%       [-0.07,+1.65]  R0 B17 Be0       │
+│                               btc_trend       17   100%  +0.796  +13.53   53%       [-0.07,+1.65]  R0 B17 Be0       │
+│                               celda_bull_bull  15   100%  +0.659   +9.89   53%       [-0.20,+1.52]  R0 B15 Be0      │
 │ SOMBRA·s83_quiebre_retesSHORT (TOTAL)          2   100%  -2.026   -4.05    0%                 n/a  R0 B2 Be0        │
 │ SOMBRA·s84_volumen_regimLONG  (TOTAL)         63   100%  +1.482  +93.37   86%      [+1.16,+1.81]*  R0 B63 Be0       │
 │                               alt1d_range     46   100%  +1.350  +62.12   87%      [+0.97,+1.72]*  R0 B46 Be0   [pos] │
