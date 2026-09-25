@@ -255,6 +255,11 @@
     <div class="hint">Solo se mueve el límite de hold, dentro de [24h, 96h] &mdash; no se evalúa más allá de 96h (esa pregunta más amplia la responde <code>study_maxhold_por_familia.py</code> (#S78), con más rigor, sobre las familias ya armadas). Este barrido y el de TP son INDEPENDIENTES &mdash; cada uno fija el otro parámetro en su valor actual, no son un óptimo conjunto.</div>
     <div class="tablewrap"><table id="tablaCurvaSweepMH"><thead></thead><tbody></tbody></table></div>
   </div>
+  <div class="panel" id="curvaPanelSweepSL" style="display:none;">
+    <h2>Barrido de stop-loss (SL) real (TP=4R fijo, MAX_HOLD=96h fijo)</h2>
+    <div class="hint">Solo se mueve dónde va el stop, dentro de [1R, 4R]. Este barrido, el de TP y el de MAX_HOLD son INDEPENDIENTES entre sí &mdash; cada uno fija los otros dos parámetros en su valor actual, no son un óptimo conjunto.</div>
+    <div class="tablewrap"><table id="tablaCurvaSweepSL"><thead></thead><tbody></tbody></table></div>
+  </div>
   <div class="panel" id="curvaPanelJoint" style="display:none;">
     <h2>Grilla cruzada TP &times; MAX_HOLD (mean_R por combinación)</h2>
     <div class="hint">Las 42 combinaciones (6 TP &times; 7 MAX_HOLD) a la vez &mdash; los dos barridos de arriba son cada uno un corte de UNA fila/columna de esta grilla. Con 42 comparaciones en vez de 6+7=13, un "mejor" que sobreviva acá pesa MÁS multiplicidad, no menos &mdash; léelo con más escepticismo todavía. Celda con borde azul = actual (4R/96h). Celda con borde amarillo = sugerida (solo si N&ge;15 y su IC90 no se solapa con la actual).</div>
@@ -1592,6 +1597,7 @@ function renderCurva(){
   const panelChart = document.getElementById('curvaPanelChart');
   const panelSweep = document.getElementById('curvaPanelSweep');
   const panelSweepMH = document.getElementById('curvaPanelSweepMH');
+  const panelSweepSL = document.getElementById('curvaPanelSweepSL');
   const panelJoint = document.getElementById('curvaPanelJoint');
   if (!ca || ca.disponible === false || !ca.celdas || !Object.keys(ca.celdas).length){
     noDisp.style.display = '';
@@ -1601,6 +1607,7 @@ function renderCurva(){
     panelChart.style.display = 'none';
     panelSweep.style.display = 'none';
     panelSweepMH.style.display = 'none';
+    panelSweepSL.style.display = 'none';
     panelJoint.style.display = 'none';
     return;
   }
@@ -1680,12 +1687,14 @@ function renderCurva(){
     panelChart.style.display = 'none';
     panelSweep.style.display = 'none';
     panelSweepMH.style.display = 'none';
+    panelSweepSL.style.display = 'none';
     panelJoint.style.display = 'none';
     return;
   }
   panelChart.style.display = '';
   panelSweep.style.display = '';
   panelSweepMH.style.display = '';
+  panelSweepSL.style.display = '';
   panelJoint.style.display = '';
 
   const hp = celda.hold_al_pico;
@@ -1695,6 +1704,7 @@ function renderCurva(){
     <div>MAE antes del pico (mediana): <b>${celda.mae_antes_pico_p50 != null ? celda.mae_antes_pico_p50.toFixed(2) + 'R' : '—'}</b></div>
     <div>Mejor TP: ${renderMejorBadge(celda.mejor_tp, 'R')}</div>
     <div>Mejor tiempo de vida: ${renderMejorBadge(celda.mejor_mh, 'h')}</div>
+    <div>Mejor SL: ${renderMejorBadge(celda.mejor_sl, 'R')}</div>
   `;
 
   const pts = celda.curva || [];
@@ -1723,6 +1733,10 @@ function renderCurva(){
   const mhGrid = ca.mh_grid || [24,36,48,60,72,84,96];
   const mhAct = ca.mh_actual != null ? ca.mh_actual : 96;
   renderSweepTabla('tablaCurvaSweepMH', 'MAX_HOLD', mhGrid, mhAct, celda.sweep_mh, 'h', false);
+
+  const slGrid = ca.sl_grid || [1,1.5,2,2.5,3,4];
+  const slAct = ca.k_sl_actual != null ? ca.k_sl_actual : 2;
+  renderSweepTabla('tablaCurvaSweepSL', 'SL', slGrid, slAct, celda.sweep_sl, 'R', true);
 
   document.getElementById('curvaJointStats').innerHTML =
     `<div>Mejor combinación TP&times;MAX_HOLD: ${renderMejorJointBadge(celda.mejor_joint)}</div>`;
