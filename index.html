@@ -1681,10 +1681,10 @@ function renderCurva(){
   chartCurva = new Chart(document.getElementById('chartCurva'), {
     type: 'line',
     data: { datasets: [
-      { label: 'p75', data: pts.filter(p=>p.mfe_p75!=null).map(p=>({x:p.h, y:p.mfe_p75})), borderColor: 'rgba(94,176,239,.4)', borderWidth: 1, pointRadius: 0, borderDash: [3,3], yAxisID: 'y' },
-      { label: 'mediana MFE_R', data: pts.filter(p=>p.mfe_p50!=null).map(p=>({x:p.h, y:p.mfe_p50})), borderColor: '#5eb0ef', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
-      { label: 'p25', data: pts.filter(p=>p.mfe_p25!=null).map(p=>({x:p.h, y:p.mfe_p25})), borderColor: 'rgba(94,176,239,.4)', borderWidth: 1, pointRadius: 0, borderDash: [3,3], yAxisID: 'y' },
-      { label: 'N vivos', data: pts.map(p=>({x:p.h, y:p.n_alive})), borderColor: '#8b96a8', borderWidth: 1, pointRadius: 0, borderDash: [1,2], yAxisID: 'y1' },
+      { label: 'p75', data: pts.filter(p=>p.mfe_p75!=null).map(p=>({x:p.h, y:p.mfe_p75})), borderColor: '#c792ea', backgroundColor: 'rgba(199,146,234,.08)', borderWidth: 1.5, pointRadius: 0, borderDash: [5,3], yAxisID: 'y' },
+      { label: 'mediana MFE_R', data: pts.filter(p=>p.mfe_p50!=null).map(p=>({x:p.h, y:p.mfe_p50})), borderColor: '#4fd18b', borderWidth: 3, pointRadius: 0, yAxisID: 'y' },
+      { label: 'p25', data: pts.filter(p=>p.mfe_p25!=null).map(p=>({x:p.h, y:p.mfe_p25})), borderColor: '#ffcf5c', borderWidth: 1.5, pointRadius: 0, borderDash: [5,3], yAxisID: 'y' },
+      { label: 'N vivos', data: pts.map(p=>({x:p.h, y:p.n_alive})), borderColor: '#ef6f6f', borderWidth: 1, pointRadius: 0, borderDash: [1,2], yAxisID: 'y1' },
     ]},
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: true, labels: { color: '#8b96a8', font: { size: 11 } } } },
