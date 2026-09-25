@@ -106,6 +106,7 @@
   <div class="tabbtn" data-tab="graduacion">🎓 Graduación</div>
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
+  <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
 </div>
 
 <div id="tab-resumen">
@@ -225,6 +226,29 @@
   <div class="panel">
     <h2>Tabla completa por símbolo (click en encabezado para ordenar)</h2>
     <div class="tablewrap"><table id="tablaSimbolo"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-curva" style="display:none;">
+  <div class="panel">
+    <h2>Curva de acumulación · pico y tiempo-al-pico por familia × segmento</h2>
+    <div class="hint">
+      Reconstruida desde klines crudas (no desde el log del motor — ver `study_curva_acumulacion_por_familia.py`). Para cada familia×dirección×segmento del mismo menú de Graduación (#S82), muestra cómo se acumula el MFE (a favor) hora a hora SOLO sobre los trades que siguen vivos en esa hora ("supervivientes", igual método que usó #S51 agrupado), cuándo tienden a tocar su pico, y qué TP real lo hubiera capturado — con el mismo candado de evidencia que Graduación (N&lt;15 = sin muestra suficiente). Es diagnóstico, no una recomendación: nada de esto se cablea hasta que una celda concreta se pre-registre y confirme aparte. No se recalcula cada 15 min (hace fetch de klines) — se corre manualmente.
+    </div>
+    <div id="curvaNoDisponible" class="hint" style="display:none;"></div>
+    <div id="curvaControles">
+      <div class="filters" id="curvaFamiliaFilter" style="margin-top:10px;"></div>
+      <div class="filters" id="curvaDirSegFilter" style="margin-top:10px;"></div>
+    </div>
+  </div>
+  <div class="panel" id="curvaPanelChart" style="display:none;">
+    <h2>MFE_R acumulado por hora de hold (p25 / mediana / p75, sobre supervivientes)</h2>
+    <div class="grad-summary" id="curvaStats"></div>
+    <div class="chart-wrap"><canvas id="chartCurva"></canvas></div>
+  </div>
+  <div class="panel" id="curvaPanelSweep" style="display:none;">
+    <h2>Barrido de TP real (K_SL=2R fijo, empate intra-vela &rarr; SL, coste incluido)</h2>
+    <div class="tablewrap"><table id="tablaCurvaSweep"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -348,6 +372,9 @@ const state = {
   // SEGMENTOS de `computeTodosSegmentos()`, que existen aunque la familia tenga 0
   // trades todavía — no hay overlap de datos entre los dos filtros).
   filtroGraduacionFamilia: new Set(),
+  // 🔧 2026-09-25 · selección (única, no Set) del tab Curva de acumulación —
+  // una celda familia×dirección×segmento a la vez, no un filtro multi-select.
+  curva: { familia: null, direccion: null, corte: null },
 };
 
 // Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
@@ -1322,6 +1349,7 @@ function ic90Simple(vals, n=600){
 }
 
 let chartSimbolo;
+let chartCurva;
 
 function renderSimbolo(){
   const universoTotal = universoSimbolo();
@@ -1543,19 +1571,167 @@ function renderAbiertas(){
   bindSort(theadE, sortA.espejo, renderAbiertas);
 }
 
+// 🔧 2026-09-25 · tab Curva de acumulación — lee `state.data.curva_acumulacion`
+// (JSON precomputado por `study_curva_acumulacion_por_familia.py`, NO recalculado
+// cada 15 min). Selección única familia→dirección→segmento, no filtro multi-select.
+function renderCurva(){
+  const ca = state.data && state.data.curva_acumulacion;
+  const noDisp = document.getElementById('curvaNoDisponible');
+  const controles = document.getElementById('curvaControles');
+  const panelChart = document.getElementById('curvaPanelChart');
+  const panelSweep = document.getElementById('curvaPanelSweep');
+  if (!ca || ca.disponible === false || !ca.celdas || !Object.keys(ca.celdas).length){
+    noDisp.style.display = '';
+    noDisp.textContent = 'Aún no hay datos — corre "python -m SUPREMO.study_curva_acumulacion_por_familia" en Cripto.'
+      + (ca && ca.motivo ? ' (' + ca.motivo + ')' : '');
+    controles.style.display = 'none';
+    panelChart.style.display = 'none';
+    panelSweep.style.display = 'none';
+    return;
+  }
+  noDisp.style.display = 'none';
+  controles.style.display = '';
+
+  const meta = {};
+  Object.keys(ca.celdas).forEach(k=>{
+    const [fam, dir, corte] = k.split('|');
+    meta[fam] = meta[fam] || { dirs: new Set(), cortes: {} };
+    meta[fam].dirs.add(dir);
+    meta[fam].cortes[dir] = meta[fam].cortes[dir] || new Set();
+    meta[fam].cortes[dir].add(corte);
+  });
+  const familias = Object.keys(meta).sort();
+  if (!state.curva.familia || !meta[state.curva.familia]) state.curva.familia = familias[0];
+  const famSel = state.curva.familia;
+  const dirsDisp = [...meta[famSel].dirs].sort();
+  if (!state.curva.direccion || !dirsDisp.includes(state.curva.direccion)) state.curva.direccion = dirsDisp[0];
+  const dirSel = state.curva.direccion;
+  const cortesDisp = [...(meta[famSel].cortes[dirSel] || [])]
+    .sort((a,b)=> a==='TODOS' ? -1 : b==='TODOS' ? 1 : a.localeCompare(b));
+  if (!state.curva.corte || !cortesDisp.includes(state.curva.corte)) {
+    state.curva.corte = cortesDisp.includes('TODOS') ? 'TODOS' : cortesDisp[0];
+  }
+  const corteSel = state.curva.corte;
+
+  const boxFam = document.getElementById('curvaFamiliaFilter');
+  boxFam.innerHTML = '';
+  const dFam = document.createElement('div'); dFam.className = 'filtergroup';
+  const fnameFam = document.createElement('div'); fnameFam.className = 'fname'; fnameFam.textContent = 'Familia';
+  dFam.appendChild(fnameFam);
+  const chipsFam = document.createElement('div'); chipsFam.className = 'chips';
+  familias.forEach(f=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (f === famSel ? ' active' : '');
+    chip.textContent = f;
+    chip.onclick = () => { state.curva.familia = f; state.curva.direccion = null; state.curva.corte = null; renderCurva(); };
+    chipsFam.appendChild(chip);
+  });
+  dFam.appendChild(chipsFam);
+  boxFam.appendChild(dFam);
+
+  const boxDS = document.getElementById('curvaDirSegFilter');
+  boxDS.innerHTML = '';
+  const dDir = document.createElement('div'); dDir.className = 'filtergroup';
+  const fnameDir = document.createElement('div'); fnameDir.className = 'fname'; fnameDir.textContent = 'Dirección';
+  dDir.appendChild(fnameDir);
+  const chipsDir = document.createElement('div'); chipsDir.className = 'chips';
+  dirsDisp.forEach(d=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (d === dirSel ? ' active' : '');
+    chip.textContent = d;
+    chip.onclick = () => { state.curva.direccion = d; state.curva.corte = null; renderCurva(); };
+    chipsDir.appendChild(chip);
+  });
+  dDir.appendChild(chipsDir);
+  boxDS.appendChild(dDir);
+
+  const dSeg = document.createElement('div'); dSeg.className = 'filtergroup';
+  const fnameSeg = document.createElement('div'); fnameSeg.className = 'fname'; fnameSeg.textContent = 'Segmento (menú #S82)';
+  dSeg.appendChild(fnameSeg);
+  const chipsSeg = document.createElement('div'); chipsSeg.className = 'chips';
+  cortesDisp.forEach(c=>{
+    const cel = ca.celdas[`${famSel}|${dirSel}|${c}`];
+    const chip = document.createElement('div');
+    chip.className = 'chip' + (c === corteSel ? ' active' : '') + (cel && cel.n < N_MIN ? ' chip-empty' : '');
+    chip.textContent = c + (cel ? ` (${cel.n})` : '');
+    chip.onclick = () => { state.curva.corte = c; renderCurva(); };
+    chipsSeg.appendChild(chip);
+  });
+  dSeg.appendChild(chipsSeg);
+  boxDS.appendChild(dSeg);
+
+  const celda = ca.celdas[`${famSel}|${dirSel}|${corteSel}`];
+  if (!celda){
+    panelChart.style.display = 'none';
+    panelSweep.style.display = 'none';
+    return;
+  }
+  panelChart.style.display = '';
+  panelSweep.style.display = '';
+
+  const hp = celda.hold_al_pico;
+  document.getElementById('curvaStats').innerHTML = `
+    <div><b>${celda.n}</b> trades &middot; <b>${celda.n_con_ruta}</b> con ruta reconstruida</div>
+    <div>Hold al pico (h): <b>${hp ? hp.p50.toFixed(0) : '—'}</b> mediana ${hp ? `[${hp.p25.toFixed(0)}, ${hp.p75.toFixed(0)}]` : ''}</div>
+    <div>MAE antes del pico (mediana): <b>${celda.mae_antes_pico_p50 != null ? celda.mae_antes_pico_p50.toFixed(2) + 'R' : '—'}</b></div>
+  `;
+
+  const pts = celda.curva || [];
+  if (chartCurva) chartCurva.destroy();
+  chartCurva = new Chart(document.getElementById('chartCurva'), {
+    type: 'line',
+    data: { datasets: [
+      { label: 'p75', data: pts.filter(p=>p.mfe_p75!=null).map(p=>({x:p.h, y:p.mfe_p75})), borderColor: 'rgba(94,176,239,.4)', borderWidth: 1, pointRadius: 0, borderDash: [3,3], yAxisID: 'y' },
+      { label: 'mediana MFE_R', data: pts.filter(p=>p.mfe_p50!=null).map(p=>({x:p.h, y:p.mfe_p50})), borderColor: '#5eb0ef', borderWidth: 2, pointRadius: 0, yAxisID: 'y' },
+      { label: 'p25', data: pts.filter(p=>p.mfe_p25!=null).map(p=>({x:p.h, y:p.mfe_p25})), borderColor: 'rgba(94,176,239,.4)', borderWidth: 1, pointRadius: 0, borderDash: [3,3], yAxisID: 'y' },
+      { label: 'N vivos', data: pts.map(p=>({x:p.h, y:p.n_alive})), borderColor: '#8b96a8', borderWidth: 1, pointRadius: 0, borderDash: [1,2], yAxisID: 'y1' },
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: true, labels: { color: '#8b96a8', font: { size: 11 } } } },
+      scales: {
+        x: { type: 'linear', title: { display: true, text: 'hold (h)', color: '#8b96a8' }, grid: { color: '#232a36' }, ticks: { color: '#8b96a8' } },
+        y: { title: { display: true, text: 'MFE_R', color: '#8b96a8' }, grid: { color: '#232a36' }, ticks: { color: '#8b96a8' } },
+        y1: { position: 'right', title: { display: true, text: 'N vivos', color: '#8b96a8' }, grid: { display: false }, ticks: { color: '#8b96a8' } },
+      } }
+  });
+
+  const grid = ca.tp_grid || [2,3,4,6,8,12];
+  const kAct = ca.k_tp_actual != null ? ca.k_tp_actual : 4;
+  const filas = grid.map(k=>{
+    // 🔧 claves de sweep_tp son str(float) de Python ("2.0", no "2") — JSON.parse
+    // colapsa 2.0 al Number 2, así que String(k) no matchea sin toFixed(1).
+    const s = (celda.sweep_tp || {})[Number(k).toFixed(1)];
+    const esActual = Math.abs(k - kAct) < 1e-9;
+    const etiqueta = `${k}R${esActual ? ' (actual)' : ''}`;
+    if (!s){
+      return `<tr${esActual ? ' style="font-weight:600;"' : ''}><td>${etiqueta}</td><td colspan="4">N&lt;${N_MIN}</td></tr>`;
+    }
+    return `<tr${esActual ? ' style="font-weight:600;"' : ''}>
+      <td>${etiqueta}</td>
+      <td>${s.n}</td>
+      <td class="${s.mean_R >= 0 ? 'pos' : 'neg'}">${s.mean_R >= 0 ? '+' : ''}${s.mean_R.toFixed(3)}</td>
+      <td>${s.wr.toFixed(0)}%</td>
+      <td>[${s.ic90[0] >= 0 ? '+' : ''}${s.ic90[0].toFixed(2)}, ${s.ic90[1] >= 0 ? '+' : ''}${s.ic90[1].toFixed(2)}]</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tablaCurvaSweep').innerHTML =
+    `<thead><tr><th class="nosort">TP</th><th class="nosort">N</th><th class="nosort">mean_R</th><th class="nosort">WR</th><th class="nosort">IC90 (clúster símbolo)</th></tr></thead><tbody>${filas}</tbody>`;
+}
+
 document.getElementById('tabbar').addEventListener('click', (e)=>{
   const btn = e.target.closest('.tabbtn');
   if (!btn) return;
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','embudo','simbolo'].forEach(t=>{
+  ['resumen','abiertas','graduacion','embudo','simbolo','curva'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
   // ancho 0 y queda pintado en blanco para siempre — pasó con chartSimbolo (el
   // tab nace oculto). Redibujar al mostrar el tab, no solo al cargar los datos.
   if (tab === 'simbolo' && chartSimbolo) chartSimbolo.resize();
+  if (tab === 'curva' && chartCurva) chartCurva.resize();
 });
 
 fetch('data.json?_=' + Date.now())
@@ -1575,6 +1751,7 @@ fetch('data.json?_=' + Date.now())
     renderEmbudo();
     renderSimbolo();
     renderAbiertas();
+    renderCurva();
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
