@@ -247,8 +247,13 @@
     <div class="chart-wrap"><canvas id="chartCurva"></canvas></div>
   </div>
   <div class="panel" id="curvaPanelSweep" style="display:none;">
-    <h2>Barrido de TP real (K_SL=2R fijo, empate intra-vela &rarr; SL, coste incluido)</h2>
+    <h2>Barrido de TP real (MAX_HOLD=96h fijo, K_SL=2R fijo, empate intra-vela &rarr; SL, coste incluido)</h2>
     <div class="tablewrap"><table id="tablaCurvaSweep"><thead></thead><tbody></tbody></table></div>
+  </div>
+  <div class="panel" id="curvaPanelSweepMH" style="display:none;">
+    <h2>Barrido de tiempo de vida (MAX_HOLD) real (TP=4R fijo, K_SL=2R fijo)</h2>
+    <div class="hint">Solo se mueve el límite de hold, dentro de [24h, 96h] &mdash; no se evalúa más allá de 96h (esa pregunta más amplia la responde <code>study_maxhold_por_familia.py</code> (#S78), con más rigor, sobre las familias ya armadas). Este barrido y el de TP son INDEPENDIENTES &mdash; cada uno fija el otro parámetro en su valor actual, no son un óptimo conjunto.</div>
+    <div class="tablewrap"><table id="tablaCurvaSweepMH"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -1580,6 +1585,7 @@ function renderCurva(){
   const controles = document.getElementById('curvaControles');
   const panelChart = document.getElementById('curvaPanelChart');
   const panelSweep = document.getElementById('curvaPanelSweep');
+  const panelSweepMH = document.getElementById('curvaPanelSweepMH');
   if (!ca || ca.disponible === false || !ca.celdas || !Object.keys(ca.celdas).length){
     noDisp.style.display = '';
     noDisp.textContent = 'Aún no hay datos — corre "python -m SUPREMO.study_curva_acumulacion_por_familia" en Cripto.'
@@ -1587,6 +1593,7 @@ function renderCurva(){
     controles.style.display = 'none';
     panelChart.style.display = 'none';
     panelSweep.style.display = 'none';
+    panelSweepMH.style.display = 'none';
     return;
   }
   noDisp.style.display = 'none';
@@ -1664,16 +1671,20 @@ function renderCurva(){
   if (!celda){
     panelChart.style.display = 'none';
     panelSweep.style.display = 'none';
+    panelSweepMH.style.display = 'none';
     return;
   }
   panelChart.style.display = '';
   panelSweep.style.display = '';
+  panelSweepMH.style.display = '';
 
   const hp = celda.hold_al_pico;
   document.getElementById('curvaStats').innerHTML = `
     <div><b>${celda.n}</b> trades &middot; <b>${celda.n_con_ruta}</b> con ruta reconstruida</div>
     <div>Hold al pico (h): <b>${hp ? hp.p50.toFixed(0) : '—'}</b> mediana ${hp ? `[${hp.p25.toFixed(0)}, ${hp.p75.toFixed(0)}]` : ''}</div>
     <div>MAE antes del pico (mediana): <b>${celda.mae_antes_pico_p50 != null ? celda.mae_antes_pico_p50.toFixed(2) + 'R' : '—'}</b></div>
+    <div>Mejor TP: ${renderMejorBadge(celda.mejor_tp, 'R')}</div>
+    <div>Mejor tiempo de vida: ${renderMejorBadge(celda.mejor_mh, 'h')}</div>
   `;
 
   const pts = celda.curva || [];
@@ -1695,14 +1706,37 @@ function renderCurva(){
       } }
   });
 
-  const grid = ca.tp_grid || [2,3,4,6,8,12];
+  const tpGrid = ca.tp_grid || [2,3,4,6,8,12];
   const kAct = ca.k_tp_actual != null ? ca.k_tp_actual : 4;
+  renderSweepTabla('tablaCurvaSweep', 'TP', tpGrid, kAct, celda.sweep_tp, 'R', true);
+
+  const mhGrid = ca.mh_grid || [24,36,48,60,72,84,96];
+  const mhAct = ca.mh_actual != null ? ca.mh_actual : 96;
+  renderSweepTabla('tablaCurvaSweepMH', 'MAX_HOLD', mhGrid, mhAct, celda.sweep_mh, 'h', false);
+}
+
+// 🔧 2026-09-25 · "mejor TP"/"mejor tiempo de vida" — candado igual al que se usa
+// para leer la tabla a mano: N>=N_MIN, mayor mean_R, Y su IC90 sin solape con el
+// actual (calculado en study_curva_acumulacion_por_familia.py::_mejor). Si no se
+// puede determinar, se muestra el motivo en vez de forzar un ganador.
+function renderMejorBadge(mejor, unidad){
+  if (!mejor) return '<span style="color:var(--muted);">—</span>';
+  if (mejor.determinable){
+    return `<span class="badge-pos" style="padding:3px 10px;">${mejor.valor}${unidad} sugerido `
+      + `(${mejor.mean_R>=0?'+':''}${mejor.mean_R.toFixed(3)}R vs ${mejor.actual.mean_R>=0?'+':''}${mejor.actual.mean_R.toFixed(3)}R actual, N=${mejor.n})</span>`;
+  }
+  return `<span style="color:var(--muted);">no determinable — ${mejor.motivo}</span>`;
+}
+
+// Tabla de barrido genérica (TP o MAX_HOLD) — mismo esquema de columnas, la única
+// diferencia es la unidad ('R'/'h') y si la clave del grid es str(float) ("2.0",
+// TP) o str(int) ("24", MAX_HOLD) tal como los escribe Python.
+function renderSweepTabla(elId, colLabel, grid, actualVal, sweep, unidad, esClaveFloat){
   const filas = grid.map(k=>{
-    // 🔧 claves de sweep_tp son str(float) de Python ("2.0", no "2") — JSON.parse
-    // colapsa 2.0 al Number 2, así que String(k) no matchea sin toFixed(1).
-    const s = (celda.sweep_tp || {})[Number(k).toFixed(1)];
-    const esActual = Math.abs(k - kAct) < 1e-9;
-    const etiqueta = `${k}R${esActual ? ' (actual)' : ''}`;
+    const clave = esClaveFloat ? Number(k).toFixed(1) : String(k);
+    const s = (sweep || {})[clave];
+    const esActual = Math.abs(k - actualVal) < 1e-9;
+    const etiqueta = `${k}${unidad}${esActual ? ' (actual)' : ''}`;
     if (!s){
       return `<tr${esActual ? ' style="font-weight:600;"' : ''}><td>${etiqueta}</td><td colspan="4">N&lt;${N_MIN}</td></tr>`;
     }
@@ -1714,8 +1748,8 @@ function renderCurva(){
       <td>[${s.ic90[0] >= 0 ? '+' : ''}${s.ic90[0].toFixed(2)}, ${s.ic90[1] >= 0 ? '+' : ''}${s.ic90[1].toFixed(2)}]</td>
     </tr>`;
   }).join('');
-  document.getElementById('tablaCurvaSweep').innerHTML =
-    `<thead><tr><th class="nosort">TP</th><th class="nosort">N</th><th class="nosort">mean_R</th><th class="nosort">WR</th><th class="nosort">IC90 (clúster símbolo)</th></tr></thead><tbody>${filas}</tbody>`;
+  document.getElementById(elId).innerHTML =
+    `<thead><tr><th class="nosort">${colLabel}</th><th class="nosort">N</th><th class="nosort">mean_R</th><th class="nosort">WR</th><th class="nosort">IC90 (clúster símbolo)</th></tr></thead><tbody>${filas}</tbody>`;
 }
 
 document.getElementById('tabbar').addEventListener('click', (e)=>{
