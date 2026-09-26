@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-26 19:57:07
+Ultima actualizacion: 2026-09-26 20:13:15
 
 ```
 ========================================================================================================
@@ -81,7 +81,7 @@ Ultima actualizacion: 2026-09-26 19:57:07
 ```
 
 ```
-  Régimen BTC: ret30d=+4.7%  ret7d=+2.8%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=+4.9%  ret7d=+3.2%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
@@ -111,7 +111,7 @@ Ultima actualizacion: 2026-09-26 19:57:07
 │ SOMBRA·54_ext_dn_4h     LONG  BEAR       26    +3.265  +84.90   96% [+2.88,+3.60]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT RANGE      33    -0.671  -22.16   39% [-1.12,-0.23]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
-│ SOMBRA·s83_quiebre_retesLONG  BULL       25    +0.866  +21.64   56% [+0.17,+1.51]*                   │
+│ SOMBRA·s83_quiebre_retesLONG  BULL       27    +0.931  +25.15   59% [+0.34,+1.50]*                   │
 │ SOMBRA·s84_volumen_regimLONG  BULL       80    +1.424 +113.91   84% [+1.12,+1.73]*                   │
 │ SOMBRA·s85_vela_rev_alciSHORT BULL       12    -1.420  -17.04    0% [-1.76,-1.06]*                   │
 │ SOMBRA·s85_vela_rev_bajiLONG  BULL       30    +0.774  +23.22   73% [+0.30,+1.24]*                   │
@@ -215,10 +215,10 @@ Ultima actualizacion: 2026-09-26 19:57:07
 │                               celda_bear_range  21   100%  -0.713  -14.98   38%      [-1.26,-0.18]*  R18 B0 Be3   [ARMADA] │
 │ SOMBRA·s100_macd_cruce_aLONG  (TOTAL)          4   100%  +2.464   +9.86   75%      [+0.95,+3.98]*  R1 B3 Be0        │
 │ SOMBRA·s100_macd_cruce_bSHORT (TOTAL)          5   100%  -2.023  -10.12    0%      [-2.03,-2.02]*  R1 B4 Be0        │
-│ SOMBRA·s83_quiebre_retesLONG  (TOTAL)         25   100%  +0.866  +21.64   56%      [+0.17,+1.51]*  R0 B25 Be0       │
-│                               alt1d_range     18   100%  +0.656  +11.80   50%       [-0.10,+1.47]  R0 B18 Be0       │
-│                               btc_trend       25   100%  +0.866  +21.64   56%      [+0.17,+1.51]*  R0 B25 Be0   [pos] │
-│                               celda_bull_bull  23   100%  +0.782  +18.00   57%      [+0.12,+1.48]*  R0 B23 Be0   [pos] │
+│ SOMBRA·s83_quiebre_retesLONG  (TOTAL)         27   100%  +0.931  +25.15   59%      [+0.34,+1.50]*  R0 B27 Be0       │
+│                               alt1d_range     19   100%  +0.698  +13.26   53%       [-0.10,+1.49]  R0 B19 Be0       │
+│                               btc_trend       27   100%  +0.931  +25.15   59%      [+0.34,+1.50]*  R0 B27 Be0   [pos] │
+│                               celda_bull_bull  25   100%  +0.860  +21.51   60%      [+0.19,+1.48]*  R0 B25 Be0   [pos] │
 │ SOMBRA·s83_quiebre_retesSHORT (TOTAL)          6   100%  -1.604   -9.62   17%      [-2.02,-0.77]*  R0 B6 Be0        │
 │ SOMBRA·s84_volumen_regimLONG  (TOTAL)         80   100%  +1.424 +113.91   84%      [+1.12,+1.73]*  R0 B80 Be0       │
 │                               alt1d_range     58   100%  +1.301  +75.45   84%      [+0.95,+1.64]*  R0 B58 Be0   [pos] │
@@ -258,7 +258,7 @@ Ultima actualizacion: 2026-09-26 19:57:07
 │ SOMBRA·s93_inside_bar   LONG  (TOTAL)          4   100%  +2.470   +9.88   75%      [+0.96,+3.98]*  R0 B4 Be0        │
 │ SOMBRA·s94_vela_confirmaLONG  (TOTAL)          1   100%  +3.978   +3.98  100%                 n/a  R0 B1 Be0        │
 │ SOMBRA·s94_vela_confirmaSHORT (TOTAL)          8   100%  -2.021  -16.16    0%      [-2.02,-2.02]*  R0 B8 Be0        │
-│ SOMBRA·s95_rebote_ma_alcLONG  (TOTAL)          2   100%  +3.977   +7.95  100%                 n/a  R0 B2 Be0        │
+│ SOMBRA·s95_rebote_ma_alcLONG  (TOTAL)          3   100%  +3.979  +11.94  100%      [+3.98,+3.98]*  R0 B3 Be0        │
 │ SOMBRA·s95_rebote_ma_bajSHORT (TOTAL)         14   100%  -2.021  -28.30    0%      [-2.02,-2.02]*  R2 B12 Be0       │
 │ SOMBRA·s97_rechazo_resisSHORT (TOTAL)          2   100%  -2.020   -4.04    0%                 n/a  R0 B2 Be0        │
 │ SOMBRA·s97_rechazo_soporLONG  (TOTAL)          2   100%  +3.977   +7.95  100%                 n/a  R0 B2 Be0        │
