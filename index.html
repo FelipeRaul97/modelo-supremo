@@ -138,6 +138,12 @@
   </div>
 </div>
 
+<div class="panel">
+  <h2>PnL$ por familia · dirección (filtros aplicados)</h2>
+  <div class="hint">LIVE = capital real desplegado (notional 50/70/100$ según la época, D-17). SOMBRA nunca tuvo capital — es SIMULADO con el nocional de referencia vigente, "cuánto habría rendido si hubiera operado".</div>
+  <div class="chart-wrap"><canvas id="chartFamiliasPnl"></canvas></div>
+</div>
+
 <div class="grid2">
   <div class="panel">
     <h2>Distribución de PnL_R (filtros aplicados)</h2>
@@ -424,6 +430,7 @@ function bindSort(theadEl, sortState, rerender){
 }
 
 function fmtR(x){ return (x>=0?'+':'') + x.toFixed(3); }
+function fmtUsd(x){ return (x>=0?'+':'') + '$' + x.toFixed(2); }
 function colorFor(origen){ return origen === 'LIVE' ? '#5eb0ef' : '#c792ea'; }
 
 // 🔧 2026-09-23 · BUG: `Math.random()` sin semilla + recalculado en CADA render
@@ -710,7 +717,7 @@ function statsOf(rows){
   return { n, mean, wr, sum, ic, roi };
 }
 
-let chartFamilias, chartEquity, chartHist, chartRegimen;
+let chartFamilias, chartFamiliasPnl, chartEquity, chartHist, chartRegimen;
 
 function render(){
   const filtered = applyFilters(state.data.trades);
@@ -766,6 +773,22 @@ function render(){
     data:{ labels, datasets:[{ label:'mean_R', data:values, backgroundColor:colors }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`mean_R ${fmtR(c.raw)} · N=${groupEntries[c.dataIndex].n}`}}},
+      scales:{ x:{ grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} }, y:{ grid:{display:false}, ticks:{color:'#8b96a8', font:{size:10}} } } }
+  });
+
+  // PnL$ por familia · dirección — mismo agrupamiento que chartFamilias, pero ordena y
+  // grafica roi.pnlUsd (dólares) en vez de mean (múltiplo de riesgo R). Grupos sin
+  // notional/pnl_pct (roiOf devuelve null) se excluyen — no hay $ que graficar ahí.
+  const pnlEntries = groupEntries.filter(g=>g.roi).sort((a,b)=>b.roi.pnlUsd - a.roi.pnlUsd);
+  const pnlLabels = pnlEntries.map(g=>`${g.origen}·${g.familia} ${g.dir}`);
+  const pnlValues = pnlEntries.map(g=>g.roi.pnlUsd);
+  const pnlColors = pnlEntries.map(g=>colorFor(g.origen));
+  if (chartFamiliasPnl) chartFamiliasPnl.destroy();
+  chartFamiliasPnl = new Chart(document.getElementById('chartFamiliasPnl'), {
+    type:'bar',
+    data:{ labels:pnlLabels, datasets:[{ label:'PnL$', data:pnlValues, backgroundColor:pnlColors }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`PnL ${fmtUsd(c.raw)} · N=${pnlEntries[c.dataIndex].n}`}}},
       scales:{ x:{ grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} }, y:{ grid:{display:false}, ticks:{color:'#8b96a8', font:{size:10}} } } }
   });
 
