@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-26 17:41:41
+Ultima actualizacion: 2026-09-26 17:56:35
 
 ```
 ========================================================================================================
@@ -284,7 +284,7 @@ Ultima actualizacion: 2026-09-26 17:41:41
   5_posicion_rango        btc_trend       SHORT     categ.     31   +0.484   [+0.06,+0.91]        0         0            —                   —      —                   —  —  0/40
   5_posicion_rango        celda_bull_rangeSHORT     categ.     29   +0.722   [+0.32,+1.11]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       39        25       -1.440       [-1.79,-1.04]     8%            -160.05%  R8 B8 Be9  25/40
-  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       16        30       -1.842       [-1.96,-1.68]     3%            -223.76%  R16 B7 Be7  30/40
+  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       15        30       -1.842       [-1.96,-1.68]     3%            -223.76%  R16 B7 Be7  30/40
   41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]       16        15       -1.100       [-1.61,-0.49]    20%             -73.32%  R2 B7 Be6  15/40
   41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]       16        31       -1.863       [-1.96,-1.75]     0%            -239.69%  R18 B5 Be8  31/40
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]       21        37       -1.716       [-1.87,-1.52]     3%            -259.90%  R21 B9 Be7  37/40
