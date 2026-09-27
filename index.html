@@ -108,6 +108,7 @@
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
   <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
+  <div class="tabbtn" data-tab="tpcond">🕶️ TP condicional (sombra)</div>
 </div>
 
 <div id="tab-resumen">
@@ -279,6 +280,25 @@
     <div class="hint">Las 42 combinaciones (6 TP &times; 7 MAX_HOLD) a la vez &mdash; los dos barridos de arriba son cada uno un corte de UNA fila/columna de esta grilla. Con 42 comparaciones en vez de 6+7=13, un "mejor" que sobreviva acá pesa MÁS multiplicidad, no menos &mdash; léelo con más escepticismo todavía. Celda con borde azul = actual (4R/96h). Celda con borde amarillo = sugerida (solo si N&ge;15 y su IC90 no se solapa con la actual).</div>
     <div class="grad-summary" id="curvaJointStats"></div>
     <div class="tablewrap"><table id="tablaCurvaJoint" style="font-size:0.76rem;"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-tpcond" style="display:none;">
+  <div class="panel">
+    <h2>TP condicional · validación forward en sombra (#S102/#S102b)</h2>
+    <div class="hint">
+      Un TP fijo (K_TP=4R para todas las familias) puede no ser lo mejor para una familia
+      específica. #S102 encontró que, dentro de una familia con edge ya confirmado, condicionar
+      el TP a una feature observable AL ENTRAR (en vez de un valor fijo) puede mejorar el
+      resultado — probado con el gate completo (split temporal, IC90 clúster por símbolo,
+      control aleatorio) sobre el histórico ya usado para encontrarlo. Antes de cablearlo con
+      capital real, cada candidata se ARMA (el corte queda congelado) y se deja acumular sobre
+      trades NUEVOS, reales, sin tocar la ejecución — la misma disciplina de dos etapas que usa
+      Graduación para el resto del sistema. Esto corre solo, enganchado a la tarea de 15 min;
+      no requiere ni permite intervención manual.
+    </div>
+    <div id="tpcondVacio" class="hint" style="display:none;"></div>
+    <div id="tpcondCards"></div>
   </div>
 </div>
 
@@ -1310,6 +1330,54 @@ const MOTIVO_LABELS = {
   atr_nan: 'ATR NaN', x1_setup_none: 'sin geometría X1', abierto: 'ABIERTO',
 };
 
+function renderTpCondicional(){
+  const items = (state.data && state.data.sombra_tp_condicional) || [];
+  const vacio = document.getElementById('tpcondVacio');
+  const cont = document.getElementById('tpcondCards');
+  if (!items.length){
+    vacio.style.display = '';
+    vacio.innerHTML = '<b style="color:var(--muted)">Ninguna candidata armada todavía.</b>';
+    cont.innerHTML = '';
+    return;
+  }
+  vacio.style.display = 'none';
+  cont.innerHTML = items.map(it=>{
+    const pct = Math.min(100, Math.round(it.n_forward / it.n_min_graduado * 100));
+    const fecha = (it.armado_ts || '').slice(0, 10);
+    let deltaTxt = 'N forward insuficiente todavía (&lt;10) para estimar el intervalo.';
+    let deltaClass = '';
+    let excluye0 = false;
+    if (it.delta_mean !== null && it.delta_ic90){
+      const [lo, hi] = it.delta_ic90;
+      excluye0 = !(lo <= 0 && hi >= 0);
+      deltaClass = excluye0 ? (it.delta_mean > 0 ? 'pos' : 'neg') : '';
+      const s = (x) => (x >= 0 ? '+' : '') + x.toFixed(3);
+      deltaTxt = `&Delta; forward = <b class="${deltaClass}">${s(it.delta_mean)}R</b> &middot; IC90[${s(lo)}, ${s(hi)}] ${excluye0 ? '✅ excluye 0' : '&middot; cruza 0 todavía'}`;
+    }
+    const listo = it.n_forward >= it.n_min_graduado;
+    let estado;
+    if (!listo) {
+      estado = `⏳ en observación &mdash; sin cambios en el motor vivo mientras acumula (faltan ${it.n_min_graduado - it.n_forward} trades nuevos)`;
+    } else if (excluye0 && it.delta_mean > 0) {
+      estado = '✅ pasa el candado forward &mdash; candidata a validar con capital reducido';
+    } else {
+      estado = '🔴 no repitió la señal forward &mdash; se archiva, no se cablea';
+    }
+    return `<div class="panel">
+      <h3 style="margin-top:0">${it.familia} ${it.direction} &middot; feature <code>${it.feature}</code></h3>
+      <div class="hint">Armado ${fecha} sobre ${it.n_al_armar} trades históricos (corte congelado = ${it.cut.toFixed(3)}).
+        Regla: si <code>|${it.feature}|</code> &ge; corte al momento de entrar, TP=${it.k_hi}R; si no, TP=${it.k_lo}R
+        &mdash; hoy el motor usa ${it.k_fijo}R fijo para todos los trades de esta familia.
+        Fuente: ${it.fuente_caso}</div>
+      <div class="grad-summary">
+        <div>N forward acumulado: <b>${it.n_forward} / ${it.n_min_graduado}</b> (${pct}%)</div>
+        <div>${deltaTxt}</div>
+      </div>
+      <div class="hint" style="margin-top:6px"><b>${estado}</b></div>
+    </div>`;
+  }).join('');
+}
+
 function renderEmbudo(){
   const emb = state.data.embudo || { orden_motivos: [], familias: {} };
   const familias = emb.familias || {};
@@ -1899,7 +1967,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','embudo','simbolo','curva'].forEach(t=>{
+  ['resumen','abiertas','graduacion','embudo','simbolo','curva','tpcond'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -1927,6 +1995,7 @@ fetch('data.json?_=' + Date.now())
     renderSimbolo();
     renderAbiertas();
     renderCurva();
+    renderTpCondicional();
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
