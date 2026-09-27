@@ -49,6 +49,13 @@ try {
     & $python -m SUPREMO.hist_extiende 2>&1 | Out-Null
     Write-Log "hist_extiende: OK"
 
+    # 1.5) Sombra forward del TP condicional |sqz1h_mag| para 47_bajista_bear (#S102b) -
+    #      lector pasivo de cargar_cierres(), no toca el motor vivo ni el capital real.
+    #      Acumula trades nuevos desde el armado (2026-09-27); no bloquea el dashboard
+    #      si falla (mismo patron fire-and-forget que hist_extiende).
+    & $python -m SUPREMO.sombra_tp_condicional_47bajista 2>&1 | Out-Null
+    Write-Log "sombra_tp_condicional_47bajista: OK"
+
     # 2) Gate barato de armado (#S81/#S82) - automatico, sin intervencion humana.
     $armado = & $python -m SUPREMO.espejo_condicional 2>&1
     Write-Log "espejo_condicional: OK"
