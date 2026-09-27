@@ -936,6 +936,10 @@ function renderTable(filtered){
   });
 
   rows.sort((a,b)=>{
+    // (TOTAL) siempre primero, sin importar la columna/dirección de orden activa
+    // (pedido de Felipe 2026-09-27) — el resto de las filas mantiene el orden que
+    // ya tenían entre sí.
+    if (a.esTotal !== b.esTotal) return a.esTotal ? -1 : 1;
     const c = state.sort.col === 'estado' ? 'estadoTxt' : (state.sort.col === 'ic' ? 'icLo' : state.sort.col);
     const av = a[c], bv = b[c];
     if (av === null || av === undefined) return 1;
