@@ -1150,14 +1150,17 @@ function renderGraduacion(){
   const PRIORIDAD_ESTADO = { armado_negativo:5, armado_positivo:4, negativo:3, positivo:2, plano:1, poca_muestra:0 };
   function estadoDeFila(r){
     if (r.armado) return r.signo === 'positivo' ? 'armado_positivo' : 'armado_negativo';
+    // 🔧 2026-09-27 · antes se chequeaba excl_hist ANTES que N_MIN, así que un corte con
+    // N=3-14 e IC90 ya excluyendo 0 (posible: `ic90Cluster` solo exige n≥3) mostraba
+    // "negativo/positivo, sin armar" en vez de "poca muestra" — dos criterios de piso
+    // mínimo distintos conviviendo en la misma tabla (Felipe, 2026-09-27: "que todos
+    // tengan el mismo criterio"). Ahora N_MIN es el único piso: cualquier N<15 es
+    // "poca muestra" sin importar si el IC90 ya sería calculable/significativo — el
+    // piso del proyecto (#S82) es N≥15 para siquiera CONSIDERAR un corte, no solo para
+    // armarlo.
+    if (r.n_hist < N_MIN) return 'poca_muestra';
     if (r.excl_hist && r.mean_hist < 0) return 'negativo';
     if (r.excl_hist && r.mean_hist > 0) return 'positivo';
-    // 🔧 2026-09-24 · N<N_MIN (incl. N=0) ya no se descarta (ver computeTodosSegmentos)
-    // pero tampoco es "sin significancia" — ese estado implica que SÍ hubo muestra
-    // suficiente para calcular IC90 y no excluyó 0. Con N<15 el IC90 ni se calculó
-    // (`ic90Cluster` exige n≥3, y aun con eso sería ruido) — badge propio para no
-    // confundir "no hay edge" con "todavía no hay datos".
-    if (r.n_hist < N_MIN) return 'poca_muestra';
     return 'plano';
   }
   rows.forEach(r=>{ r.icLoHist = r.ic_hist ? r.ic_hist[0] : null; r.estadoRow = estadoDeFila(r); });
@@ -1189,7 +1192,7 @@ function renderGraduacion(){
     negativo: '<span class="checkcell wait">negativo, sin armar</span>',
     positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
-    poca_muestra: '<span class="checkcell wait" title="N<15 — ni siquiera se calculó IC90 (ic90Cluster exige n≥3, y con eso sería ruido). No es falta de edge, es falta de datos todavía.">poca muestra</span>',
+    poca_muestra: '<span class="checkcell wait" title="N<15 — no alcanza el piso mínimo del proyecto (#S82) para considerarlo, aunque ya haya IC90 calculable (ic90Cluster exige n≥3). No es falta de edge, es falta de datos todavía.">poca muestra</span>',
   };
 
   tbody.innerHTML = rows.map(r=>{
