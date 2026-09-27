@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-27 03:11:42
+Ultima actualizacion: 2026-09-27 03:26:49
 
 ```
 ========================================================================================================
@@ -310,10 +310,10 @@ Ultima actualizacion: 2026-09-27 03:11:42
   5_posicion_rango        btc_trend       SHORT     categ.     31   +0.484   [+0.06,+0.91]        0         0            —                   —      —                   —  —  0/40
   5_posicion_rango        celda_bull_rangeSHORT     categ.     29   +0.722   [+0.32,+1.11]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       39        25       -1.440       [-1.79,-1.04]     8%            -160.05%  R8 B8 Be9  25/40
-  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       15        31       -1.716       [-1.93,-1.46]     6%            -221.64%  R16 B8 Be7  31/40
-  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]       16        16       -0.903       [-1.49,-0.23]    25%             -71.20%  R2 B8 Be6  16/40
+  41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       14        31       -1.716       [-1.93,-1.46]     6%            -221.64%  R16 B8 Be7  31/40
+  41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]       15        16       -0.903       [-1.49,-0.23]    25%             -71.20%  R2 B8 Be6  16/40
   41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]       16        31       -1.863       [-1.96,-1.75]     0%            -239.69%  R18 B5 Be8  31/40
-  41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]       21        38       -1.617       [-1.83,-1.36]     5%            -257.78%  R21 B10 Be7  38/40
+  41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]       20        38       -1.617       [-1.83,-1.36]     5%            -257.78%  R21 B10 Be7  38/40
   41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]       15         6       -1.634       [-2.00,-0.90]    17%             -40.68%  R2 B1 Be3  6/40
   41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]        7        24       -2.000       [-2.00,-2.00]     0%            -152.02%  R24 B0 Be0  24/40
   41a_a2_confirmador      celda_range_bullLONG      categ.     20   -1.499   [-1.81,-1.12]        3         0            —                   —      —                   —  —  0/40
