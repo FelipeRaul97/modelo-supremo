@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-28 09:56:56
+Ultima actualizacion: 2026-09-28 11:28:42
 
 ```
 ========================================================================================================
@@ -12,7 +12,7 @@ Ultima actualizacion: 2026-09-28 09:56:56
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
    (ninguna [familia,corte] nueva cruza el gate barato de armado)
-   total armadas históricamente: 94 (en 17 familias)
+   total armadas históricamente: 97 (en 17 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -93,6 +93,9 @@ Ultima actualizacion: 2026-09-28 09:56:56
       s84_volumen_regimen · vol_rel_bajo LONG · umbral=1.2976701498662013 · armada 2026-09-26
       s83_quiebre_retest_alcista · btc_trend LONG · umbral=None · armada 2026-09-26
       s83_quiebre_retest_alcista · celda_bull_bull LONG · umbral=None · armada 2026-09-26
+      s83_quiebre_retest_alcista · alt1d_range LONG · umbral=None · armada 2026-09-28
+      s83_quiebre_retest_alcista · alt1d_trend LONG · umbral=None · armada 2026-09-28
+      s83_quiebre_retest_alcista · age4h_bajo LONG · umbral=20.0 · armada 2026-09-28
       s85_vela_rev_bajista · alt1d_range LONG · umbral=None · armada 2026-09-26
       s85_vela_rev_bajista · btc_trend LONG · umbral=None · armada 2026-09-26
       s85_vela_rev_bajista · celda_bull_bull LONG · umbral=None · armada 2026-09-26
@@ -110,7 +113,7 @@ Ultima actualizacion: 2026-09-28 09:56:56
 ```
 
 ```
-  Régimen BTC: ret30d=+7.4%  ret7d=+1.9%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=+6.7%  ret7d=-2.1%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
@@ -269,9 +272,9 @@ Ultima actualizacion: 2026-09-28 09:56:56
 │ SOMBRA·s100_macd_cruce_aLONG  (TOTAL)         15   100%  +0.354   +5.31   40%       [-0.85,+1.56]  R10 B5 Be0       │
 │ SOMBRA·s100_macd_cruce_bSHORT (TOTAL)         11   100%  -2.020  -22.22    0%      [-2.02,-2.02]*  R7 B4 Be0        │
 │ SOMBRA·s83_quiebre_retesLONG  (TOTAL)         40   100%  +0.910  +36.41   60%      [+0.40,+1.44]*  R1 B39 Be0       │
-│                               alt1d_range     25   100%  +0.824  +20.60   56%      [+0.18,+1.46]*  R0 B25 Be0   [pos] │
-│                               alt1d_trend     15   100%  +1.054  +15.81   67%      [+0.22,+1.90]*  R1 B14 Be0   [pos] │
-│                               age4h_bajo      15   100%  +1.759  +26.38   80%      [+1.13,+2.36]*  R0 B15 Be0   [pos] │
+│                               alt1d_range     25   100%  +0.824  +20.60   56%      [+0.18,+1.46]*  R0 B25 Be0   [ARMADA] │
+│                               alt1d_trend     15   100%  +1.054  +15.81   67%      [+0.22,+1.90]*  R1 B14 Be0   [ARMADA] │
+│                               age4h_bajo      15   100%  +1.759  +26.38   80%      [+1.13,+2.36]*  R0 B15 Be0   [ARMADA] │
 │                               btc_trend       39   100%  +0.985  +38.43   62%      [+0.48,+1.49]*  R0 B39 Be0   [ARMADA] │
 │                               celda_bull_bull  35   100%  +1.023  +35.79   63%      [+0.52,+1.53]*  R0 B35 Be0   [ARMADA] │
 │ SOMBRA·s83_quiebre_retesSHORT (TOTAL)         10   100%  -1.634  -16.34   10%      [-2.02,-1.13]*  R2 B8 Be0        │
@@ -325,7 +328,7 @@ Ultima actualizacion: 2026-09-28 09:56:56
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
-  REGISTRO COMPLETO DE ESPEJOS ARMADOS (94) — sin filtrar por si tienen trades abiertos
+  REGISTRO COMPLETO DE ESPEJOS ARMADOS (97) — sin filtrar por si tienen trades abiertos
   (la categoría existe por el IC90 negativo al armar; N=0 abiertas/cerradas es normal y válido)
 ==================================================================================================================================
 
@@ -411,6 +414,9 @@ Ultima actualizacion: 2026-09-28 09:56:56
   s84_volumen_regimen     vol_rel_bajo    LONG         1.3     27   +1.021   [+0.31,+1.72]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_alcisbtc_trend       LONG      categ.     27   +0.931   [+0.34,+1.50]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_alciscelda_bull_bull LONG      categ.     25   +0.860   [+0.19,+1.48]        0         0            —                   —      —                   —  —  0/40
+  s83_quiebre_retest_alcisalt1d_range     LONG      categ.     25   +0.824   [+0.18,+1.46]        0         0            —                   —      —                   —  —  0/40
+  s83_quiebre_retest_alcisalt1d_trend     LONG      categ.     15   +1.054   [+0.22,+1.90]        0         0            —                   —      —                   —  —  0/40
+  s83_quiebre_retest_alcisage4h_bajo      LONG        20.0     15   +1.759   [+1.13,+2.36]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_bajista    alt1d_range     LONG      categ.     21   +0.832   [+0.29,+1.38]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_bajista    btc_trend       LONG      categ.     30   +0.774   [+0.30,+1.24]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_bajista    celda_bull_bull LONG      categ.     29   +0.664   [+0.22,+1.11]        0         0            —                   —      —                   —  —  0/40
