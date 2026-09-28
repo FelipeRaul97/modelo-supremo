@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-28 05:11:38
+Ultima actualizacion: 2026-09-28 05:26:33
 
 ```
 ========================================================================================================
@@ -326,23 +326,23 @@ Ultima actualizacion: 2026-09-28 05:11:38
   ------------------------------------------------------------------------------------------------------------------------------------------------------------
   20_tl_res_range         btc_range       SHORT     categ.     16   -1.002   [-1.65,-0.21]        0         2       +0.974           n/a (N<3)    50%              +6.40%  R2 B0 Be0  2/40
   20_tl_res_range         celda_range_rangeSHORT     categ.     19   -1.031   [-1.61,-0.30]        0         0            —                   —      —                   —  —  0/40
-  5_posicion_rango        alt1d_range     SHORT     categ.     47   -0.827   [-1.12,-0.50]       10         9       +2.435       [+1.37,+3.34]    89%             +86.00%  R6 B3 Be0  9/40
-  5_posicion_rango        age4h_alto      SHORT       57.8     54   -0.547   [-0.86,-0.18]        6         8       +2.560       [+1.37,+3.59]    88%             +90.68%  R5 B3 Be0  8/40
-  5_posicion_rango        btc_range       SHORT     categ.    133   -0.302   [-0.55,-0.05]        4         9       +3.272       [+2.76,+3.72]   100%            +129.08%  R9 B0 Be0  9/40
+  5_posicion_rango        alt1d_range     SHORT     categ.     47   -0.827   [-1.12,-0.50]       13         9       +2.435       [+1.37,+3.34]    89%             +86.00%  R6 B3 Be0  9/40
+  5_posicion_rango        age4h_alto      SHORT       57.8     54   -0.547   [-0.86,-0.18]        9         8       +2.560       [+1.37,+3.59]    88%             +90.68%  R5 B3 Be0  8/40
+  5_posicion_rango        btc_range       SHORT     categ.    133   -0.302   [-0.55,-0.05]        8         9       +3.272       [+2.76,+3.72]   100%            +129.08%  R9 B0 Be0  9/40
   5_posicion_rango        vol_rel_bajo    SHORT        0.6     61   -0.410   [-0.72,-0.09]        5         1       +3.074           n/a (N<3)   100%             +14.31%  R0 B1 Be0  1/40
   5_posicion_rango        celda_bear_rangeSHORT     categ.     19   -0.780   [-1.29,-0.21]        0         0            —                   —      —                   —  —  0/40
-  5_posicion_rango        celda_range_rangeSHORT     categ.    153   -0.350   [-0.58,-0.11]        4         0            —                   —      —                   —  —  0/40
-  5_posicion_rango        alt1d_trend     SHORT     categ.     47   -0.426   [-0.78,-0.04]        4         1       +3.074           n/a (N<3)   100%             +14.31%  R0 B1 Be0  1/40
+  5_posicion_rango        celda_range_rangeSHORT     categ.    153   -0.350   [-0.58,-0.11]        8         0            —                   —      —                   —  —  0/40
+  5_posicion_rango        alt1d_trend     SHORT     categ.     47   -0.426   [-0.78,-0.04]        5         1       +3.074           n/a (N<3)   100%             +14.31%  R0 B1 Be0  1/40
   5_posicion_rango        btc_trend       SHORT     categ.     31   +0.484   [+0.06,+0.91]        0         0            —                   —      —                   —  —  0/40
   5_posicion_rango        celda_bull_rangeSHORT     categ.     29   +0.722   [+0.32,+1.11]        0         0            —                   —      —                   —  —  0/40
-  41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       30        37       -1.452       [-1.75,-1.15]     8%            -274.08%  R9 B19 Be9  37/40
+  41a_a2_confirmador      alt1d_range     LONG      categ.     53   -0.982   [-1.23,-0.70]       29        37       -1.452       [-1.75,-1.15]     8%            -274.08%  R9 B19 Be9  37/40
   41a_a2_confirmador      alt1d_trend     LONG      categ.     48   -0.820   [-1.07,-0.50]       11        37       -1.628       [-1.83,-1.39]     5%            -269.48%  R16 B14 Be7  37/40
   41a_a2_confirmador      age4h_alto      LONG       103.0     35   -0.680   [-1.03,-0.25]       14        18       -0.950       [-1.47,-0.39]    22%             -90.28%  R2 B10 Be6  18/40
-  41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]        9        39       -1.739       [-1.91,-1.53]     3%            -305.69%  R19 B12 Be8  39/40
+  41a_a2_confirmador      age4h_bajo      LONG        34.0     34   -0.998   [-1.29,-0.64]        8        39       -1.739       [-1.91,-1.53]     3%            -305.69%  R19 B12 Be8  39/40
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     35   -0.722   [-1.16,-0.24]       18        44       -1.586       [-1.78,-1.36]     5%            -311.59%  R21 B16 Be7  N ok, IC90 no
   41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]       11        10       -1.672       [-2.00,-1.23]    10%             -87.72%  R2 B5 Be3  10/40
-  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       12        25       -1.840       [-2.00,-1.56]     4%            -145.28%  R25 B0 Be0  25/40
-  41a_a2_confirmador      celda_range_bullLONG      categ.     20   -1.499   [-1.81,-1.12]        5         1       +2.003           n/a (N<3)   100%              +6.74%  R1 B0 Be0  1/40
+  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       11        25       -1.840       [-2.00,-1.56]     4%            -145.28%  R25 B0 Be0  25/40
+  41a_a2_confirmador      celda_range_bullLONG      categ.     20   -1.499   [-1.81,-1.12]        4         1       +2.003           n/a (N<3)   100%              +6.74%  R1 B0 Be0  1/40
   41a_a2_confirmador      btc_trend       LONG      categ.     33   +3.111   [+2.71,+3.46]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_bear_bear LONG      categ.     30   +2.467   [+2.06,+2.93]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_range_bearLONG      categ.     28   +1.194   [+0.46,+2.03]        0         0            —                   —      —                   —  —  0/40
@@ -356,8 +356,8 @@ Ultima actualizacion: 2026-09-28 05:11:38
   47_lower_lows_bear      btc_trend       LONG      categ.     38   +2.618   [+2.16,+3.12]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      celda_bear_bear LONG      categ.     34   +2.458   [+1.99,+2.95]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      celda_range_bearLONG      categ.     41   +1.442   [+0.78,+2.08]        0         0            —                   —      —                   —  —  0/40
-  54_x_sma20x50_dn        btc_range       SHORT     categ.     26   -0.512   [-1.02,-0.04]        2         4       +2.071       [+2.01,+2.13]   100%             +32.39%  R4 B0 Be0  4/40
-  54_x_sma20x50_dn        alt1d_trend     SHORT     categ.     15   -0.833   [-1.48,-0.23]        1         2       +2.049           n/a (N<3)   100%             +10.95%  R1 B0 Be1  2/40
+  54_x_sma20x50_dn        btc_range       SHORT     categ.     26   -0.512   [-1.02,-0.04]        3         4       +2.071       [+2.01,+2.13]   100%             +32.39%  R4 B0 Be0  4/40
+  54_x_sma20x50_dn        alt1d_trend     SHORT     categ.     15   -0.833   [-1.48,-0.23]        2         2       +2.049           n/a (N<3)   100%             +10.95%  R1 B0 Be1  2/40
   54_x_sma20x50_dn        alt1d_range     SHORT     categ.     20   -0.602   [-1.20,-0.02]        2         0            —                   —      —                   —  —  0/40
   54_x_sma20x50_dn        celda_bear_rangeSHORT     categ.     21   -0.713   [-1.26,-0.18]        0         0            —                   —      —                   —  —  0/40
   12a_cvd_distribucion    btc_range       SHORT     categ.     24   -0.651   [-1.21,-0.09]        0         0            —                   —      —                   —  —  0/40
