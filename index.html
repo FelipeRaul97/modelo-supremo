@@ -734,12 +734,19 @@ function roiOf(rows){
 }
 
 function statsOf(rows){
-  const v = rows.map(r=>r.pnl_R);
+  // 🔧 2026-09-28 · un R_pct_proxy invalidado a propósito (corrección manual,
+  // caso-oneusdt-tp-negativo / caso-suitia-max-hold-huerfano) llega con
+  // pnl_R=null — sin este filtro, `null` se suma como 0 en JS (no se excluye
+  // de verdad, sesga mean_R hacia 0 en vez de ignorarlo). El trade sigue
+  // contando en otras vistas (pnl_pct, equity) — esto solo saca su R inválido
+  // de las cuentas de R.
+  const rowsR = rows.filter(r => r.pnl_R !== null && r.pnl_R !== undefined);
+  const v = rowsR.map(r=>r.pnl_R);
   const n = v.length;
   const mean = n ? v.reduce((a,b)=>a+b,0)/n : 0;
   const wr = n ? 100*v.filter(x=>x>0).length/n : 0;
   const sum = n ? v.reduce((a,b)=>a+b,0) : 0;
-  const syms = rows.map(r=>r.sym);
+  const syms = rowsR.map(r=>r.sym);
   const ic = ic90Cluster(v, syms);
   const roi = roiOf(rows);
   return { n, mean, wr, sum, ic, roi };
