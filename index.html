@@ -1082,10 +1082,22 @@ function computeTodosSegmentos(){
       const armadoInfo = armadoFam && armadoFam[entry.id];
       const armado = !!(armadoInfo && armadoInfo.direction === g.dir);
       const esp = armado ? espejoIndex[g.familia+'|'+entry.id+'|'+g.dir] : null;
+      // 🔧 2026-09-28 · #S104-addendum (pedido de Felipe): un segmento armado con IC90
+      // que excluía 0 al momento de armar puede, con más N, diluirse hasta que el IC90
+      // de HOY vuelva a cruzar 0 — sin llegar a invertir signo (eso es #S104, otro caso,
+      // ya cableado en `reclasificar_espejos.py`). Deliberadamente NO se desarma nada
+      // automático por esto (mismo argumento anti-histéresis de §5bis del documento
+      // madre: el Paso1/N-forward, que corre con data fresca independiente del
+      // histórico, ya es la prueba real) — esto es solo una marca informativa.
+      const icAlArmar = armadoInfo && armadoInfo.ic90_al_armar;
+      const exclAlArmar = icAlArmar && (icAlArmar[0]>0 || icAlArmar[1]<0);
+      const diluido = armado && exclAlArmar && !exclHist;
       out.push({
         familia: g.familia, corte: entry.id, dir: g.dir, origen: g.origen,
         n_hist: s.n, mean_hist: s.mean, ic_hist: s.ic, excl_hist: exclHist,
-        armado, armado_ts: armado ? armadoInfo.armado_ts : null,
+        armado, armado_ts: armado ? armadoInfo.armado_ts : null, diluido,
+        ic90_al_armar: armado ? icAlArmar : null,
+        n_al_armar: armado ? armadoInfo.n_al_armar : null,
         signo: armado ? (armadoInfo.signo || 'negativo') : null,
         n_cerrados: esp ? esp.n_cerrados : 0,
         mean_R_cerrados: esp ? esp.mean_R_cerrados : null,
@@ -1293,7 +1305,9 @@ function renderGraduacion(){
       <td>${origenTag}</td>
       <td>${r.n_hist}</td>
       <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
-      <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}</td>
+      <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}${
+        r.diluido ? ` <span class="checkcell wait" title="Al armar (N=${r.n_al_armar}) el IC90 era [${r.ic90_al_armar[0].toFixed(2)},${r.ic90_al_armar[1].toFixed(2)}] y excluía 0. Con más N el histórico se diluyó y hoy vuelve a cruzar 0 — no se desarma nada por esto (el Paso1, con data fresca, es la prueba real), es solo un aviso.">⚠️ diluido</span>` : ''
+      }</td>
       <td class="nosort">${paso0}</td>
       <td>${ESTADO_BADGE[r.estadoRow]}</td>
       <td class="checkcell ${c1.cls} col-espejo">${c1.txt}</td>
