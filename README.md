@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-28 20:12:20
+Ultima actualizacion: 2026-09-28 20:27:59
 
 ```
 ========================================================================================================
@@ -421,7 +421,7 @@ Ultima actualizacion: 2026-09-28 20:12:20
   41a_a2_confirmador      celda_bear_bear LONG      categ.     30   +2.467   [+2.06,+2.93]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_range_bearLONG      categ.     28   +1.194   [+0.46,+2.03]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_bull_bull LONG      categ.     20   +1.601   [+0.97,+2.27]        0         0            —                   —      —                   —  —  0/40
-  47_lower_lows_bear      btc_range       LONG      categ.     16   -0.988   [-1.67,-0.09]        1         9       -1.138       [-2.00,+0.11]    22%             -34.37%  R9 B0 Be0  9/40
+  47_lower_lows_bear      btc_range       LONG      categ.     16   -0.988   [-1.67,-0.09]        2         9       -1.138       [-2.00,+0.11]    22%             -34.37%  R9 B0 Be0  9/40
   47_lower_lows_bear      alt1d_trend     LONG      categ.     15   -1.399   [-1.96,-0.68]        1        12       -1.336       [-2.00,-0.34]    17%             -59.50%  R6 B0 Be6  12/40
   47_lower_lows_bear      alt1d_range     LONG      categ.     30   +2.211   [+1.55,+2.92]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      age4h_alto      LONG        38.8     26   +1.881   [+1.05,+2.65]        0         0            —                   —      —                   —  —  0/40
@@ -497,7 +497,7 @@ Ultima actualizacion: 2026-09-28 20:12:20
   s85_vela_rev_alcista    alt1d_range     SHORT     categ.     15   -1.067   [-1.44,-0.70]        1         1       +1.967           n/a (N<3)   100%             +10.60%  R1 B0 Be0  1/40
   s85_vela_rev_alcista    btc_trend       SHORT     categ.     18   -1.074   [-1.43,-0.71]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_alcista    celda_bull_bull SHORT     categ.     17   -1.164   [-1.51,-0.79]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]        7         0            —                   —      —                   —  —  0/40
+  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]       21         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   btc_trend       SHORT     categ.     18   -1.560   [-1.89,-1.10]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   celda_bull_bull SHORT     categ.     15   -1.868   [-2.02,-1.56]        0         0            —                   —      —                   —  —  0/40
   s99_squeeze_cono        alt1d_range     LONG      categ.     16   +2.475   [+1.35,+3.36]        0         0            —                   —      —                   —  —  0/40
