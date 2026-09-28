@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-28 15:32:24
+Ultima actualizacion: 2026-09-28 15:41:09
 
 ```
 ========================================================================================================
@@ -226,13 +226,13 @@ Ultima actualizacion: 2026-09-28 15:32:24
 │                               vol_rel_bajo    20    43%  +1.489  +29.77   60%      [+0.60,+2.30]*  R16 B1 Be3   [ARMADA] │
 │                               btc_range       49    43%  +1.077  +52.78   55%      [+0.55,+1.56]*  R49 B0 Be0   [ARMADA] │
 │                               celda_range_bear  53    43%  +1.194  +63.27   57%      [+0.73,+1.68]*  R47 B0 Be3   [ARMADA] │
-│ LIVE·5_posicion_rango   SHORT (TOTAL)        257    50%  -0.137  -35.33   46%       [-0.38,+0.11]  R159 B38 Be6     │
+│ LIVE·5_posicion_rango   SHORT (TOTAL)        260    50%  -0.137  -35.33   46%       [-0.38,+0.11]  R161 B39 Be6     │
 │                               alt1d_range     79    50%  -1.055  -83.34   24%      [-1.27,-0.81]*  R66 B10 Be3  [ARMADA] │
 │                               alt1d_trend     49    50%  -0.387  -18.94   35%      [-0.75,-0.01]*  R42 B4 Be3   [ARMADA] │
-│                               age4h_alto      69    50%  -0.710  -49.00   32%      [-1.00,-0.34]*  R58 B7 Be4   [ARMADA] │
+│                               age4h_alto      72    50%  -0.711  -51.19   31%      [-1.02,-0.38]*  R61 B7 Be4   [ARMADA] │
 │                               age4h_bajo      87    50%  -0.157  -13.62   48%       [-0.48,+0.16]  R65 B21 Be1      │
-│                               vol_rel_alto    69    50%  +0.085   +5.84   52%       [-0.31,+0.47]  R50 B17 Be2      │
-│                               vol_rel_bajo    67    50%  -0.523  -35.03   39%      [-0.82,-0.21]*  R54 B10 Be3  [ARMADA] │
+│                               vol_rel_alto    70    50%  +0.119   +8.34   53%       [-0.26,+0.51]  R51 B17 Be2      │
+│                               vol_rel_bajo    66    50%  -0.543  -35.83   38%      [-0.84,-0.21]*  R53 B10 Be3  [ARMADA] │
 │                               btc_range      159    50%  -0.492  -78.28   37%      [-0.73,-0.26]*  R159 B0 Be0  [ARMADA] │
 │                               btc_trend       44    50%  +0.089   +3.91   59%       [-0.32,+0.51]  R0 B38 Be6   [ARMADA] │
 │                               celda_bull_range  42    50%  +0.234   +9.84   62%       [-0.21,+0.68]  R4 B38 Be0   [ARMADA] │
