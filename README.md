@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-28 15:26:51
+Ultima actualizacion: 2026-09-28 15:32:24
 
 ```
 ========================================================================================================
@@ -12,7 +12,7 @@ Ultima actualizacion: 2026-09-28 15:26:51
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
    (ninguna [familia,corte] nueva cruza el gate barato de armado)
-   total armadas históricamente: 104 (en 20 familias)
+   total armadas históricamente: 114 (en 23 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -117,6 +117,16 @@ Ultima actualizacion: 2026-09-28 15:26:51
       s95_rebote_ma_bajista · celda_bull_bull SHORT · umbral=None · armada 2026-09-28
       s99_squeeze_cono · alt1d_range LONG · umbral=None · armada 2026-09-28
       s99_squeeze_cono · btc_trend LONG · umbral=None · armada 2026-09-28
+      s99_squeeze_cono · age4h_bajo LONG · umbral=38.0 · armada 2026-09-28
+      s99_squeeze_cono · vol_rel_alto LONG · umbral=0.8263712751228965 · armada 2026-09-28
+      s99_squeeze_cono · vol_rel_bajo LONG · umbral=0.6972177080983205 · armada 2026-09-28
+      s99_squeeze_cono · celda_bull_bull LONG · umbral=None · armada 2026-09-28
+      s99_squeeze_cono · celda_bull_range LONG · umbral=None · armada 2026-09-28
+      s92_doble_suelo · btc_trend LONG · umbral=None · armada 2026-09-28
+      s93_inside_bar · alt1d_range LONG · umbral=None · armada 2026-09-28
+      s93_inside_bar · btc_trend LONG · umbral=None · armada 2026-09-28
+      s95_rebote_ma_alcista · alt1d_range LONG · umbral=None · armada 2026-09-28
+      s95_rebote_ma_alcista · btc_trend LONG · umbral=None · armada 2026-09-28
 ```
 
 ```
@@ -343,16 +353,16 @@ Ultima actualizacion: 2026-09-28 15:26:51
 │                               btc_trend       91   100%  -1.071  -97.44   20%      [-1.26,-0.87]*  R0 B91 Be0   [ARMADA] │
 │                               celda_bull_bull  84   100%  -1.112  -93.40   18%      [-1.29,-0.90]*  R0 B84 Be0   [ARMADA] │
 │ SOMBRA·s92_doble_suelo  LONG  (TOTAL)         22   100%  +1.018  +22.41   59%      [+0.25,+1.85]*  R3 B19 Be0       │
-│                               btc_trend       19   100%  +1.184  +22.50   63%      [+0.36,+2.01]*  R0 B19 Be0   [pos] │
+│                               btc_trend       19   100%  +1.184  +22.50   63%      [+0.36,+2.01]*  R0 B19 Be0   [ARMADA] │
 │ SOMBRA·s92_doble_techo  SHORT (TOTAL)         12   100%  -1.808  -21.69    8%      [-2.02,-1.38]*  R8 B4 Be0        │
 │ SOMBRA·s93_inside_bar   LONG  (TOTAL)         25   100%  +1.235  +30.88   68%      [+0.43,+2.05]*  R6 B19 Be0       │
-│                               alt1d_range     17   100%  +1.171  +19.90   71%      [+0.17,+2.16]*  R4 B13 Be0   [pos] │
-│                               btc_trend       19   100%  +1.637  +31.10   79%      [+0.80,+2.45]*  R0 B19 Be0   [pos] │
+│                               alt1d_range     17   100%  +1.171  +19.90   71%      [+0.17,+2.16]*  R4 B13 Be0   [ARMADA] │
+│                               btc_trend       19   100%  +1.637  +31.10   79%      [+0.80,+2.45]*  R0 B19 Be0   [ARMADA] │
 │ SOMBRA·s94_vela_confirmaLONG  (TOTAL)         12   100%  +0.079   +0.95   42%       [-0.99,+1.31]  R5 B7 Be0        │
 │ SOMBRA·s94_vela_confirmaSHORT (TOTAL)         13   100%  -1.831  -23.80    8%      [-2.02,-1.45]*  R4 B9 Be0        │
 │ SOMBRA·s95_rebote_ma_alcLONG  (TOTAL)         24   100%  +1.309  +31.42   67%      [+0.62,+2.08]*  R5 B19 Be0       │
-│                               alt1d_range     16   100%  +1.534  +24.54   75%      [+0.71,+2.34]*  R3 B13 Be0   [pos] │
-│                               btc_trend       19   100%  +1.557  +29.58   74%      [+0.72,+2.29]*  R0 B19 Be0   [pos] │
+│                               alt1d_range     16   100%  +1.534  +24.54   75%      [+0.71,+2.34]*  R3 B13 Be0   [ARMADA] │
+│                               btc_trend       19   100%  +1.557  +29.58   74%      [+0.72,+2.29]*  R0 B19 Be0   [ARMADA] │
 │ SOMBRA·s95_rebote_ma_bajSHORT (TOTAL)         22   100%  -1.645  -36.19   14%      [-1.92,-1.27]*  R4 B18 Be0       │
 │                               btc_trend       18   100%  -1.560  -28.08   17%      [-1.89,-1.10]*  R0 B18 Be0   [ARMADA] │
 │                               celda_bull_bull  15   100%  -1.868  -28.02    7%      [-2.02,-1.56]*  R0 B15 Be0   [ARMADA] │
@@ -362,16 +372,16 @@ Ultima actualizacion: 2026-09-28 15:26:51
 │ SOMBRA·s99_squeeze_cono LONG  (TOTAL)         52   100%  +1.395  +72.56   75%      [+0.94,+1.83]*  R6 B46 Be0       │
 │                               alt1d_range     41   100%  +1.351  +55.37   73%      [+0.84,+1.82]*  R5 B36 Be0   [ARMADA] │
 │                               age4h_alto      18   100%  +0.238   +4.28   44%       [-0.36,+0.81]  R3 B15 Be0       │
-│                               age4h_bajo      19   100%  +1.858  +35.30   95%      [+1.21,+2.54]*  R0 B19 Be0   [pos] │
-│                               vol_rel_alto    18   100%  +1.308  +23.54   67%      [+0.57,+2.08]*  R4 B14 Be0   [pos] │
-│                               vol_rel_bajo    17   100%  +1.211  +20.58   71%      [+0.42,+2.03]*  R1 B16 Be0   [pos] │
+│                               age4h_bajo      19   100%  +1.858  +35.30   95%      [+1.21,+2.54]*  R0 B19 Be0   [ARMADA] │
+│                               vol_rel_alto    18   100%  +1.308  +23.54   67%      [+0.57,+2.08]*  R4 B14 Be0   [ARMADA] │
+│                               vol_rel_bajo    17   100%  +1.211  +20.58   71%      [+0.42,+2.03]*  R1 B16 Be0   [ARMADA] │
 │                               btc_trend       46   100%  +1.450  +66.72   78%      [+1.02,+1.91]*  R0 B46 Be0   [ARMADA] │
-│                               celda_bull_bull  29   100%  +1.790  +51.91   83%      [+1.28,+2.31]*  R0 B29 Be0   [pos] │
-│                               celda_bull_range  16   100%  +1.051  +16.82   75%      [+0.33,+1.79]*  R0 B16 Be0   [pos] │
+│                               celda_bull_bull  29   100%  +1.790  +51.91   83%      [+1.28,+2.31]*  R0 B29 Be0   [ARMADA] │
+│                               celda_bull_range  16   100%  +1.051  +16.82   75%      [+0.33,+1.79]*  R0 B16 Be0   [ARMADA] │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
-  REGISTRO COMPLETO DE ESPEJOS ARMADOS (104) — sin filtrar por si tienen trades abiertos
+  REGISTRO COMPLETO DE ESPEJOS ARMADOS (114) — sin filtrar por si tienen trades abiertos
   (la categoría existe por el IC90 negativo al armar; N=0 abiertas/cerradas es normal y válido)
 ==================================================================================================================================
 
@@ -481,6 +491,16 @@ Ultima actualizacion: 2026-09-28 15:26:51
   s95_rebote_ma_bajista   celda_bull_bull SHORT     categ.     15   -1.868   [-2.02,-1.56]        0         0            —                   —      —                   —  —  0/40
   s99_squeeze_cono        alt1d_range     LONG      categ.     16   +2.475   [+1.35,+3.36]        0         0            —                   —      —                   —  —  0/40
   s99_squeeze_cono        btc_trend       LONG      categ.     16   +2.845   [+1.72,+3.60]        0         0            —                   —      —                   —  —  0/40
+  s99_squeeze_cono        age4h_bajo      LONG        38.0     19   +1.858   [+1.21,+2.54]        0         0            —                   —      —                   —  —  0/40
+  s99_squeeze_cono        vol_rel_alto    LONG         0.8     18   +1.308   [+0.57,+2.08]        0         0            —                   —      —                   —  —  0/40
+  s99_squeeze_cono        vol_rel_bajo    LONG         0.7     17   +1.211   [+0.42,+2.03]        0         0            —                   —      —                   —  —  0/40
+  s99_squeeze_cono        celda_bull_bull LONG      categ.     29   +1.790   [+1.28,+2.31]        0         0            —                   —      —                   —  —  0/40
+  s99_squeeze_cono        celda_bull_rangeLONG      categ.     16   +1.051   [+0.33,+1.79]        0         0            —                   —      —                   —  —  0/40
+  s92_doble_suelo         btc_trend       LONG      categ.     19   +1.184   [+0.36,+2.01]        0         0            —                   —      —                   —  —  0/40
+  s93_inside_bar          alt1d_range     LONG      categ.     17   +1.171   [+0.17,+2.16]        0         0            —                   —      —                   —  —  0/40
+  s93_inside_bar          btc_trend       LONG      categ.     19   +1.637   [+0.80,+2.45]        0         0            —                   —      —                   —  —  0/40
+  s95_rebote_ma_alcista   alt1d_range     LONG      categ.     16   +1.534   [+0.71,+2.34]        0         0            —                   —      —                   —  —  0/40
+  s95_rebote_ma_alcista   btc_trend       LONG      categ.     19   +1.557   [+0.72,+2.29]        0         0            —                   —      —                   —  —  0/40
 
   N≥40+IC90R: piso N≥40 (#S81 §4) Y mean_R forward>0 Y IC90(R) excluye 0 — SOLO 2
   de los 4 checks de graduación (faltan: bate el aleatorio, mejora el sistema A-02,
