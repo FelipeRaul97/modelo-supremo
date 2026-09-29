@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-29 17:27:25
+Ultima actualizacion: 2026-09-29 19:29:04
 
 ```
 ========================================================================================================
@@ -148,7 +148,7 @@ Ultima actualizacion: 2026-09-29 17:27:25
 ```
 
 ```
-  Régimen BTC: ret30d=+6.1%  ret7d=-3.2%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=+5.2%  ret7d=-4.0%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
