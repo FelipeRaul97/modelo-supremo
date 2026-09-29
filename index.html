@@ -1101,7 +1101,7 @@ function computeTodosSegmentos(){
       const diluido = armado && exclAlArmar && !exclHist;
       out.push({
         familia: g.familia, corte: entry.id, dir: g.dir, origen: g.origen,
-        n_hist: s.n, mean_hist: s.mean, ic_hist: s.ic, excl_hist: exclHist,
+        n_hist: s.n, mean_hist: s.mean, sum_hist: s.sum, ic_hist: s.ic, excl_hist: exclHist,
         armado, armado_ts: armado ? armadoInfo.armado_ts : null, diluido,
         ic90_al_armar: armado ? icAlArmar : null,
         n_al_armar: armado ? armadoInfo.n_al_armar : null,
@@ -1210,6 +1210,7 @@ function renderGraduacion(){
   const cols = [
     {k:'familia', label:'familia'}, {k:'corte', label:'segmento'}, {k:'dir', label:'dir. base'},
     {k:'origen', label:'origen'}, {k:'n_hist', label:'N hist. (segmento)'}, {k:'mean_hist', label:'mean_R hist. (segmento)'},
+    {k:'sum_hist', label:'PnL hist. total (R)'},
     {k:'ic_hist', label:'IC90 hist. (segmento)', sortable:false},
     {k:'paso0', label:'Paso0 · watch', sortable:false},
     {k:'estado', label:'estado'},
@@ -1312,6 +1313,7 @@ function renderGraduacion(){
       <td>${origenTag}</td>
       <td>${r.n_hist}</td>
       <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
+      <td class="${r.sum_hist>=0?'pos':'neg'}">${fmtR(r.sum_hist)}R</td>
       <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}${
         r.diluido ? ` <span class="checkcell wait" title="Al armar (N=${r.n_al_armar}) el IC90 era [${r.ic90_al_armar[0].toFixed(2)},${r.ic90_al_armar[1].toFixed(2)}] y excluía 0. Con más N el histórico se diluyó y hoy vuelve a cruzar 0 — no se desarma nada por esto (el Paso1, con data fresca, es la prueba real), es solo un aviso.">⚠️ diluido</span>` : ''
       }</td>
