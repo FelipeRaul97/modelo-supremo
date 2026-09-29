@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-29 08:12:02
+Ultima actualizacion: 2026-09-29 09:07:02
 
 ```
 ========================================================================================================
@@ -430,13 +430,13 @@ Ultima actualizacion: 2026-09-29 08:12:02
   5_posicion_rango        alt1d_trend     SHORT     categ.     47   -0.426   [-0.78,-0.04]       10         3       -0.106       [-1.84,+1.62]    33%              +8.31%  R0 B3 Be0  3/40
   5_posicion_rango        btc_trend       SHORT     categ.     31   +0.484   [+0.06,+0.91]        0         0            —                   —      —                   —  —  0/40
   5_posicion_rango        celda_bull_rangeSHORT     categ.     29   +0.722   [+0.32,+1.11]        0         0            —                   —      —                   —  —  0/40
-  41a_a2_confirmador      alt1d_range     LONG      categ.    108   +0.593   [+0.28,+0.92]        8        64       -0.887       [-1.17,-0.60]    28%            -282.57%  R12 B43 Be9  N ok, IC90 no
+  41a_a2_confirmador      alt1d_range     LONG      categ.    108   +0.593   [+0.28,+0.92]        3        64       -0.887       [-1.17,-0.60]    28%            -282.57%  R12 B43 Be9  N ok, IC90 no
   41a_a2_confirmador      alt1d_trend     LONG      categ.    100   +1.022   [+0.80,+1.26]       10        39       -1.565       [-1.80,-1.31]     8%            -274.86%  R16 B16 Be7  39/40
-  41a_a2_confirmador      age4h_alto      LONG       103.0     71   +0.382   [+0.02,+0.77]        7        26       -0.728       [-1.23,-0.19]    31%             -92.12%  R3 B17 Be6  26/40
-  41a_a2_confirmador      age4h_bajo      LONG        34.0     69   +1.021   [+0.64,+1.42]        4        46       -1.623       [-1.82,-1.41]     7%            -337.99%  R19 B19 Be8  N ok, IC90 no
+  41a_a2_confirmador      age4h_alto      LONG       103.0     71   +0.382   [+0.02,+0.77]        6        26       -0.728       [-1.23,-0.19]    31%             -92.12%  R3 B17 Be6  26/40
+  41a_a2_confirmador      age4h_bajo      LONG        34.0     69   +1.021   [+0.64,+1.42]        2        46       -1.623       [-1.82,-1.41]     7%            -337.99%  R19 B19 Be8  N ok, IC90 no
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     71   +1.634   [+1.18,+2.07]        6        57       -1.362       [-1.56,-1.14]    12%            -349.83%  R23 B27 Be7  N ok, IC90 no
-  41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]       13        18       -0.654       [-1.20,-0.09]    44%             -69.07%  R2 B13 Be3  18/40
-  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       31        28       -1.430       [-1.85,-1.03]    14%            -118.65%  R28 B0 Be0  28/40
+  41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        9        18       -0.654       [-1.20,-0.09]    44%             -69.07%  R2 B13 Be3  18/40
+  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       36        28       -1.430       [-1.85,-1.03]    14%            -118.65%  R28 B0 Be0  28/40
   41a_a2_confirmador      celda_range_bullLONG      categ.     20   -1.499   [-1.81,-1.12]        5         3       +1.968       [+1.94,+2.00]   100%             +20.38%  R3 B0 Be0  3/40
   41a_a2_confirmador      btc_trend       LONG      categ.     33   +3.111   [+2.71,+3.46]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_bear_bear LONG      categ.     30   +2.467   [+2.06,+2.93]        0         0            —                   —      —                   —  —  0/40
@@ -518,7 +518,7 @@ Ultima actualizacion: 2026-09-29 08:12:02
   s85_vela_rev_alcista    alt1d_range     SHORT     categ.     15   -1.067   [-1.44,-0.70]        2         2       +1.849           n/a (N<3)   100%             +19.12%  R2 B0 Be0  2/40
   s85_vela_rev_alcista    btc_trend       SHORT     categ.     18   -1.074   [-1.43,-0.71]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_alcista    celda_bull_bull SHORT     categ.     17   -1.164   [-1.51,-0.79]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]       28         0            —                   —      —                   —  —  0/40
+  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]       30         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   btc_trend       SHORT     categ.     18   -1.560   [-1.89,-1.10]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   celda_bull_bull SHORT     categ.     15   -1.868   [-2.02,-1.56]        0         0            —                   —      —                   —  —  0/40
   s99_squeeze_cono        alt1d_range     LONG      categ.     16   +2.475   [+1.35,+3.36]        0         0            —                   —      —                   —  —  0/40
