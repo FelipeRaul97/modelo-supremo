@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-09-30 13:16:43
+Ultima actualizacion: 2026-09-30 13:27:47
 
 ```
 ========================================================================================================
@@ -148,7 +148,7 @@ Ultima actualizacion: 2026-09-30 13:16:43
 ```
 
 ```
-  Régimen BTC: ret30d=+6.0%  ret7d=-3.0%  ·  fuera de régimen de impulso  ⚠️ CACHÉ STALE (2h) — refrescar con `python -m SUPREMO.hist_extiende`
+  Régimen BTC: ret30d=+7.0%  ret7d=-2.1%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
