@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-01 16:13:11
+Ultima actualizacion: 2026-10-01 16:35:29
 
 ```
 ========================================================================================================
@@ -624,11 +624,11 @@ Ultima actualizacion: 2026-10-01 16:13:11
   s85_vela_rev_alcista    alt1d_range     SHORT     categ.     15   -1.067   [-1.44,-0.70]        7         2       +1.849           n/a (N<3)   100%             +19.12%  R2 B0 Be0  2/40
   s85_vela_rev_alcista    btc_trend       SHORT     categ.     18   -1.074   [-1.43,-0.71]        0         0            —                   —      —                   —  —  0/40
   s85_vela_rev_alcista    celda_bull_bull SHORT     categ.     17   -1.164   [-1.51,-0.79]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]       49         3       -2.000       [-2.00,-2.00]     0%             -24.38%  R3 B0 Be0  3/40
+  s100_macd_cruce_alcista btc_range       LONG      categ.     19   -1.411   [-2.05,-0.77]       50         3       -2.000       [-2.00,-2.00]     0%             -24.38%  R3 B0 Be0  3/40
   s100_macd_cruce_alcista alt1d_range     LONG      categ.     34   -0.784   [-1.36,-0.17]       13         1       -2.000           n/a (N<3)     0%              -1.26%  R1 B0 Be0  1/40
-  s100_macd_cruce_alcista vol_rel_alto    LONG         1.4     17   -1.703   [-2.03,-1.31]        3         1       -2.000           n/a (N<3)     0%              -1.26%  R1 B0 Be0  1/40
+  s100_macd_cruce_alcista vol_rel_alto    LONG         1.4     17   -1.703   [-2.03,-1.31]        4         1       -2.000           n/a (N<3)     0%              -1.26%  R1 B0 Be0  1/40
   s100_macd_cruce_alcista btc_trend       LONG      categ.     15   +1.240   [+0.26,+2.21]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_alcista celda_range_bullLONG      categ.     28   -1.814   [-2.03,-1.39]       11         0            —                   —      —                   —  —  0/40
+  s100_macd_cruce_alcista celda_range_bullLONG      categ.     28   -1.814   [-2.03,-1.39]       12         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_alcista celda_bull_bull LONG      categ.     17   +1.110   [+0.34,+1.92]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   btc_trend       SHORT     categ.     18   -1.560   [-1.89,-1.10]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_bajista   celda_bull_bull SHORT     categ.     15   -1.868   [-2.02,-1.56]        0         0            —                   —      —                   —  —  0/40
@@ -656,7 +656,7 @@ Ultima actualizacion: 2026-10-01 16:13:11
   s95_rebote_ma_alcista   btc_trend       LONG      categ.     19   +1.557   [+0.72,+2.29]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   celda_range_bullLONG      categ.     15   -0.999   [-1.63,-0.24]        3         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista alt1d_range     SHORT     categ.     16   -1.231   [-1.78,-0.59]       13         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_bajista btc_range       SHORT     categ.     31   -0.544   [-0.94,-0.14]        9         0            —                   —      —                   —  —  0/40
+  s100_macd_cruce_bajista btc_range       SHORT     categ.     31   -0.544   [-0.94,-0.14]       10         0            —                   —      —                   —  —  0/40
   s92_doble_techo         alt1d_range     SHORT     categ.     17   -0.782   [-1.37,-0.10]       15         1       +2.396           n/a (N<3)   100%             +17.43%  R1 B0 Be0  1/40
   s92_doble_techo         btc_range       SHORT     categ.     21   -1.229   [-1.65,-0.76]       17         0            —                   —      —                   —  —  0/40
   s92_doble_techo         celda_range_bullSHORT     categ.     18   -1.097   [-1.57,-0.63]        7         0            —                   —      —                   —  —  0/40
