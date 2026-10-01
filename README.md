@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-01 20:46:33
+Ultima actualizacion: 2026-10-01 20:58:52
 
 ```
 ========================================================================================================
@@ -185,10 +185,10 @@ Ultima actualizacion: 2026-10-01 20:46:33
 │ LIVE·5_posicion_rango   SHORT BULL       38    +0.405  +15.39   68% [-0.04,+0.84]                    │
 │ LIVE·5_posicion_rango   SHORT BEAR        6    -1.913  -11.48    0% [-2.02,-1.70]*                   │
 │ SOMBRA·12a_cvd_distribucSHORT RANGE      61    -1.431  -87.28   18% [-1.66,-1.19]*                   │
-│ SOMBRA·20_tl_sup_bull   LONG  RANGE      18    -1.460  -26.28    0% [-1.74,-1.13]*                   │
+│ SOMBRA·20_tl_sup_bull   LONG  RANGE      19    -1.413  -26.85    0% [-1.69,-1.11]*                   │
 │ SOMBRA·20_tl_sup_bull   LONG  BULL       12    +1.648  +19.77   75% [+0.92,+2.37]*                   │
 │ SOMBRA·36_fade_intradia LONG  BEAR       23    +2.648  +60.91   83% [+1.88,+3.35]*                   │
-│ SOMBRA·41a_a2_confirmadoLONG  RANGE     152    +0.053   +8.11   38% [-0.18,+0.28]                    │
+│ SOMBRA·41a_a2_confirmadoLONG  RANGE     153    +0.067  +10.20   38% [-0.17,+0.29]                    │
 │ SOMBRA·41a_a2_confirmadoLONG  BULL       62    +0.791  +49.05   63% [+0.44,+1.16]*                   │
 │ SOMBRA·41a_a2_confirmadoLONG  BEAR       32    +3.271 +104.69  100% [+2.98,+3.54]*                   │
 │ SOMBRA·47_lower_lows_beaLONG  RANGE      39    +1.005  +39.19   54% [+0.32,+1.73]*                   │
@@ -199,7 +199,7 @@ Ultima actualizacion: 2026-10-01 20:46:33
 │ SOMBRA·54_ext_dn_4h     LONG  BEAR       26    +3.265  +84.90   96% [+2.88,+3.60]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT RANGE      36    -0.649  -23.35   42% [-1.05,-0.24]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
-│ SOMBRA·s100_macd_cruce_aLONG  RANGE      47    -1.070  -50.28   21% [-1.46,-0.61]*                   │
+│ SOMBRA·s100_macd_cruce_aLONG  RANGE      48    -1.048  -50.29   21% [-1.45,-0.61]*                   │
 │ SOMBRA·s100_macd_cruce_aLONG  BULL       19    +0.952  +18.08   63% [+0.18,+1.74]*                   │
 │ SOMBRA·s100_macd_cruce_bSHORT RANGE      50    -0.031   -1.55   60% [-0.37,+0.34]                    │
 │ SOMBRA·s100_macd_cruce_bSHORT BULL       11    -0.440   -4.84   55% [-1.17,+0.34]                    │
@@ -213,17 +213,17 @@ Ultima actualizacion: 2026-10-01 20:46:33
 │ SOMBRA·s85_vela_rev_alciSHORT BULL       22    -0.769  -16.92   27% [-1.17,-0.36]*                   │
 │ SOMBRA·s85_vela_rev_bajiLONG  RANGE      22    -0.597  -13.12   23% [-1.17,+0.04]                    │
 │ SOMBRA·s85_vela_rev_bajiLONG  BULL       44    +0.507  +22.31   66% [+0.18,+0.85]*                   │
-│ SOMBRA·s87_fib_cont_alciLONG  RANGE      51    -0.272  -13.90   37% [-0.65,+0.14]                    │
+│ SOMBRA·s87_fib_cont_alciLONG  RANGE      54    -0.274  -14.82   37% [-0.63,+0.11]                    │
 │ SOMBRA·s87_fib_cont_alciLONG  BULL      106    +1.118 +118.49   74% [+0.87,+1.38]*                   │
-│ SOMBRA·s87_fib_cont_bajiSHORT RANGE      66    -0.081   -5.34   50% [-0.40,+0.24]                    │
+│ SOMBRA·s87_fib_cont_bajiSHORT RANGE      67    -0.067   -4.50   51% [-0.38,+0.25]                    │
 │ SOMBRA·s87_fib_cont_bajiSHORT BULL       99    -0.970  -96.05   24% [-1.14,-0.80]*                   │
-│ SOMBRA·s92_doble_suelo  LONG  RANGE      16    +0.055   +0.88   38% [-0.64,+0.82]                    │
+│ SOMBRA·s92_doble_suelo  LONG  RANGE      17    +0.080   +1.37   41% [-0.60,+0.77]                    │
 │ SOMBRA·s92_doble_suelo  LONG  BULL       30    +0.428  +12.85   47% [-0.18,+1.10]                    │
 │ SOMBRA·s92_doble_techo  SHORT RANGE      41    -0.419  -17.17   46% [-0.83,-0.01]*                   │
 │ SOMBRA·s92_doble_techo  SHORT BULL       12    +0.149   +1.78   67% [-0.53,+0.79]                    │
 │ SOMBRA·s93_inside_bar   LONG  RANGE      28    -0.380  -10.64   25% [-0.94,+0.21]                    │
 │ SOMBRA·s93_inside_bar   LONG  BULL       52    +0.754  +39.22   58% [+0.30,+1.23]*                   │
-│ SOMBRA·s94_vela_confirmaLONG  RANGE      19    -0.779  -14.81   26% [-1.36,-0.17]*                   │
+│ SOMBRA·s94_vela_confirmaLONG  RANGE      21    -0.742  -15.59   24% [-1.25,-0.17]*                   │
 │ SOMBRA·s94_vela_confirmaLONG  BULL       13    +0.830  +10.79   54% [-0.10,+1.88]                    │
 │ SOMBRA·s94_vela_confirmaSHORT RANGE      26    -0.058   -1.52   50% [-0.62,+0.51]                    │
 │ SOMBRA·s94_vela_confirmaSHORT BULL       16    -0.808  -12.93   38% [-1.32,-0.27]*                   │
