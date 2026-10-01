@@ -109,6 +109,7 @@
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
   <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
   <div class="tabbtn" data-tab="tpcond">🕶️ TP condicional (sombra)</div>
+  <div class="tabbtn" data-tab="ek3">🚪 E_K3 · exentas vs pasan</div>
 </div>
 
 <div id="tab-resumen">
@@ -280,6 +281,29 @@
     <div class="hint">Las 42 combinaciones (6 TP &times; 7 MAX_HOLD) a la vez &mdash; los dos barridos de arriba son cada uno un corte de UNA fila/columna de esta grilla. Con 42 comparaciones en vez de 6+7=13, un "mejor" que sobreviva acá pesa MÁS multiplicidad, no menos &mdash; léelo con más escepticismo todavía. Celda con borde azul = actual (4R/96h). Celda con borde amarillo = sugerida (solo si N&ge;15 y su IC90 no se solapa con la actual).</div>
     <div class="grad-summary" id="curvaJointStats"></div>
     <div class="tablewrap"><table id="tablaCurvaJoint" style="font-size:0.76rem;"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-ek3" style="display:none;">
+  <div class="panel">
+    <h2>Gate E_K3 · familias exentas: ¿los trades que E_K3 descarta rinden distinto? (#S120)</h2>
+    <div class="hint">
+      E_K3 solo deja abrir una posición cuando el precio acaba de confirmar un swing (hace &le;3 barras). Se eligió por
+      Sharpe/Calmar, no por mecanismo, y nunca se midió <b>familia por familia</b>. Estas 28 familias de SOMBRA (capital cero)
+      abren <b>tambi&eacute;n</b> los fires que E_K3 descartar&iacute;a, en un brazo aparte etiquetado
+      <code>ek3_pass=False</code>. Aqu&iacute; se compara, <b>dentro de la misma familia y el mismo periodo</b>, el brazo
+      que pasa E_K3 contra el que no. No es un origen nuevo (sigue siendo SOMBRA/ESPEJO): es un atributo del trade.
+      <br><b>Observacional, no aleatorizado</b>: el brazo exento difiere en contexto, as&iacute; que la diferencia no es causal.
+      El veredicto es UN solo contraste agrupado (centrado por familia) con IC90 de doble cl&uacute;ster y N m&iacute;nimo; antes
+      de eso es solo seguimiento. El motor vivo conserva E_K3 intacto.
+    </div>
+    <div id="ek3Resumen" class="grad-summary"></div>
+    <div id="ek3Pooled"></div>
+    <h3>Por familia (desde T0, mismo periodo en ambos brazos)</h3>
+    <div class="tablewrap"><table id="tablaEk3"><thead></thead><tbody></tbody></table></div>
+    <h3>Gradiente por <code>bars_since_swing</code> (todas las exentas)</h3>
+    <div class="hint">&iquest;Cae el rendimiento poco a poco con la edad del swing, o solo en el corte binario de E_K3?</div>
+    <div class="tablewrap"><table id="tablaEk3Grad"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -1351,7 +1375,57 @@ const MOTIVO_LABELS = {
   barra_ausente_causal: 'barra ausente (causal)', detector_causal_exception: 'excepción (causal)',
   fire_no_repro_causal: 'no repro (causal = look-ahead)', ek3_fail_causal: 'falla E_K3 (causal)',
   atr_nan: 'ATR NaN', x1_setup_none: 'sin geometría X1', abierto: 'ABIERTO',
+  x_abierto: 'ABIERTO sin E_K3 (exenta)', x_bloqueado: 'bloqueado (brazo sin E_K3)',
 };
+
+function renderEk3(){
+  const e = (state.data && state.data.ek3_exencion) || null;
+  const res = document.getElementById('ek3Resumen');
+  if (!e || e.error){
+    res.innerHTML = '<b style="color:var(--muted)">' + (e && e.error ? 'Sin datos: ' + e.error : 'Sin datos todavía (el backend aún no exporta ek3_exencion).') + '</b>';
+    return;
+  }
+  const s3 = (x)=> (x===null||x===undefined) ? 'n/a' : ((x>=0?'+':'') + x.toFixed(3));
+  const t0 = new Date(e.t0).toISOString().slice(0,16).replace('T',' ') + 'Z';
+  const ab = e.abiertas || {};
+  res.innerHTML = `<div>T0 = <b>${t0}</b> &middot; trades desde T0: pasan E_K3 <b>${e.n_pass_post}</b> &middot; sin E_K3 <b>${e.n_fail_post}</b>
+    &middot; hist&oacute;rico que pas&oacute; E_K3 (todas las exentas): ${e.n_pass_historico}</div>
+    <div>Abiertas ahora: brazo base <b>${ab.pass ?? '—'}</b> &middot; brazo sin E_K3 <b>${ab.fail ?? '—'}</b></div>`;
+  const p = e.pooled || {};
+  let dtxt = 'sin diferencia estimable todavía';
+  if (p.dif){
+    const [d, lo, hi] = p.dif;
+    const ex = !(lo <= 0 && hi >= 0);
+    dtxt = `pasa &minus; no pasa = <b class="${ex ? (d>0?'pos':'neg') : ''}">${s3(d)}R</b> &middot; IC90[${s3(lo)}, ${s3(hi)}] ${ex ? '&middot; excluye 0' : '&middot; cruza 0'}`;
+  }
+  const mit = ['mitad1','mitad2'].map(m=>{
+    const q = p[m]; if (!q) return '';
+    const t = q.dif ? `${s3(q.dif[0])} [${s3(q.dif[1])}, ${s3(q.dif[2])}]` : 'n/a';
+    return `<div class="hint">${m==='mitad1'?'1ª mitad':'2ª mitad'}: pasa ${q.n_pass} / no pasa ${q.n_fail} &middot; dif ${t}</div>`;
+  }).join('');
+  const chk = (p.estado||'').startsWith('CHECKPOINT');
+  document.getElementById('ek3Pooled').innerHTML = `<div class="panel">
+    <h3 style="margin-top:0">Contraste agrupado (centrado por familia) &middot; ${p.familias_con_ambos_brazos ?? 0} familias con ambos brazos
+      <span class="${chk?'badge-wait':'badge-pos'}">${p.estado || ''}</span></h3>
+    <div class="grad-summary"><div>N pasa <b>${p.n_pass ?? 0}</b> / no pasa <b>${p.n_fail ?? 0}</b></div><div>${dtxt}</div></div>${mit}
+    <div class="hint">Regla: se concluye solo con N(no pasa) &ge; 40 (&ge; 20 por mitad) y el IC90 sin 0 en ambas mitades. &gt;0 = E_K3 aporta; &lt;0 = E_K3 estorba en esas familias.</div></div>`;
+  const th = document.querySelector('#tablaEk3 thead'), tb = document.querySelector('#tablaEk3 tbody');
+  th.innerHTML = '<tr><th>familia</th><th>grupo</th><th>pas&oacute; E_K3 (hist.)</th><th>pasa</th><th>no pasa</th><th>media pasa</th><th>media no pasa</th><th>dif (pasa&minus;no pasa)</th><th>espejo pasa</th><th>espejo no pasa</th></tr>';
+  tb.innerHTML = (e.familias||[]).map(f=>{
+    const cls = (v)=> v===null||v===undefined ? '' : (v>=0?'pos':'neg');
+    const dif = f.dif ? `${s3(f.dif[0])} <span class="hint">[${s3(f.dif[1])}, ${s3(f.dif[2])}]</span>` : '<span class="hint">N&lt;10 por brazo</span>';
+    const g = f.grupo==='nueva' ? '<span class="badge-arm">nueva</span>' : '<span class="badge-wait">existente</span>';
+    return `<tr><td>${f.familia}</td><td>${g}</td><td>${f.n_pass_hist}</td><td>${f.n_pass}</td><td>${f.n_fail}</td>
+      <td class="${cls(f.mean_pass)}">${s3(f.mean_pass)}</td><td class="${cls(f.mean_fail)}">${s3(f.mean_fail)}</td><td>${dif}</td>
+      <td class="${cls(f.esp_pass)}">${s3(f.esp_pass)}</td><td class="${cls(f.esp_fail)}">${s3(f.esp_fail)}</td></tr>`;
+  }).join('');
+  const th2 = document.querySelector('#tablaEk3Grad thead'), tb2 = document.querySelector('#tablaEk3Grad tbody');
+  th2.innerHTML = '<tr><th>bars_since_swing</th><th>N</th><th>media R</th><th>IC90 (doble cl&uacute;ster)</th></tr>';
+  tb2.innerHTML = (e.gradiente||[]).map(g=>{
+    const ic = g.ic90 ? `[${s3(g.ic90[1])}, ${s3(g.ic90[2])}]` : '<span class="hint">N&lt;5</span>';
+    return `<tr><td>${g.bin}</td><td>${g.n}</td><td class="${g.mean>=0?'pos':'neg'}">${s3(g.mean)}</td><td>${ic}</td></tr>`;
+  }).join('');
+}
 
 function renderTpCondicional(){
   const items = (state.data && state.data.sombra_tp_condicional) || [];
@@ -1990,7 +2064,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','embudo','simbolo','curva','tpcond'].forEach(t=>{
+  ['resumen','abiertas','graduacion','embudo','simbolo','curva','tpcond','ek3'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -2000,8 +2074,17 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   if (tab === 'curva' && chartCurva) chartCurva.resize();
 });
 
+// 🏷️ Alias SOLO VISIBLE (2026-09-30, pedido de Felipe): el backend sigue llamando a la
+// familia `23_cuna_alcista_bear` (clave en logs/state/código); aquí se muestra sin el sufijo.
+// Se reemplaza sobre el texto crudo ANTES del parse, así claves, filtros y `armados` quedan
+// consistentes entre sí y no hay que tocar los ~28 puntos de render.
+const ALIAS_FAMILIA = { '23_cuna_alcista_bear': '23_cuna_alcista' };
 fetch('data.json?_=' + Date.now())
-  .then(r=>r.json())
+  .then(r=>r.text())
+  .then(txt=>{
+    Object.entries(ALIAS_FAMILIA).forEach(([k,v])=>{ txt = txt.split(k).join(v); });
+    return JSON.parse(txt);
+  })
   .then(d=>{
     state.data = d;
     umbralesCongelados = fitUmbralesCongelados(d.trades);   // una sola vez, sobre TODO
@@ -2019,6 +2102,7 @@ fetch('data.json?_=' + Date.now())
     renderAbiertas();
     renderCurva();
     renderTpCondicional();
+    renderEk3();
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
