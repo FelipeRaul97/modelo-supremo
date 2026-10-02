@@ -201,7 +201,7 @@
     <h2>Sistema maestro de graduación por segmento — firmado 2026-09-23</h2>
     <div class="hint">
       <b>3 pasos, iguales para LIVE, SOMBRA y ESPEJO</b> (<code>ESTUDIO_GRADUACION_MAESTRA.md</code> §3bis):
-      <b>Paso 0 (watch)</b> N&ge;15 e IC90 excluye 0, cualquier signo &middot;
+      <b>Paso 0 (watch)</b> N&ge;30 hist&oacute;rico (&ge;15 en cada mitad temporal, mismo signo en ambas) e IC90 excluye 0, cualquier signo &mdash; los ya armados con el criterio anterior (N&ge;15) no se desarman y se marcan <b>v1</b> &middot;
       <b>Paso 1 (candidata, forward desde que se armó) &mdash; estándar &uacute;nico #S121, TODAS las condiciones</b>:
       N&ge;100 (&ge;50 por mitad) &middot; &ge;8 semanas distintas &middot; dif vs azar del mismo s&iacute;mbolo y semana (C2) con IC90 &gt;0 &middot; signo estable en ambas mitades &middot; supera al resto del sistema (A-02) &middot;
       <b>Paso 2 (validación real, tamaño ~25-30%, N&ge;15)</b> sin bandera roja.
@@ -328,7 +328,20 @@
 </div>
 
 <script>
-const N_MIN = 15;   // mismo N_MIN que study_segmentos_por_familia.py
+const N_MIN = 15;   // mismo N_MIN que study_segmentos_por_familia.py (piso de VISUALIZACIÓN)
+// #S121b · Paso 0 v2 (watch), enmienda §3ter de ESTUDIO_GRADUACION_MAESTRA.md: para ARMAR no basta N>=15.
+const N_WATCH = 30, N_WATCH_MITAD = 15;
+function watchV2(sub){
+  const rows = (sub || []).filter(r => r.pnl_R !== null && r.pnl_R !== undefined && r.ts).slice().sort((a,b)=>a.ts-b.ts);
+  const n = rows.length, mid = Math.floor(n/2);
+  const h1 = rows.slice(0, mid), h2 = rows.slice(mid);
+  const mean = a => a.length ? a.reduce((x,r)=>x+r.pnl_R, 0) / a.length : null;
+  const m1 = mean(h1), m2 = mean(h2), mt = mean(rows);
+  const sg = (mt || 0) >= 0 ? 1 : -1;
+  const ok = n >= N_WATCH && h1.length >= N_WATCH_MITAD && h2.length >= N_WATCH_MITAD && m1 !== null && m2 !== null
+             && m1*sg > 0 && m2*sg > 0;
+  return { ok, n1: h1.length, n2: h2.length, m1, m2 };
+}
 
 // Réplica EXACTA del MENU fijo de #S82 (study_segmentos_por_familia.py: CORTE_IDS,
 // MENU_LOOKUP) — mismos corte_id, mismos criterios, para que "segmento" en esta tabla
@@ -1109,6 +1122,7 @@ function computeTodosSegmentos(){
       const umbralFijo = TERCIL_ENTRIES.includes(entry.id) ? umbralesGrupo[entry.id] : undefined;
       const sub = computeSegment(g.rows, entry, umbralFijo);
       const s = statsOf(sub);
+      const wv2 = watchV2(sub);
       const exclHist = s.ic && (s.ic[0]>0 || s.ic[1]<0);
       const armadoFam = armados[g.familia];
       const armadoInfo = armadoFam && armadoFam[entry.id];
@@ -1127,6 +1141,7 @@ function computeTodosSegmentos(){
       out.push({
         familia: g.familia, corte: entry.id, dir: g.dir, origen: g.origen,
         n_hist: s.n, mean_hist: s.mean, sum_hist: s.sum, ic_hist: s.ic, excl_hist: exclHist,
+        watch_v2: wv2.ok, n_h1: wv2.n1, n_h2: wv2.n2, mean_h1: wv2.m1, mean_h2: wv2.m2,
         armado, armado_ts: armado ? armadoInfo.armado_ts : null, diluido,
         ic90_al_armar: armado ? icAlArmar : null,
         n_al_armar: armado ? armadoInfo.n_al_armar : null,
@@ -1197,12 +1212,13 @@ function renderGraduacion(){
   const nSem8 = rows.filter(r=>r.gate && r.gate.semanas>=8).length;
   const GG = state.data.graduacion_gate || {};
   const fe = GG.resumen ? GG.resumen.falsos_esperados : null;
-  const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0).length;
-  const nPocaMuestra = rows.filter(r=>r.n_hist < N_MIN).length;
+  const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0 && r.watch_v2).length;
+  const nPocaMuestra = rows.filter(r=>r.n_hist < N_WATCH).length;
+  const nInestables = rows.filter(r=>!r.armado && r.n_hist >= N_WATCH && r.excl_hist && !r.watch_v2).length;
   const filtroTxt = state.filtroGraduacionFamilia.size
     ? ` (filtrado a ${[...state.filtroGraduacionFamilia].join(', ')})` : '';
   document.getElementById('gradSummary').innerHTML = `
-    <div><b>${nTotal}</b> segmentos${filtroTxt} (LIVE+SOMBRA${state.filtroGraduacionFamilia.size?'':', todas las familias'} × ${MENU.length} cortes del menú — incluye N&lt;15) · <b>${nPocaMuestra}</b> aún con poca muestra (N&lt;15)</div>
+    <div><b>${nTotal}</b> segmentos${filtroTxt} (LIVE+SOMBRA${state.filtroGraduacionFamilia.size?'':', todas las familias'} × ${MENU.length} cortes del menú — incluye N&lt;30) · <b>${nPocaMuestra}</b> aún con poca muestra (N&lt;30, el watch exige &ge;30) · <b>${nInestables}</b> con N&ge;30 y IC90 que excluye 0 pero signo inestable entre mitades</div>
     <div><b>${nArmadosNeg}</b> armados negativo (candidatos a excluir, con espejo) · <b>${nArmadosPos}</b> armados positivo (candidatos a graduar, watch)</div>
     <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
     <div>Paso 1 (estándar único #S121): <b class="pos">${nCand}</b> CANDIDATA &middot; <b>${nObs}</b> en observación &middot; <b class="neg">${nRefut}</b> refutadas</div>
@@ -1260,7 +1276,7 @@ function renderGraduacion(){
     return c.sortable===false ? `<th${clsAttr}>${c.label}</th>` : `<th${clsAttr} data-col="${c.k}">${c.label}</th>`;
   }).join('') + '</tr>';
 
-  const PRIORIDAD_ESTADO = { armado_negativo:5, armado_positivo:4, negativo:3, positivo:2, plano:1, poca_muestra:0 };
+  const PRIORIDAD_ESTADO = { armado_negativo:5, armado_positivo:4, negativo:3, positivo:2, inestable:1.5, plano:1, poca_muestra:0 };
   function estadoDeFila(r){
     if (r.armado) return r.signo === 'positivo' ? 'armado_positivo' : 'armado_negativo';
     // 🔧 2026-09-27 · antes se chequeaba excl_hist ANTES que N_MIN, así que un corte con
@@ -1271,7 +1287,8 @@ function renderGraduacion(){
     // "poca muestra" sin importar si el IC90 ya sería calculable/significativo — el
     // piso del proyecto (#S82) es N≥15 para siquiera CONSIDERAR un corte, no solo para
     // armarlo.
-    if (r.n_hist < N_MIN) return 'poca_muestra';
+    if (r.n_hist < N_WATCH) return 'poca_muestra';           // #S121b · Paso 0 v2: N>=30 (antes 15)
+    if (r.excl_hist && !r.watch_v2) return 'inestable';      // N>=30 e IC90 sin 0, pero una mitad <15 o signo distinto
     if (r.excl_hist && r.mean_hist < 0) return 'negativo';
     if (r.excl_hist && r.mean_hist > 0) return 'positivo';
     return 'plano';
@@ -1311,7 +1328,8 @@ function renderGraduacion(){
     negativo: '<span class="checkcell wait">negativo, sin armar</span>',
     positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
-    poca_muestra: '<span class="checkcell wait" title="N<15 — no alcanza el piso mínimo del proyecto (#S82) para considerarlo, aunque ya haya IC90 calculable (ic90Cluster exige n≥3). No es falta de edge, es falta de datos todavía.">poca muestra</span>',
+    poca_muestra: '<span class="checkcell wait" title="N<30 — el Paso 0 v2 (watch) exige N≥30 y ≥15 en cada mitad temporal con el mismo signo (enmienda §3ter). No es falta de edge, es falta de datos todavía.">poca muestra</span>',
+    inestable: '<span class="checkcell wait" title="N≥30 e IC90 que excluye 0, pero una mitad temporal tiene <15 trades o el signo cambia entre mitades: el Paso 0 v2 no lo arma todavía.">inestable (mitades)</span>',
   };
 
   tbody.innerHTML = rows.map(r=>{
@@ -1352,7 +1370,7 @@ function renderGraduacion(){
     // falta duplicarlo aquí cambiando el significado de `origen`.
     const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`;
     const paso0 = r.armado
-      ? `<span class="checkcell ok">✅ armado</span>`
+      ? `<span class="checkcell ok">✅ armado</span>${(r.gate && r.gate.watch_v2 === false) ? ' <span class="hint" style="margin:0" title="Armado con el criterio anterior (N≥15): su N al armar fue &lt;30. No se desarma; solo se marca.">v1</span>' : ''}`
       : `<span class="checkcell wait">—</span>`;
     return `<tr>
       <td>${r.familia}</td>
