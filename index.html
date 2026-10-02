@@ -1370,7 +1370,7 @@ function renderGraduacion(){
     // falta duplicarlo aquí cambiando el significado de `origen`.
     const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`;
     const paso0 = r.armado
-      ? `<span class="checkcell ok">✅ armado</span>${(r.gate && r.gate.watch_v2 === false) ? ' <span class="hint" style="margin:0" title="Armado con el criterio anterior (N≥15): su N al armar fue &lt;30. No se desarma; solo se marca.">v1</span>' : ''}`
+      ? `<span class="checkcell ok">✅ armado</span>${(r.gate && r.gate.watch_v2 === false) ? ' <span class="hint" style="margin:0" title="Armado con el criterio anterior (N≥15). Con su histórico de HOY todavía no cumple el Paso 0 v2 (N≥30, ≥15 por mitad, mismo signo). No se desarma ni afecta su forward; pasa a v2 solo cuando lo cumpla.">v1</span>' : ''}`
       : `<span class="checkcell wait">—</span>`;
     return `<tr>
       <td>${r.familia}</td>
