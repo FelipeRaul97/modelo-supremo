@@ -165,6 +165,36 @@
   </div>
 </div>
 
+<div class="grid2">
+  <div class="panel">
+    <h2>Drawdown desde el máximo (R) · filtros aplicados</h2>
+    <div class="hint" style="margin-top:0">Cuánto R se pierde desde el último máximo de la curva acumulada, por origen.</div>
+    <div class="chart-wrap small"><canvas id="chartDD"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>mean_R móvil (ventana 50 trades)</h2>
+    <div class="hint" style="margin-top:0">&iquest;El edge se sostiene o se desvanece? Cada punto promedia los 50 trades previos.</div>
+    <div class="chart-wrap small"><canvas id="chartRoll"></canvas></div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h2>Calidad de la serie por origen</h2>
+    <div id="calidadSerie" class="tablewrap" style="max-height:none"></div>
+  </div>
+  <div class="panel">
+    <h2>Dirección &times; régimen BTC (por origen)</h2>
+    <div id="matrizDirReg"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Aporte de cada familia a &Sigma;R (filtros aplicados)</h2>
+  <div class="hint" id="aporteTxt" style="margin-top:0"></div>
+  <div id="chartAporteWrap" style="position:relative; height:340px"><canvas id="chartAporte"></canvas></div>
+</div>
+
 <div class="panel">
   <h2>Tabla · familia &times; dirección &times; segmentos (menú fijo #S82, click en encabezado para ordenar)</h2>
   <div class="hint">Cada familia se deshila por TODOS los ejes activos — nunca leer el agregado (TOTAL) sin revisar sus segmentos: un pool puede esconder signos opuestos. Segmentos con N&lt;15 se muestran igual, marcados <span class="badge-wait">poca muestra</span> (mismo piso mínimo que #S82 — no es falta de edge, es falta de datos todavía). <span class="badge-arm">ARMADA</span> = espejo condicional corriendo (#S81) · <span class="star">*</span> = IC90 excluye 0.</div>
@@ -176,6 +206,13 @@
 
 <div id="tab-abiertas" style="display:none;">
   <div class="meta" id="abiertas-meta">—</div>
+
+  <div class="kpis" id="abiertasKpis"></div>
+  <div class="grid2">
+    <div class="panel"><h2>Distribución del uPnL (R) de las abiertas</h2><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
+    <div class="panel"><h2>Abiertas por familia &middot; dirección</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
+  </div>
+  <div class="panel"><h2><span class="tag LIVE">LIVE</span> Progreso de cada posición entre SL y TP</h2><div id="liveProgreso"></div></div>
 
   <div class="panel">
     <h2><span class="tag LIVE">LIVE</span> Posiciones reales abiertas en Binance (motor vivo)</h2>
@@ -214,6 +251,14 @@
       Muestra TODOS los segmentos de TODAS las familias × todos los cortes del menú (LIVE+SOMBRA, "segmento" = "corte"), incluyendo los que aún tienen N&lt;15 (badge "poca muestra") — no solo los ya armados, para ver también las familias recién nacidas (0-14 trades) que antes desaparecían enteras de la tabla si ningún corte suyo llegaba a 15.
     </div>
     <div class="grad-summary" id="gradSummary"></div>
+    <div class="grid2" style="margin:14px 0">
+      <div class="panel" style="margin:0"><h2>Embudo de graduaci&oacute;n</h2><div id="gradFunnel"></div></div>
+      <div class="panel" style="margin:0"><h2>Qu&eacute; condici&oacute;n del Paso 1 falta m&aacute;s (armados)</h2><div class="chart-wrap small"><canvas id="chartGradFalta"></canvas></div></div>
+    </div>
+    <div class="grid2" style="margin:14px 0">
+      <div class="panel" style="margin:0"><h2>Los 15 armados m&aacute;s avanzados</h2><div id="chartGradProgWrap" style="position:relative; height:440px"><canvas id="chartGradProg"></canvas></div></div>
+      <div class="panel" style="margin:0"><h2>Diferencia forward vs azar (C2)</h2><div class="hint" id="gradDifTxt" style="margin-top:0"></div><div class="chart-wrap small"><canvas id="chartGradDif"></canvas></div></div>
+    </div>
     <div class="filters" id="graduacionFilters" style="margin-top:10px;"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
   </div>
@@ -255,9 +300,15 @@
     <div class="hint">Cruza LIVE (capital real), SOMBRA (familias denegadas, #S75) y ESPEJO (mini-posiciones condicionales, #S81) por símbolo — cada origen es una posición DISTINTA aunque compartan símbolo/barra, no se suman entre sí salvo que quieras verlas juntas. N mínimo 3 para IC90 clúster.</div>
     <div class="filters" id="simboloFilters" style="margin-top:10px;"></div>
   </div>
+  <div class="kpis" id="simboloKpis"></div>
   <div class="panel">
     <h2>mean_R por símbolo (top/bottom 15, filtros aplicados)</h2>
     <div class="chart-wrap"><canvas id="chartSimbolo"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2>N vs mean_R por símbolo (tama&ntilde;o = |&Sigma;R|)</h2>
+    <div class="hint" style="margin-top:0">Los s&iacute;mbolos con N bajo y mean_R extremo son ruido; los verdes/rojos son los que tienen IC90 (bootstrap simple) fuera de 0.</div>
+    <div class="chart-wrap"><canvas id="chartSimboloBub"></canvas></div>
   </div>
   <div class="panel">
     <h2>Tabla completa por símbolo (click en encabezado para ordenar)</h2>
@@ -276,6 +327,16 @@
       <div class="filters" id="curvaFamiliaFilter" style="margin-top:10px;"></div>
       <div class="filters" id="curvaDirSegFilter" style="margin-top:10px;"></div>
     </div>
+  </div>
+  <div class="panel" id="curvaPanorama" style="display:none;">
+    <h2>Panorama &middot; todas las celdas a la vez</h2>
+    <div class="hint" style="margin-top:0">Las selecciones de abajo miran UNA celda; esto resume todas para ver el patr&oacute;n: por qu&eacute; casi nada se sugiere, cu&aacute;ndo llegan los trades a su pico, y cu&aacute;nto &ldquo;potencial&rdquo; hay en cambiar el TP (sin corregir multiplicidad: lo que est&eacute; lejos de la diagonal es en gran parte selecci&oacute;n del mejor de 6).</div>
+    <div class="kpis" id="curvaPanoramaKpis" style="margin-top:12px"></div>
+    <div class="grid2">
+      <div class="panel" style="margin:0"><h2>Por qu&eacute; (no) se sugiere un cambio de salida</h2><div class="chart-wrap small"><canvas id="chartCurvaMotivos"></canvas></div></div>
+      <div class="panel" style="margin:0"><h2>Horas hasta el pico del MFE (mediana por celda)</h2><div class="chart-wrap small"><canvas id="chartCurvaPico"></canvas></div></div>
+    </div>
+    <div class="panel" style="margin:14px 0 0"><h2>TP actual vs mejor TP del barrido (celdas N&ge;40)</h2><div class="chart-wrap"><canvas id="chartCurvaPotencial"></canvas></div></div>
   </div>
   <div class="panel" id="curvaPanelChart" style="display:none;">
     <h2>MFE_R acumulado por hora de hold (p25 / mediana / p75, sobre supervivientes)</h2>
@@ -319,6 +380,11 @@
     </div>
     <div id="ek3Resumen" class="grad-summary"></div>
     <div id="ek3Pooled"></div>
+    <div class="panel" style="margin:14px 0"><h3 style="margin-top:0">Avance hacia la regla de decisi&oacute;n</h3><div id="ek3Avance"></div></div>
+    <div class="grid2" style="margin:14px 0">
+      <div class="panel" style="margin:0"><h3 style="margin-top:0">media R por familia: pasa E_K3 vs no pasa <span class="hint" style="margin:0">(solo brazos con n&ge;3)</span></h3><div id="chartEk3FamWrap" style="position:relative; height:300px"><canvas id="chartEk3Fam"></canvas></div></div>
+      <div class="panel" style="margin:0"><h3 style="margin-top:0">media R por <code>bars_since_swing</code></h3><div class="chart-wrap small"><canvas id="chartEk3Grad"></canvas></div></div>
+    </div>
     <h3>Por familia (desde T0, mismo periodo en ambos brazos)</h3>
     <div class="tablewrap"><table id="tablaEk3"><thead></thead><tbody></tbody></table></div>
     <h3>Gradiente por <code>bars_since_swing</code> (todas las exentas)</h3>
@@ -342,6 +408,7 @@
       no requiere ni permite intervención manual.
     </div>
     <div id="tpcondVacio" class="hint" style="display:none;"></div>
+    <div id="tpcondAvance" style="margin-bottom:12px"></div>
     <div id="tpcondCards"></div>
   </div>
 </div>
@@ -1008,6 +1075,7 @@ function render(){
   });
 
   renderTable(filtered);
+  try { renderExtrasResumen(filtered); } catch(e){ console.error("extras resumen", e); }
 }
 
 // 🔧 2026-09-23 · BUG (latente, sin manifestarse aún con los datos de hoy):
@@ -1448,6 +1516,7 @@ function renderGraduacion(){
       renderGraduacion();
     };
   });
+  try { renderExtrasGraduacion(rows); } catch(e){ console.error("extras graduacion", e); }
 }
 
 // 🔧 2026-09-23 · tab EMBUDO — matriz familia × motivo de descarte. Instrumentación
@@ -1965,6 +2034,7 @@ function renderSimbolo(){
       renderSimbolo();
     };
   });
+  try { renderExtrasSimbolo(rows); } catch(e){ console.error("extras simbolo", e); }
 }
 
 function fmtAge(ts){
@@ -2359,7 +2429,379 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   // tab nace oculto). Redibujar al mostrar el tab, no solo al cargar los datos.
   if (tab === 'simbolo' && chartSimbolo) chartSimbolo.resize();
   if (tab === 'curva' && chartCurva) chartCurva.resize();
+  Object.values(Chart.instances).forEach(c=>{ try { c.resize(); } catch(e){} });
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+// 🔧 2026-10-02 · EXTRAS por tab (pedido de Felipe: inspeccionar todos los tabs y explotar
+// datos/gráficos). Solo LEE lo que ya está en `state.data` — no toca ningún cálculo
+// existente. Cada `renderExtras*` se engancha al final del render del tab correspondiente.
+// ════════════════════════════════════════════════════════════════════════════
+const _xc = {};   // registro de charts extra (destroy antes de recrear)
+function xChart(id, cfg){
+  const el = document.getElementById(id);
+  if (!el) return null;
+  if (_xc[id]) _xc[id].destroy();
+  _xc[id] = new Chart(el, cfg);
+  return _xc[id];
+}
+const X_AX = { grid:{color:'#232a36'}, ticks:{color:'#8b96a8'} };
+const X_AXN = { grid:{display:false}, ticks:{color:'#8b96a8'} };
+const X_LEG = { display:true, labels:{ color:'#8b96a8', font:{size:11} } };
+const X_POS = '#4fd18b', X_NEG = '#ef6f6f', X_LIVE = '#5eb0ef', X_SOM = '#c792ea', X_ESP = '#ffcf5c', X_MUT = '#8b96a8';
+function xInt(x){ return (x===null||x===undefined) ? '—' : Number(x).toLocaleString('es'); }
+function xR(x, d){ return (x===null||x===undefined||isNaN(x)) ? '—' : ((x>=0?'+':'') + x.toFixed(d===undefined?3:d)); }
+function xCls(x){ return (x===null||x===undefined||isNaN(x)) ? '' : (x>=0 ? 'pos' : 'neg'); }
+function xKpi(label, val, sub, cls){
+  return `<div class="kpi"><div class="label">${label}</div><div class="value ${cls||''}" style="font-size:1.15rem">${val}</div>${sub?`<div class="hint" style="margin:2px 0 0">${sub}</div>`:''}</div>`;
+}
+function xBarRow(label, n, max, color, extra){
+  const w = max ? Math.max(0.6, 100*n/max) : 0;
+  return `<div style="margin-bottom:9px"><div style="display:flex; justify-content:space-between; gap:10px; font-size:0.82rem; margin-bottom:3px">
+    <span>${label}</span><span><b>${xInt(n)}</b>${extra?` <span class="hint" style="margin:0">${extra}</span>`:''}</span></div>
+    <div style="background:var(--panel2); border-radius:5px; height:12px; overflow:hidden"><div style="width:${w}%; height:100%; background:${color}"></div></div></div>`;
+}
+
+// ── métricas de calidad de una serie de trades (orden temporal) ────────────────────────────
+function xStats(rows){
+  const v = rows.filter(r=>r.pnl_R!==null && r.pnl_R!==undefined).sort((a,b)=>a.ts-b.ts);
+  const n = v.length; if (!n) return null;
+  const R = v.map(r=>r.pnl_R), sum = R.reduce((a,b)=>a+b,0);
+  const wins = R.filter(x=>x>0), loss = R.filter(x=>x<=0);
+  const gw = wins.reduce((a,b)=>a+b,0), gl = -loss.reduce((a,b)=>a+b,0);
+  const aw = wins.length ? gw/wins.length : 0, al = loss.length ? -gl/loss.length : 0;
+  let cum=0, peak=0, dd=0, st=0, mst=0;
+  R.forEach(x=>{ cum+=x; peak=Math.max(peak,cum); dd=Math.min(dd,cum-peak); if (x<=0){ st++; mst=Math.max(mst,st);} else st=0; });
+  const srt = [...R].sort((a,b)=>b-a), k5 = Math.max(1, Math.round(n*0.05));
+  return { n, sum, mean:sum/n, wr:100*wins.length/n, aw, al, payoff: al ? aw/Math.abs(al) : null, pf: gl ? gw/gl : null,
+           dd, mst, top10: srt.slice(0,10).reduce((a,b)=>a+b,0), top5p: srt.slice(0,k5).reduce((a,b)=>a+b,0), k5 };
+}
+
+// ── RESUMEN ───────────────────────────────────────────────────────────────────────────────
+function renderExtrasResumen(filtered){
+  const origs = ['LIVE','SOMBRA'].map(o=>({ o, rows: filtered.filter(t=>t.origen===o) })).filter(x=>x.rows.length);
+  const col = { LIVE:X_LIVE, SOMBRA:X_SOM };
+
+  // drawdown (R) y mean_R móvil — por origen, eje temporal
+  const ddSeries = (rows)=>{
+    const s = rows.filter(r=>r.pnl_R!=null).sort((a,b)=>a.ts-b.ts); let cum=0, peak=0;
+    return s.map(r=>{ cum+=r.pnl_R; peak=Math.max(peak,cum); return { x:new Date(r.ts), y:cum-peak }; });
+  };
+  const VENT = 50;
+  const rollSeries = (rows)=>{
+    const s = rows.filter(r=>r.pnl_R!=null).sort((a,b)=>a.ts-b.ts), out=[]; let acc=0;
+    s.forEach((r,i)=>{ acc+=r.pnl_R; if (i>=VENT) acc-=s[i-VENT].pnl_R; if (i>=VENT-1) out.push({ x:new Date(r.ts), y:acc/VENT }); });
+    return out;
+  };
+  const dsOf = (fn, fill)=> origs.map(x=>({ label:x.o, data:fn(x.rows), borderColor:col[x.o], backgroundColor:col[x.o]+'22',
+      fill:!!fill, pointRadius:0, borderWidth:2, borderDash:x.o==='SOMBRA'?[4,3]:[], stepped:false }));
+  const timeScales = (yTitle)=>({ x:{ type:'time', time:{unit:'day'}, grid:{color:'#232a36'}, ticks:{color:X_MUT} },
+                                  y:{ grid:{color:'#232a36'}, ticks:{color:X_MUT}, title:{display:true,text:yTitle,color:X_MUT} } });
+  xChart('chartDD', { type:'line', data:{ datasets: dsOf(ddSeries, true) },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG}, scales:timeScales('R bajo el máximo') } });
+  xChart('chartRoll', { type:'line', data:{ datasets: dsOf(rollSeries, false) },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
+        tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${xR(c.raw.y)} R/trade`}}}, scales:timeScales(`mean_R (ventana ${VENT})`) } });
+
+  // calidad de la serie por origen
+  const mets = origs.map(x=>({ o:x.o, s:xStats(x.rows) }));
+  const fila = (label, f, tip)=> `<tr><td title="${tip||''}">${label}</td>${mets.map(m=>`<td>${m.s ? f(m.s) : '—'}</td>`).join('')}</tr>`;
+  document.getElementById('calidadSerie').innerHTML = mets.length ? `<table><thead><tr><th>métrica</th>${mets.map(m=>`<th>${m.o}</th>`).join('')}</tr></thead><tbody>`
+    + fila('N', s=>xInt(s.n))
+    + fila('mean_R (expectancy)', s=>`<span class="${xCls(s.mean)}">${xR(s.mean)}</span>`)
+    + fila('WR', s=>s.wr.toFixed(0)+'%')
+    + fila('ganancia media / pérdida media', s=>`${xR(s.aw,2)} / ${xR(s.al,2)}`)
+    + fila('payoff (ganancia/pérdida)', s=>s.payoff===null?'—':s.payoff.toFixed(2), 'ganancia media dividida por |pérdida media|')
+    + fila('profit factor', s=>s.pf===null?'—':s.pf.toFixed(2), 'Σ ganancias / Σ pérdidas; >1 = rentable')
+    + fila('max drawdown (R)', s=>`<span class="neg">${xR(s.dd,2)}</span>`)
+    + fila('racha perdedora máx.', s=>s.mst+' trades')
+    + fila('Σ R', s=>`<span class="${xCls(s.sum)}">${xR(s.sum,1)}</span>`)
+    + fila('Σ R sin los 10 mejores trades', s=>`<span class="${xCls(s.sum-s.top10)}">${xR(s.sum-s.top10,1)}</span>`, 'dependencia de la cola: si esto cae a ≤0, el resultado vive de unos pocos trades')
+    + fila('Σ R sin el 5% mejor de trades', s=>`<span class="${xCls(s.sum-s.top5p)}">${xR(s.sum-s.top5p,1)}</span>`, 'quita el 5% superior de trades de cada origen')
+    + '</tbody></table>' : '<div class="hint">Sin trades en el filtro.</div>';
+
+  // matriz dirección × régimen (por origen) — regla #S62: segmentar antes de concluir
+  const REGS = ['RANGE','BULL','BEAR'], DIRS = ['LONG','SHORT'];
+  const cell = (rows)=>{
+    const r = rows.filter(t=>t.pnl_R!=null);
+    if (!r.length) return '<td class="hint">—</td>';
+    const m = r.reduce((a,t)=>a+t.pnl_R,0)/r.length;
+    const ic = r.length>=5 ? ic90Cluster(r.map(t=>t.pnl_R), r.map(t=>t.sym)) : null;
+    const ex = ic && (ic[0]>0 || ic[1]<0);
+    const pocos = r.length < 15;
+    return `<td style="${pocos?'opacity:.55':''}" title="${ic?`IC90 clúster [${ic[0].toFixed(2)}, ${ic[1].toFixed(2)}]`:'N<5: sin IC'}">`
+      + `<span class="${xCls(m)}"><b>${xR(m,2)}</b></span>${ex?'<span class="star">*</span>':''} <span class="hint" style="margin:0">n=${r.length}</span></td>`;
+  };
+  document.getElementById('matrizDirReg').innerHTML = origs.map(x=>{
+    const sub = (d, g)=> x.rows.filter(t=>(d===null||t.dir===d) && (g===null || (g==='s/d' ? !t.btc_1h : t.btc_1h===g)));
+    const head = `<tr><th>${x.o}</th>${REGS.map(g=>`<th>${g}</th>`).join('')}<th>s/d</th><th>TODOS</th></tr>`;
+    const body = DIRS.concat([null]).map(d=>`<tr><td><b>${d||'TODAS'}</b></td>${REGS.concat(['s/d',null]).map(g=>cell(sub(d,g))).join('')}</tr>`).join('');
+    return `<div class="tablewrap" style="max-height:none; margin-bottom:10px"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+  }).join('') + '<div class="hint">mean_R por celda; <span class="star">*</span> = IC90 clúster por símbolo excluye 0; atenuado = N&lt;15. Si una fila agregada y sus celdas tienen signos opuestos, es Simpson: segmentar antes de concluir.</div>';
+
+  // concentración por familia (aporte a ΣR) — qué familias sostienen el resultado
+  const porFam = {};
+  filtered.forEach(t=>{ if (t.pnl_R==null) return; (porFam[t.origen+'·'+t.familia] = porFam[t.origen+'·'+t.familia] || { k:t.origen+'·'+t.familia, o:t.origen, f:t.familia, s:0, n:0 }); porFam[t.origen+'·'+t.familia].s += t.pnl_R; porFam[t.origen+'·'+t.familia].n++; });
+  const fams = Object.values(porFam).sort((a,b)=>b.s-a.s);
+  const mostrar = fams.length>24 ? fams.slice(0,12).concat(fams.slice(-12)) : fams;
+  const hh = Math.max(300, mostrar.length*17 + 60);
+  document.getElementById('chartAporteWrap').style.height = hh + 'px';
+  xChart('chartAporte', { type:'bar',
+    data:{ labels: mostrar.map(g=>`${g.o==='LIVE'?'L':'S'}·${g.f}`), datasets:[{ data: mostrar.map(g=>g.s), backgroundColor: mostrar.map(g=>g.s>=0?X_POS:X_NEG) }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:(c)=>`Σ R ${xR(c.raw,1)} · N=${mostrar[c.dataIndex].n}`}}},
+      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
+  const pos = fams.filter(g=>g.s>0), posSum = pos.reduce((a,g)=>a+g.s,0);
+  const top3 = pos.slice(0,3).reduce((a,g)=>a+g.s,0);
+  document.getElementById('aporteTxt').innerHTML = posSum
+    ? `Las 3 familias que más aportan suman <b>${(100*top3/posSum).toFixed(0)}%</b> de todo el R positivo (${pos.slice(0,3).map(g=>g.f).join(', ')}). ${fams.filter(g=>g.s<0).length} de ${fams.length} (origen×familia) restan.` : '';
+}
+
+// ── POSICIONES ABIERTAS ────────────────────────────────────────────────────────────────────
+function renderExtrasAbiertas(){
+  const a = state.data.abiertas; if (!a || !a.disponible) return;
+  const grupos = [['LIVE', a.live, X_LIVE], ['SOMBRA', a.sombra, X_SOM], ['ESPEJO', a.espejo, X_ESP]];
+  const stat = (rows)=>{
+    const u = rows.filter(p=>p.upnl_R!=null);
+    return { n: rows.length, nu: u.length, sumR: u.reduce((s,p)=>s+p.upnl_R,0), mean: u.length ? u.reduce((s,p)=>s+p.upnl_R,0)/u.length : null,
+             pos: u.filter(p=>p.upnl_R>0).length, L: rows.filter(p=>p.dir==='LONG').length, S: rows.filter(p=>p.dir==='SHORT').length };
+  };
+  const st = {}; grupos.forEach(([o,rows])=> st[o] = stat(rows));
+  const sumUsd = a.live.reduce((s,p)=> s + (p.upnl_binance||0), 0), nUsd = a.live.filter(p=>p.upnl_binance!=null).length;
+  const notL = a.live.filter(p=>p.dir==='LONG').reduce((s,p)=>s+(p.notional_binance||0),0);
+  const notS = a.live.filter(p=>p.dir==='SHORT').reduce((s,p)=>s+(p.notional_binance||0),0);
+  const symCount = {}; a.live.forEach(p=>{ symCount[p.sym] = (symCount[p.sym]||0)+1; });
+  const symDup = Object.entries(symCount).filter(([,n])=>n>1);
+  const k = (o)=> st[o];
+  document.getElementById('abiertasKpis').innerHTML =
+      xKpi('LIVE abiertas', xInt(k('LIVE').n), `L ${k('LIVE').L} · S ${k('LIVE').S}`)
+    + xKpi('uPnL LIVE (R, suma)', xR(k('LIVE').sumR,2), k('LIVE').nu ? `${k('LIVE').pos}/${k('LIVE').nu} en positivo` : '', xCls(k('LIVE').sumR))
+    + xKpi('uPnL$ Binance', nUsd ? ((sumUsd>=0?'+':'')+'$'+sumUsd.toFixed(2)) : '—', nUsd ? `${nUsd} posiciones confirmadas` : 'sin confirmar', xCls(nUsd?sumUsd:null))
+    + xKpi('Nocional neto LIVE', (notL||notS) ? ('L $'+notL.toFixed(0)+' / S $'+notS.toFixed(0)) : '—', (notL||notS) ? ('neto '+((notL-notS)>=0?'+$':'−$')+Math.abs(notL-notS).toFixed(0)+(notL+notS? ' · '+(100*Math.abs(notL-notS)/(notL+notS)).toFixed(0)+'% sesgo':'')) : 'Binance sin datos')
+    + xKpi('SOMBRA abiertas', xInt(k('SOMBRA').n), `L ${k('SOMBRA').L} · S ${k('SOMBRA').S}`)
+    + xKpi('uPnL SOMBRA (mean R)', xR(k('SOMBRA').mean,3), k('SOMBRA').nu ? `${(100*k('SOMBRA').pos/k('SOMBRA').nu).toFixed(0)}% en positivo` : '', xCls(k('SOMBRA').mean))
+    + xKpi('ESPEJO abiertas', xInt(k('ESPEJO').n), `uPnL mean ${xR(k('ESPEJO').mean,3)}`, '')
+    + xKpi('Símbolos repetidos LIVE', symDup.length ? String(symDup.length) : '0', symDup.length ? symDup.map(([s,n])=>`${s}×${n}`).join(' · ') : 'sin concentración por símbolo');
+
+  // distribución del uPnL_R (histograma por origen, mismos bins)
+  const lo = -2.5, hi = 4.5, nb = 28, w = (hi-lo)/nb;
+  const hist = (rows)=>{ const c = new Array(nb).fill(0); rows.filter(p=>p.upnl_R!=null).forEach(p=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, p.upnl_R))-lo)/w); c[i]++; }); return c; };
+  xChart('chartAbHist', { type:'bar',
+    data:{ labels: Array.from({length:nb}, (_,i)=> (lo+i*w).toFixed(1)),
+      datasets: grupos.map(([o,rows,c])=>({ label:o, data:hist(rows), backgroundColor:c+'bb', stack:'s' })) },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG},
+      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, maxTicksLimit:14}, title:{display:true,text:'uPnL (R)',color:X_MUT} },
+               y:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} } } } });
+
+  // abiertas por familia × dirección (LIVE + SOMBRA + ESPEJO)
+  const porFam = {};
+  grupos.forEach(([o,rows])=> rows.forEach(p=>{ const g = (porFam[p.familia] = porFam[p.familia] || { f:p.familia, L:0, S:0, sumR:0, nR:0 }); (p.dir==='LONG'?g.L++:g.S++); if (p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; } }));
+  const fams = Object.values(porFam).sort((x,y)=>(y.L+y.S)-(x.L+x.S)).slice(0,22);
+  document.getElementById('chartAbFamWrap').style.height = Math.max(280, fams.length*19+60)+'px';
+  xChart('chartAbFam', { type:'bar',
+    data:{ labels: fams.map(g=>g.f), datasets:[
+      { label:'LONG', data:fams.map(g=>g.L), backgroundColor:X_POS+'cc', stack:'s' },
+      { label:'SHORT', data:fams.map(g=>g.S), backgroundColor:X_NEG+'cc', stack:'s' } ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
+      scales:{ x:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
+
+  // progreso a TP vs SL de cada posición LIVE (barra −1R … TP), con edad
+  const tpR = (p)=> (p.TP_price && p.SL_price && p.entry_price) ? Math.abs(p.TP_price-p.entry_price)/Math.abs(p.entry_price-p.SL_price) : null;
+  document.getElementById('liveProgreso').innerHTML = a.live.length ? [...a.live].sort((x,y)=>(y.upnl_R??-9)-(x.upnl_R??-9)).map(p=>{
+    const t = tpR(p), u = p.upnl_R;
+    if (u==null || !t) return `<div class="hint">${p.familia||'—'} ${p.dir} ${p.sym}: sin uPnL</div>`;
+    const pos = Math.max(0, Math.min(100, 100*(u+1)/(t+1)));      // −1R (SL) a +tR (TP)
+    const col = u>=0 ? X_POS : X_NEG;
+    return `<div style="display:grid; grid-template-columns:230px 1fr 120px; gap:10px; align-items:center; font-size:0.8rem; margin-bottom:5px">
+      <span>${p.familia||'—'} <span class="hint" style="margin:0">${p.dir} ${p.sym}</span></span>
+      <div style="position:relative; background:var(--panel2); border-radius:4px; height:12px"><div style="position:absolute; left:${100/(t+1)}%; top:-2px; bottom:-2px; width:1px; background:var(--muted)" title="entrada (0R)"></div>
+        <div style="position:absolute; left:0; width:${pos}%; height:100%; background:${col}88; border-radius:4px"></div></div>
+      <span class="${xCls(u)}">${xR(u,2)}R <span class="hint" style="margin:0">· ${fmtAge(p.entry_ts)}</span></span></div>`;
+  }).join('') + '<div class="hint">Cada barra va de −1R (SL) a +TP en R; la marca vertical es la entrada. Edad = tiempo abierta (MAX_HOLD típico 96 h).</div>' : '<div class="hint">Sin posiciones LIVE abiertas.</div>';
+}
+
+// ── GRADUACIÓN ───────────────────────────────────────────────────────────────────────────
+function renderExtrasGraduacion(rows){
+  const arm = rows.filter(r=>r.armado && r.gate);
+  const n = (f)=> rows.filter(f).length;
+  const pasos = [
+    ['Segmentos del menú (familia×corte×dir)', rows.length, X_MUT],
+    ['Paso 0 · watch: N hist.≥30', n(r=>r.n_hist>=30), '#4d9bd6'],
+    ['Armados (espejo o watch corriendo)', rows.filter(r=>r.armado).length, X_ESP],
+    ['N forward ≥ 40', arm.filter(r=>r.gate.n_c2>=40).length, '#c792ea'],
+    ['N forward ≥ 100', arm.filter(r=>r.gate.n_c2>=100).length, '#a77bd0'],
+    ['≥ 8 semanas forward', arm.filter(r=>r.gate.semanas>=8).length, '#8b6bb8'],
+    ['Paso 1 · CANDIDATA', arm.filter(r=>r.gate.estado==='CANDIDATA').length, X_POS],
+  ];
+  const mx = Math.max(1, rows.length), mxArm = Math.max(1, pasos[2][1]);
+  // los pasos posteriores a "armados" se escalan contra los armados (si no, quedan invisibles frente a ~970 segmentos)
+  document.getElementById('gradFunnel').innerHTML = pasos.map((p,i)=> i<3
+    ? xBarRow(p[0], p[1], mx, p[2], (100*p[1]/mx).toFixed(1)+'% del total')
+    : xBarRow(p[0], p[1], mxArm, p[2], (100*p[1]/mxArm).toFixed(0)+'% de los armados')).join('')
+    + '<div class="hint">Los 4 pasos de abajo se miden sobre los armados (su forward corre desde el armado).</div>';
+
+  // qué condición falta más (de `gate.falta`)
+  const cat = (s)=> /^N /.test(s) ? 'N forward' : /semanas/.test(s) ? 'semanas' : /IC/.test(s) ? 'IC dif vs azar' : /signo/.test(s) ? 'signo entre mitades'
+                  : /A-02|sistema/i.test(s) ? 'mejora al sistema (A-02)' : 'otra';
+  const falta = {}; arm.forEach(r=> (r.gate.falta||[]).forEach(s=>{ const c = cat(s); falta[c] = (falta[c]||0)+1; }));
+  const fe = Object.entries(falta).sort((a,b)=>b[1]-a[1]);
+  xChart('chartGradFalta', { type:'bar',
+    data:{ labels: fe.map(x=>x[0]), datasets:[{ data: fe.map(x=>x[1]), backgroundColor:'#d9a441cc' }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:(c)=>`${c.raw} de ${arm.length} armados no la cumplen`}}},
+      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT} } } } });
+
+  // los armados más avanzados (progreso = el menor entre N/100 y semanas/8)
+  const prog = arm.map(r=>({ r, pN: Math.min(1, r.gate.n_c2/100), pS: Math.min(1, r.gate.semanas/8) }))
+    .map(x=>({ ...x, p: Math.min(x.pN, x.pS) })).sort((a,b)=> b.p - a.p || b.pN - a.pN).slice(0,15);
+  document.getElementById('chartGradProgWrap').style.height = Math.max(300, prog.length*26+70)+'px';
+  xChart('chartGradProg', { type:'bar',
+    data:{ labels: prog.map(x=>`${x.r.familia} · ${x.r.corte} ${x.r.dir}`), datasets:[
+      { label:'N fwd / 100', data: prog.map(x=>100*x.pN), backgroundColor:'#c792eacc' },
+      { label:'semanas / 8', data: prog.map(x=>100*x.pS), backgroundColor:'#5eb0efcc' } ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:X_LEG, tooltip:{callbacks:{label:(c)=>{ const x = prog[c.dataIndex]; return c.datasetIndex===0 ? `N fwd ${x.r.gate.n_c2}/100` : `semanas ${x.r.gate.semanas}/8`; },
+        afterBody:(it)=>{ const g = prog[it[0].dataIndex].r.gate; return `${g.estado}${g.dif_mean!=null?' · dif vs azar '+xR(g.dif_mean,2):''}`; }}}},
+      scales:{ x:{ max:100, grid:{color:'#232a36'}, ticks:{color:X_MUT, callback:(v)=>v+'%'} }, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
+
+  // distribución de la diferencia forward vs azar (C2), armados con dif calculada
+  const dif = arm.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5);
+  const bins = 16, lo = -4, hi = 4, w = (hi-lo)/bins, c = new Array(bins).fill(0);
+  dif.forEach(r=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, r.gate.dif_mean))-lo)/w); c[i]++; });
+  xChart('chartGradDif', { type:'bar',
+    data:{ labels: c.map((_,i)=> (lo+i*w).toFixed(1)), datasets:[{ data:c, backgroundColor: c.map((_,i)=> (lo+i*w)>=0 ? X_POS+'cc' : X_NEG+'cc') }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:(c2)=>`${c2.raw} segmentos`}}},
+      scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'dif forward vs azar (R) — armados con N≥5',color:X_MUT} }, y:X_AX } } });
+  document.getElementById('gradDifTxt').innerHTML = dif.length
+    ? `${dif.length} segmentos con N fwd≥5: <b class="pos">${dif.filter(r=>r.gate.dif_mean>0).length}</b> con diferencia &gt;0 · <b class="neg">${dif.filter(r=>r.gate.dif_mean<=0).length}</b> ≤0. Con tantos segmentos, parte de los positivos es azar — la regla es el IC90 y N≥100, no esta barra.`
+    : 'Aún sin segmentos con N forward ≥5.';
+}
+
+// ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
+function renderExtrasSimbolo(rows){
+  if (!rows.length){ document.getElementById('simboloKpis').innerHTML = ''; return; }
+  const totalSum = rows.reduce((s,r)=>s+r.sum,0);
+  const pos = rows.filter(r=>r.sum>0).sort((a,b)=>b.sum-a.sum), posSum = pos.reduce((s,r)=>s+r.sum,0);
+  const top10 = pos.slice(0,10).reduce((s,r)=>s+r.sum,0);
+  const sigPos = rows.filter(r=>r.ic && r.ic[0]>0), sigNeg = rows.filter(r=>r.ic && r.ic[1]<0);
+  const masAct = [...rows].sort((a,b)=>b.n-a.n)[0];
+  document.getElementById('simboloKpis').innerHTML =
+      xKpi('Símbolos', xInt(rows.length), `${rows.filter(r=>r.n>=10).length} con N≥10`)
+    + xKpi('Σ R total', xR(totalSum,1), '', xCls(totalSum))
+    + xKpi('Top 10 símbolos', posSum ? (100*top10/posSum).toFixed(0)+'%' : '—', 'del R positivo viene de 10 símbolos')
+    + xKpi('IC90 excluye 0 (+)', String(sigPos.length), sigPos.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'pos')
+    + xKpi('IC90 excluye 0 (−)', String(sigNeg.length), sigNeg.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'neg')
+    + xKpi('Más activo', masAct.sym.replace('USDT',''), `N=${masAct.n} · mean ${xR(masAct.mean,2)}`);
+  // burbujas: x = N, y = mean_R, radio ∝ √|Σ R|
+  const maxS = Math.max(1, ...rows.map(r=>Math.abs(r.sum)));
+  const pt = (r)=> ({ x:r.n, y:r.mean, r: 3 + 14*Math.sqrt(Math.abs(r.sum)/maxS), s:r.sym, sum:r.sum, ic:r.ic });
+  xChart('chartSimboloBub', { type:'bubble',
+    data:{ datasets:[
+      { label:'IC90 excluye 0 (+)', data: rows.filter(r=>r.ic&&r.ic[0]>0).map(pt), backgroundColor:X_POS+'aa', borderColor:X_POS },
+      { label:'IC90 excluye 0 (−)', data: rows.filter(r=>r.ic&&r.ic[1]<0).map(pt), backgroundColor:X_NEG+'aa', borderColor:X_NEG },
+      { label:'sin significancia', data: rows.filter(r=>!r.ic || (r.ic[0]<=0 && r.ic[1]>=0)).map(pt), backgroundColor:'#8b96a855', borderColor:X_MUT } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
+      tooltip:{callbacks:{label:(c)=>{ const p=c.raw; return `${p.s}: mean ${xR(p.y)} · N=${p.x} · ΣR ${xR(p.sum,1)}${p.ic?` · IC90 [${p.ic[0].toFixed(2)}, ${p.ic[1].toFixed(2)}]`:''}`; }}}},
+      scales:{ x:{ ...X_AX, title:{display:true,text:'N de trades',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R',color:X_MUT} } } } });
+}
+
+// ── E_K3 ────────────────────────────────────────────────────────────────────────────────
+function renderExtrasEk3(){
+  const e = state.data && state.data.ek3_exencion; if (!e || e.error) return;
+  // solo barras con n≥3 en ese brazo: con n=1-2 la "media" es un trade suelto (ruido puro)
+  const N_BARRA = 3;
+  const fams = (e.familias||[]).filter(f=>(f.mean_pass!=null && f.n_pass>=N_BARRA) || (f.mean_fail!=null && f.n_fail>=N_BARRA));
+  document.getElementById('chartEk3FamWrap').style.height = Math.max(240, fams.length*26+70)+'px';
+  xChart('chartEk3Fam', { type:'bar',
+    data:{ labels: fams.map(f=>f.familia), datasets:[
+      { label:'pasa E_K3', data: fams.map(f=>f.n_pass>=N_BARRA ? f.mean_pass : null), backgroundColor:X_POS+'cc' },
+      { label:'no pasa (brazo exento)', data: fams.map(f=>f.n_fail>=N_BARRA ? f.mean_fail : null), backgroundColor:'#d9a441cc' } ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:X_LEG, title:{display:!fams.length, text:'Aún ninguna familia con n≥'+N_BARRA+' en algún brazo', color:X_MUT},
+      tooltip:{callbacks:{label:(c)=>{ const f=fams[c.dataIndex]; return `${c.dataset.label}: ${xR(c.raw)} (n=${c.datasetIndex===0?f.n_pass:f.n_fail})`; }}}},
+      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
+  const g = e.gradiente || [];
+  xChart('chartEk3Grad', { type:'bar',
+    data:{ labels: g.map(x=>x.bin), datasets:[{ data:g.map(x=>x.mean), backgroundColor:g.map(x=>x.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:(c)=>{ const x=g[c.dataIndex]; return `mean ${xR(x.mean)} · N=${x.n}${x.ic90?` · IC90 [${x.ic90[1].toFixed(2)}, ${x.ic90[2].toFixed(2)}]`:''}`; }}}},
+      scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'bars_since_swing',color:X_MUT} }, y:X_AX } } });
+  // avance hacia la regla de decisión (N_no_pasa ≥ 40, ≥20 por mitad)
+  const p = e.pooled || {};
+  const m1 = (p.mitad1||{}).n_fail||0, m2 = (p.mitad2||{}).n_fail||0, nf = p.n_fail||0;
+  document.getElementById('ek3Avance').innerHTML =
+      xBarRow('N (no pasa) total · meta 40', nf, 40, '#d9a441', `${Math.min(100, Math.round(100*nf/40))}%`)
+    + xBarRow('1ª mitad · meta 20', m1, 20, '#d9a441', `${Math.min(100, Math.round(100*m1/20))}%`)
+    + xBarRow('2ª mitad · meta 20', m2, 20, '#d9a441', `${Math.min(100, Math.round(100*m2/20))}%`)
+    + `<div class="hint">Regla de la pestaña: solo se concluye con N(no pasa) ≥ 40, ≥ 20 por mitad e IC90 sin 0 en ambas mitades. Hoy: <b>${p.estado||'—'}</b>.</div>`;
+}
+
+// ── CURVA · panorama de todas las celdas ─────────────────────────────────────────────────
+function renderExtrasCurva(){
+  const ca = state.data && state.data.curva_acumulacion;
+  const box = document.getElementById('curvaPanorama');
+  if (!ca || !ca.celdas){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  const cel = Object.entries(ca.celdas).map(([k,v])=>({ k, ...v }));
+  const grad = cel.filter(c=>c.n>=ca.n_min_graduado);
+  // por qué no se sugiere nada: clasificación de motivos por barrido
+  const clasif = (m)=> !m ? 'sin dato' : m.determinable ? 'SUGERIDO' : /N<40/.test(m.motivo) ? 'N<40 (aún no evaluable)'
+    : /ning[uú]n/.test(m.motivo) ? 'ningún punto rentable' : /NO es estable/.test(m.motivo) ? 'ganador no estable entre mitades'
+    : /solapa/.test(m.motivo) ? 'IC90 se solapa con el actual' : /ya es el mejor/.test(m.motivo) ? 'el actual ya es el mejor' : 'otro';
+  const claves = ['SUGERIDO','el actual ya es el mejor','IC90 se solapa con el actual','ganador no estable entre mitades','ningún punto rentable','N<40 (aún no evaluable)','otro'];
+  const colores = { 'SUGERIDO':X_POS, 'el actual ya es el mejor':'#4d9bd6', 'IC90 se solapa con el actual':'#d9a441', 'ganador no estable entre mitades':'#c792ea', 'ningún punto rentable':X_NEG, 'N<40 (aún no evaluable)':'#5b6678', 'otro':'#3a4352' };
+  const sweeps = [['TP','mejor_tp'],['MAX_HOLD','mejor_mh'],['SL','mejor_sl'],['TP×MH','mejor_joint']];
+  xChart('chartCurvaMotivos', { type:'bar',
+    data:{ labels: sweeps.map(s=>s[0]), datasets: claves.map(cl=>({ label:cl, backgroundColor:colores[cl],
+      data: sweeps.map(s=> cel.filter(c=>clasif(c[s[1]])===cl).length) })) },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, position:'bottom', labels:{color:X_MUT, font:{size:10}, boxWidth:10}}},
+      scales:{ x:{ stacked:true, ...X_AX }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT} } } } });
+  // hold al pico (mediana) — ¿cuándo tocan su pico los trades? (celdas con N≥15 y ruta)
+  const hp = cel.filter(c=>c.hold_al_pico && c.hold_al_pico.p50!=null);
+  const bins = [0,6,12,24,36,48,72,96,200], lab = ['≤6h','6-12h','12-24h','24-36h','36-48h','48-72h','72-96h','>96h'];
+  const cnt = lab.map((_,i)=> hp.filter(c=>c.hold_al_pico.p50>bins[i] - (i===0?1:0) && c.hold_al_pico.p50<=bins[i+1]).length);
+  xChart('chartCurvaPico', { type:'bar', data:{ labels:lab, datasets:[{ data:cnt, backgroundColor:'#5eb0efcc' }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`${c.raw} celdas`}}},
+      scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'mediana de horas hasta el pico del MFE',color:X_MUT} }, y:X_AX } } });
+  // potencial vs ruido: mean_R actual vs mejor mean_R del barrido de TP (celdas N≥40)
+  const pts = grad.map(c=>{ const sw = Object.values(c.sweep_tp||{}); const best = sw.length ? Math.max(...sw.map(s=>s.mean_R)) : null;
+    return { x:c.tp_actual.mean_R, y:best, k:c.k, n:c.n }; }).filter(p=>p.y!=null);
+  xChart('chartCurvaPotencial', { type:'scatter',
+    data:{ datasets:[
+      { label:'celda (N≥40)', data:pts, backgroundColor:'#c792eaaa', pointRadius:4 },
+      { label:'y = x (sin ganancia)', type:'line', data:[{x:-3,y:-3},{x:3,y:3}], borderColor:X_MUT, borderDash:[4,3], pointRadius:0, borderWidth:1 } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
+      tooltip:{callbacks:{label:(c)=>{ const p=c.raw; return p.k ? `${p.k}: actual ${xR(p.x,2)} → mejor TP ${xR(p.y,2)} (N=${p.n})` : ''; }}}},
+      scales:{ x:{ ...X_AX, title:{display:true,text:'mean_R con el TP actual (4R)',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R del mejor TP del barrido (sin corregir multiplicidad)',color:X_MUT} } } } });
+  // resumen
+  const rent = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[0]>0).length;
+  const neg = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[1]<0).length;
+  const sug = cel.filter(c=>['mejor_tp','mejor_mh','mejor_sl','mejor_joint'].some(k=>c[k] && c[k].determinable));
+  document.getElementById('curvaPanoramaKpis').innerHTML =
+      xKpi('Celdas', xInt(cel.length), `${grad.length} con N≥${ca.n_min_graduado}`)
+    + xKpi('Rentables hoy (IC90>0)', String(rent), 'con el TP/MH/SL actuales, N≥40', 'pos')
+    + xKpi('Perdedoras (IC90<0)', String(neg), 'con la salida actual, N≥40', 'neg')
+    + xKpi('Con sugerencia', String(sug.length), sug.slice(0,3).map(c=>c.k.replace(/\|/g,' · ')).join(' / ') || 'ninguna supera los candados')
+    + xKpi('Grilla evaluada', `${(ca.tp_grid||[]).length}×${(ca.mh_grid||[]).length}`, `TP×MH · SL ${(ca.sl_grid||[]).join('/')}R`);
+}
+
+// ── TP condicional · barra de avance por candidata ──────────────────────────────────────
+function renderExtrasTpcond(){
+  const items = (state.data && state.data.sombra_tp_condicional) || [];
+  const box = document.getElementById('tpcondAvance');
+  if (!items.length){ box.innerHTML = ''; return; }
+  box.innerHTML = items.map(it=> xBarRow(`${it.familia} ${it.direction} · N forward`, it.n_forward, it.n_min_graduado, X_SOM,
+      `${Math.min(100, Math.round(100*it.n_forward/it.n_min_graduado))}% de la meta (${it.n_min_graduado})`)).join('');
+}
+
+function renderExtrasTodos(){
+  try { renderExtrasAbiertas(); } catch(e){ console.error('extras abiertas', e); }
+  try { renderExtrasEk3(); } catch(e){ console.error('extras ek3', e); }
+  try { renderExtrasCurva(); } catch(e){ console.error('extras curva', e); }
+  try { renderExtrasTpcond(); } catch(e){ console.error('extras tpcond', e); }
+}
 
 // 🏷️ Alias SOLO VISIBLE (2026-09-30, pedido de Felipe): el backend sigue llamando a la
 // familia `23_cuna_alcista_bear` (clave en logs/state/código); aquí se muestra sin el sufijo.
@@ -2390,6 +2832,7 @@ fetch('data.json?_=' + Date.now())
     renderCurva();
     renderTpCondicional();
     renderEk3();
+    renderExtrasTodos();
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
