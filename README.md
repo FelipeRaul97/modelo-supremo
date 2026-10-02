@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-02 02:28:29
+Ultima actualizacion: 2026-10-02 02:43:00
 
 ```
 ========================================================================================================
@@ -166,6 +166,7 @@ Ultima actualizacion: 2026-10-02 02:28:29
       s94_vela_confirmada_bajista · alt1d_range SHORT · umbral=None · armada 2026-09-30
       s94_vela_confirmada_bajista · btc_trend SHORT · umbral=None · armada 2026-09-30
       s83_quiebre_retest_bajista · alt1d_range SHORT · umbral=None · armada 2026-09-30
+   🗄️ archivados: 0 (ninguno nuevo)
 ```
 
 ```
