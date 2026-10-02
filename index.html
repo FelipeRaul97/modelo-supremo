@@ -222,11 +222,30 @@
 <div id="tab-embudo" style="display:none;">
   <div class="panel">
     <h2>Embudo de señales denegadas</h2>
-    <div class="hint">
-      Cada familia denegada corre su detector sobre cada símbolo/barra. No todo candidato crudo termina abriendo un trade sombra — pasa por R1 (una posición por familia&times;símbolo&times;dirección), no-opuesto, STRIDE (cooldown), y una revalidación CAUSAL (¿el fire sobrevive si se reconstruye el contexto sin mirar al futuro?). Este panel muestra en qué escalón se pierde cada candidato — diagnostica por qué una familia armada (ver tab Graduación) acumula N lento hacia el N forward que exige Graduación (100, con ≥8 semanas).
+    <div class="hint" style="margin-top:0">
+      Cada familia denegada corre su detector sobre cada símbolo/barra. El recorrido es una <b>partición exacta</b>: <b>disparos</b> = bloqueados (R1 una posición por familia&times;símbolo&times;dirección, no-opuesto, STRIDE/cooldown) + <b>candidatos crudos</b>; y crudos = descartados por <b>revalidación causal</b> (&iquest;el fire sobrevive sin mirar al futuro?) + descartados por <b>E_K3</b> + <b>ATR/X1</b> + <b>abiertos</b>. Sirve para ver en qu&eacute; escal&oacute;n se pierde cada candidato y por qu&eacute; una familia armada (tab Graduaci&oacute;n) acumula N lento o r&aacute;pido hacia N&ge;100 con &ge;8 semanas.
+    </div>
+    <div class="kpis" id="embKpis" style="margin:14px 0 0"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2 id="embFunnelTitulo">Embudo agregado</h2><div id="embFunnel"></div></div>
+    <div class="panel"><h2>Lectura r&aacute;pida</h2><div id="embLectura"></div></div>
+  </div>
+  <div class="panel">
+    <div class="toolbar">
+      <div class="segmented" id="embVista">
+        <div class="seg-btn active" data-vista="embudo">Embudo por familia</div>
+        <div class="seg-btn" data-vista="pipeline">Pipeline a graduaci&oacute;n</div>
+      </div>
+      <div class="toolbar-right">
+        <input id="embBusca" type="search" placeholder="buscar familia…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;">
+        <label class="filtercount" style="cursor:pointer"><input type="checkbox" id="embMudas"> ocultar sin disparos</label>
+        <span class="filtercount" id="embCount"></span>
+      </div>
     </div>
     <div class="hint" id="embudoVacio" style="display:none"></div>
     <div class="tablewrap"><table id="tablaEmbudo"><thead></thead><tbody></tbody></table></div>
+    <div class="hint" id="embNota"></div>
   </div>
 </div>
 
@@ -450,6 +469,8 @@ const state = {
   // en cada una = orden por defecto (más reciente primero / más crudos primero,
   // igual que antes de que existiera el click), hasta el primer click de header.
   sortEmbudo: { col: null, dir: -1 },
+  // 🔧 2026-10-02 · tab Embudo rediseñado: vista (embudo|pipeline), familia seleccionada, filtros.
+  embudo: { vista: 'embudo', sel: null, busca: '', cuello: null, ocultarMudas: false },
   sortAbiertas: {
     live:   { col: null, dir: -1 },
     sombra: { col: null, dir: -1 },
@@ -1542,52 +1563,251 @@ function renderTpCondicional(){
   }).join('');
 }
 
+// 🔧 2026-10-02 · tab Embudo rediseñado (pedido de Felipe: explotar toda la info del tab).
+// Los contadores de `sombra_familias.procesar` son una PARTICIÓN exacta (verificado en backend):
+//   disparos = bloqueados (R1/no-opuesto/STRIDE) + crudos ; crudos = causal + E_K3 + ATR/X1 + abiertos.
+// Backend (`export_dashboard_data._embudo_v2`) entrega `embudo.filas` ya derivadas + deltas 24h/7d
+// (snapshots horarios) + ritmo/ETA + valor de E_K3. Aquí solo se presenta.
+const EMB_CUELLO = { 'E_K3':'E_K3', 'causal':'revalidación causal', 'ATR/X1':'ATR / X1', 'sano':'sin cuello',
+                     'sin_disparos':'detector mudo', 'solo_bloqueo':'solo bloqueos' };
+const EMB_CUELLO_TIP = {
+  'E_K3':'el escalón que más candidatos crudos elimina es E_K3',
+  'causal':'lo que más elimina es la revalidación causal (el fire no se reproduce sin mirar al futuro)',
+  'ATR/X1':'lo que más elimina es ATR NaN / sin geometría X1',
+  'sano':'ningún escalón elimina más candidatos de los que llegan a abrir',
+  'sin_disparos':'el detector no disparó ninguna vez',
+  'solo_bloqueo':'todos los disparos cayeron en R1/no-opuesto/STRIDE: ningún candidato crudo' };
+const EMB_SUM_KEYS = ['disparos','bloq','bloq_r1','bloq_no_opuesto','bloq_stride','crudos','causal','causal_ctx',
+                      'causal_norepro','ek3_fail','ek3_rescate','atr_x1','abiertos','abiertos_x'];
+
+function _eInt(x){ return (x===null||x===undefined) ? '—' : Number(x).toLocaleString('es'); }
+function _ePct(x, d){ return (x===null||x===undefined) ? '—' : (100*x).toFixed(d===undefined?0:d) + '%'; }
+function _eS3(x){ return (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(3)); }
+function _eCls(x){ return (x===null||x===undefined) ? '' : (x>=0 ? 'pos' : 'neg'); }
+function _eDelta(x){ return (x===null||x===undefined) ? '<span class="hint" style="margin:0">—</span>' : (x>0 ? '+' : '') + _eInt(x); }
+function _eFecha(ms, dias){ return new Date(ms + dias*86400000).toISOString().slice(0,10); }
+function _eWin(emb, tag){
+  const v = (emb.ventanas||{})[tag] || {};
+  if (v.span_h === null || v.span_h === undefined || v.span_h < 1) return null;
+  return v.completa ? 'Δ'+tag : 'Δ'+(v.span_h<48 ? Math.round(v.span_h)+'h' : (v.span_h/24).toFixed(1)+'d')+'*';
+}
+
+function embSumar(rows){
+  const t = {}; EMB_SUM_KEYS.forEach(k=> t[k] = rows.reduce((a,r)=> a + (r[k]||0), 0));
+  return t;
+}
+
+function embFunnelHTML(t, titulo){
+  const d = t.disparos, cr = t.crudos, pc = cr - t.causal, pk = pc - t.ek3_fail, ab = t.abiertos;
+  if (!d) return '<div class="hint">Sin disparos del detector en este alcance.</div>';
+  const pasos = [
+    { l:'Disparos del detector', n:d, base:null, loss:null, lossl:'' },
+    { l:'Candidatos crudos', n:cr, base:d, loss:t.bloq,
+      lossl:`bloqueados por posición ya abierta/cooldown — R1 ${_eInt(t.bloq_r1)} · no-opuesto ${_eInt(t.bloq_no_opuesto)} · STRIDE ${_eInt(t.bloq_stride)}` },
+    { l:'Sobreviven revalidación causal', n:pc, base:cr, loss:t.causal,
+      lossl:`no reproduce sin look-ahead ${_eInt(t.causal_norepro)} · sin contexto/barra ${_eInt(t.causal_ctx)}` },
+    { l:'Pasan E_K3', n:pk, base:pc, loss:t.ek3_fail,
+      lossl:'falla E_K3' + (t.ek3_rescate ? ` — ${_eInt(t.ek3_rescate)} rescatadas abriendo en el brazo exento (sin E_K3)` : '') },
+    { l:'ABIERTOS (brazo base)', n:ab, base:pk, loss:pk-ab, lossl:'ATR NaN / sin geometría X1' },
+  ];
+  const col = ['#5eb0ef','#4d9bd6','#4087bd','#3a74a3','var(--pos)'];
+  return pasos.map((p,i)=>{
+    const w = Math.max(0.6, 100*p.n/d);
+    const pasoPrev = p.base ? ` &middot; <b>${_ePct(p.n/p.base,1)}</b> del paso anterior` : '';
+    const perd = (p.loss && p.loss>0)
+      ? `<div class="hint" style="margin:2px 0 0"><span class="neg">&minus;${_eInt(p.loss)}</span> ${p.lossl}</div>` : '';
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:0.82rem; margin-bottom:3px">
+        <span>${p.l}</span><span><b>${_eInt(p.n)}</b>${pasoPrev} &middot; ${_ePct(p.n/d,1)} de disparos</span></div>
+      <div style="background:var(--panel2); border-radius:5px; height:16px; overflow:hidden">
+        <div style="width:${w}%; height:100%; background:${col[i]}"></div></div>${perd}</div>`;
+  }).join('') + `<div class="hint">${titulo}</div>`;
+}
+
+function embLecturaHTML(emb, rows){
+  const t = embSumar(rows);
+  const porCuello = {}; rows.forEach(r=>{ porCuello[r.cuello] = (porCuello[r.cuello]||0)+1; });
+  const li = [];
+  if (t.crudos){
+    li.push(`<b>${_ePct(t.ek3_fail/t.crudos)}</b> de los candidatos crudos mueren en E_K3 y solo <b>${_ePct(t.abiertos/t.crudos)}</b> llega a abrir en el brazo base`
+      + (t.ek3_rescate ? ` (+${_eInt(t.ek3_rescate)} abiertas en el brazo exento sin E_K3)` : '') + '.');
+  }
+  if (t.disparos){
+    li.push(`<b>${_ePct(t.bloq/t.disparos)}</b> de los disparos caen con la posición familia×símbolo×dirección ya abierta (R1) o en cooldown: son re-disparos, no señal perdida.`);
+  }
+  if (t.causal){
+    li.push(`Revalidación causal: <b>${_eInt(t.causal)}</b> candidatos descartados (${_eInt(t.causal_norepro)} no reproducen sin mirar al futuro).`);
+  }
+  const mudas = rows.filter(r=>r.cuello==='sin_disparos').map(r=>r.familia);
+  const sinAb = rows.filter(r=>r.crudos>0 && r.abiertos===0 && r.abiertos_x===0).map(r=>r.familia);
+  if (mudas.length) li.push(`Detector mudo (0 disparos) en <b>${mudas.length}</b>: ${mudas.join(', ')}.`);
+  if (sinAb.length) li.push(`Con candidatos crudos pero <b>0 aperturas</b> en <b>${sinAb.length}</b>: ${sinAb.join(', ')}.`);
+  const conRitmo = rows.filter(r=>r.primera_ts);
+  if (conRitmo.length){
+    const falta = conRitmo.map(r=>r.eta_dias_sem).sort((a,b)=>a-b);
+    const yaN = conRitmo.filter(r=>r.n_cerr >= emb.criterios.n_min).length;
+    li.push(`Graduación (nivel <i>familia entera</i>): <b>${yaN}</b>/${conRitmo.length} familias ya tienen N&ge;${emb.criterios.n_min} cerradas; el reloj de ${emb.criterios.semanas_min} semanas lo cumple la primera en <b>${Math.ceil(falta[0])}</b> d y la última en <b>${Math.ceil(falta[falta.length-1])}</b> d.`);
+  }
+  const chips = Object.entries(porCuello).sort((a,b)=>b[1]-a[1]).map(([k,n])=>
+    `<span class="chip ${state.embudo.cuello===k?'active':''}" data-cuello="${k}" title="${EMB_CUELLO_TIP[k]||''}">${EMB_CUELLO[k]||k} &middot; ${n}</span>`).join('');
+  return `<div class="hint" style="margin:0 0 6px">Cuello de botella por familia (click para filtrar la tabla):</div>
+    <div class="chips" id="embChips" style="margin-bottom:10px">${chips}</div>
+    <ul style="margin:0; padding-left:18px; font-size:0.82rem; line-height:1.55">${li.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+
+function embKpisHTML(emb, rows){
+  const t = embSumar(rows), act = rows.filter(r=>r.disparos>0).length;
+  const w24 = _eWin(emb,'24h'), w7 = _eWin(emb,'7d');
+  const sumD = (k)=> rows.reduce((a,r)=> a + (r[k]||0), 0);
+  const k = (label, val, sub)=> `<div class="kpi"><div class="label">${label}</div><div class="value">${val}</div>${sub?`<div class="hint" style="margin:2px 0 0">${sub}</div>`:''}</div>`;
+  return k('Familias con disparos', `${act} / ${rows.length}`)
+    + k('Disparos del detector', _eInt(t.disparos))
+    + k('Candidatos crudos', _eInt(t.crudos), _ePct(t.disparos? t.crudos/t.disparos : null,1)+' de disparos')
+    + k('Fallan E_K3', _ePct(t.crudos? t.ek3_fail/t.crudos : null), _eInt(t.ek3_fail)+' de '+_eInt(t.crudos)+' crudos')
+    + k('Abiertos (base)', _eInt(t.abiertos), _ePct(t.crudos? t.abiertos/t.crudos : null,1)+' de crudos')
+    + k('Abiertos (exento)', _eInt(t.abiertos_x), 'brazo sin E_K3')
+    + k(w24 ? (w24+' abiertos') : 'Δ24h abiertos', w24 ? ('+'+_eInt(sumD('d_abiertos_24h'))) : '—',
+        w24 ? ('crudos +'+_eInt(sumD('d_crudos_24h'))) : `acumulando historial (${emb.n_snapshots||0} snapshot${emb.n_snapshots===1?'':'s'}, 1/hora)`)
+    + (w7 && w7!==w24 ? k(w7+' abiertos', '+'+_eInt(sumD('d_abiertos_7d')), 'crudos +'+_eInt(sumD('d_crudos_7d'))) : '');
+}
+
 function renderEmbudo(){
-  const emb = state.data.embudo || { orden_motivos: [], familias: {} };
-  const familias = emb.familias || {};
-  const nombres = Object.keys(familias);
+  const emb = state.data.embudo || {};
+  const vacio = document.getElementById('embudoVacio');
   const thead = document.querySelector('#tablaEmbudo thead');
   const tbody = document.querySelector('#tablaEmbudo tbody');
-  const vacio = document.getElementById('embudoVacio');
-
-  if (!nombres.length){
+  const E = state.embudo;
+  if (!emb.filas || !emb.filas.length){
     thead.innerHTML = ''; tbody.innerHTML = '';
+    document.getElementById('embKpis').innerHTML = '';
+    document.getElementById('embFunnel').innerHTML = '';
+    document.getElementById('embLectura').innerHTML = '';
     vacio.style.display = '';
-    vacio.innerHTML = '<b style="color:var(--muted)">Sin datos todavía: la instrumentación se generalizó a todas las familias el 2026-09-23, acumulando desde el próximo ciclo del motor.</b>';
+    vacio.innerHTML = '<b style="color:var(--muted)">Sin datos del embudo todavía (o data.json aún tiene el formato anterior: se actualiza en el próximo ciclo del exporter).</b>';
     return;
   }
   vacio.style.display = 'none';
+  const todas = emb.filas.map(f=>({
+    ...f,
+    dir: (f.ab_L && f.ab_S) ? 'L+S' : (f.ab_L ? 'LONG' : (f.ab_S ? 'SHORT' : '—')),
+    atr_x1_d: Math.max(0, f.crudos - f.causal - f.ek3_fail - f.abiertos),
+    eta_grad: f.eta_dias_n===null ? null : Math.max(f.eta_dias_n, f.eta_dias_sem),
+    ek3_mp: f.ek3_val ? f.ek3_val.mean_pass : null, ek3_mf: f.ek3_val ? f.ek3_val.mean_fail : null,
+  }));
+  document.getElementById('embKpis').innerHTML = embKpisHTML(emb, todas);
+  document.getElementById('embLectura').innerHTML = embLecturaHTML(emb, todas);
 
-  const motivos = emb.orden_motivos.filter(m=>m!=='candidato_crudo' && m!=='abierto');
-  // 🔧 2026-09-24 · click-para-ordenar (`fam` string, `candidato_crudo`/cada
-  // motivo/`abierto` numéricos). Default sin col elegida: crudos desc, mismo
-  // orden que había antes de que las columnas fueran clickeables.
-  thead.innerHTML = '<tr><th data-col="fam">familia</th><th data-col="candidato_crudo">crudos</th>'
-    + motivos.map(m=>`<th data-col="${m}">${MOTIVO_LABELS[m]||m}</th>`).join('')
-    + '<th data-col="abierto">abiertos</th></tr>';
+  // filtros (búsqueda por texto, cuello, ocultar familias sin disparos)
+  const q = (E.busca||'').trim().toLowerCase();
+  let rows = todas.filter(r=>
+    (!q || r.familia.toLowerCase().includes(q)) &&
+    (!E.cuello || r.cuello === E.cuello) &&
+    (!E.ocultarMudas || r.disparos > 0));
+  const sel = E.sel && rows.find(r=>r.familia===E.sel) ? E.sel : null;
+  if (E.sel && !sel) E.sel = null;
+  document.getElementById('embCount').innerHTML = `<b>${rows.length}</b> / ${todas.length} familias`;
 
-  let rows = nombres.map(fam=>{
-    const m = familias[fam];
-    const r = { fam, candidato_crudo: m.candidato_crudo || 0, abierto: m.abierto || 0 };
-    motivos.forEach(mv => r[mv] = m[mv] || 0);
-    return r;
-  });
-  rows = state.sortEmbudo.col ? sortRows(rows, state.sortEmbudo)
-                               : rows.sort((a,b)=> b.candidato_crudo - a.candidato_crudo);
+  // embudo (selección > filtro activo > todas)
+  const filtrado = !!(q || E.cuello || E.ocultarMudas);
+  document.getElementById('embFunnelTitulo').textContent = sel ? `Embudo · ${sel}`
+    : (filtrado ? `Embudo · ${rows.length} familias filtradas` : 'Embudo agregado · todas las familias');
+  document.getElementById('embFunnel').innerHTML = embFunnelHTML(
+    sel ? rows.find(r=>r.familia===sel) : embSumar(rows),
+    sel ? 'Click de nuevo sobre la fila para volver al agregado.' : 'Click en una familia de la tabla para ver su embudo.');
 
+  // tabla
+  const sortSt = state.sortEmbudo;
+  const w24 = _eWin(emb,'24h'), w7 = _eWin(emb,'7d');
+  const th = (col, label, tip)=> `<th data-col="${col}" title="${tip||''}">${label}</th>`;
+  if (E.vista === 'embudo'){
+    thead.innerHTML = '<tr>' + th('familia','familia') + th('dir','dir (aperturas)','dirección de las sombras base abiertas')
+      + th('disparos','disparos','veces que el detector disparó')
+      + th('bloq','bloq. posición','R1 + no-opuesto + STRIDE: ya había posición/cooldown')
+      + th('crudos','crudos','candidatos sin bloqueo')
+      + th('causal','falla causal','no reproduce sin look-ahead / sin contexto')
+      + th('ek3_fail','falla E_K3','')
+      + th('ek3_rescate','rescat. exento','fallaron E_K3 pero abrieron en el brazo exento')
+      + th('atr_x1_d','ATR/X1','')
+      + th('abiertos','abiertos','brazo base')
+      + th('conv','conv.','abiertos / crudos')
+      + '<th class="nosort" title="destino de los crudos: causal · E_K3 · ATR/X1 · abiertos">destino de crudos</th>'
+      + th('cuello','cuello','')
+      + (w24 ? th('d_crudos_24h', w24+' crudos') + th('d_abiertos_24h', w24+' abiertos') : '')
+      + (w7 && w7!==w24 ? th('d_abiertos_7d', w7+' abiertos') : '') + '</tr>';
+  } else {
+    thead.innerHTML = '<tr>' + th('familia','familia') + th('dir','dir (aperturas)')
+      + th('n_ab_log','aperturas base','sombras base abiertas (log)')
+      + th('n_cerr','cerradas','sombras base cerradas con pnl_R')
+      + th('mean_R','mean_R base','orientativo, sin IC: la decisión vive en Graduación')
+      + th('n_cerr_x','cerr. exento')
+      + th('mean_R_x','mean_R exento','brazo sin E_K3')
+      + th('ek3_mp','E_K3 pasa','media R de los que pasan E_K3 (tab E_K3)')
+      + th('ek3_mf','E_K3 no pasa','media R de los que no pasan')
+      + th('ritmo_sem','ritmo /sem','aperturas base por semana (últimos 14 d)')
+      + th('semanas',`semanas / ${emb.criterios.semanas_min}`,'edad de la familia desde su 1ª apertura')
+      + th('eta_dias_n',`ETA N=${emb.criterios.n_min}`,'días para llegar a N cerradas al ritmo actual (familia entera)')
+      + th('eta_dias_sem',`ETA ${emb.criterios.semanas_min} sem`,'días que faltan para cumplir el reloj')
+      + th('eta_grad','ETA graduación','el máximo de los dos; fecha estimada') + '</tr>';
+  }
+  if (sortSt.col) rows = sortRows(rows, sortSt);
+  else rows = [...rows].sort((a,b)=> (E.vista==='embudo' ? b.crudos - a.crudos : (b.n_cerr - a.n_cerr)));
+
+  const NA = '<span class="hint" style="margin:0">—</span>';
   tbody.innerHTML = rows.map(r=>{
-    const crudo = r.candidato_crudo;
-    const cell = (v)=>{
-      const pct = crudo ? Math.min(100, 100*v/crudo) : 0;
-      return `<td class="embudo-cell"><div class="embudo-bar" style="width:${pct}%"></div><span class="embudo-val">${v||0}</span></td>`;
-    };
-    return `<tr><td>${r.fam}</td><td><b>${crudo}</b></td>`
-      + motivos.map(mv=>cell(r[mv])).join('')
-      + `<td class="pos"><b>${r.abierto}</b></td></tr>`;
+    const act = r.familia === sel ? ' style="background:rgba(94,176,239,.16)"' : '';
+    const nom = `<td data-fam="${r.familia}" style="cursor:pointer" title="click: embudo de esta familia">${r.familia}</td>`;
+    const dirTxt = r.dir==='—' ? NA
+      : `${r.dir} <span class="hint" style="margin:0">${r.ab_L? 'L'+r.ab_L : ''}${r.ab_L&&r.ab_S?' · ':''}${r.ab_S? 'S'+r.ab_S : ''}</span>`;
+    if (E.vista === 'embudo'){
+      const c = r.crudos, seg = (n,cl)=> c ? `<div style="width:${100*n/c}%; background:${cl}" title="${n}"></div>` : '';
+      const stack = c ? `<div style="display:flex; width:130px; height:12px; border-radius:3px; overflow:hidden; background:var(--panel2)">`
+        + seg(r.causal,'#8b96a8') + seg(r.ek3_fail,'#d9a441') + seg(r.atr_x1_d,'#c792ea') + seg(r.abiertos,'var(--pos)') + '</div>'
+        : NA;
+      const cu = r.cuello==='E_K3' ? '<span class="badge-arm">E_K3</span>'
+        : (r.cuello==='sano' ? '<span class="badge-pos">sin cuello</span>' : `<span class="badge-wait" title="${EMB_CUELLO_TIP[r.cuello]||''}">${EMB_CUELLO[r.cuello]||r.cuello}</span>`);
+      return `<tr${act}>${nom}<td>${dirTxt}</td><td>${_eInt(r.disparos)}</td><td>${_eInt(r.bloq)}</td><td><b>${_eInt(r.crudos)}</b></td>`
+        + `<td>${_eInt(r.causal)}</td><td>${_eInt(r.ek3_fail)}</td><td>${r.ek3_rescate ? _eInt(r.ek3_rescate) : NA}</td>`
+        + `<td>${_eInt(r.atr_x1_d)}</td><td class="pos"><b>${_eInt(r.abiertos)}</b></td><td>${_ePct(r.conv)}</td><td>${stack}</td><td>${cu}</td>`
+        + (w24 ? `<td>${_eDelta(r.d_crudos_24h)}</td><td>${_eDelta(r.d_abiertos_24h)}</td>` : '')
+        + (w7 && w7!==w24 ? `<td>${_eDelta(r.d_abiertos_7d)}</td>` : '') + '</tr>';
+    }
+    const semPct = Math.min(100, 100*r.semanas/emb.criterios.semanas_min);
+    const etaN = r.eta_dias_n===null ? (r.primera_ts ? 'sin ritmo' : '—') : (r.eta_dias_n<=0.05 ? 'ya' : Math.ceil(r.eta_dias_n)+' d');
+    const etaS = r.primera_ts ? (r.eta_dias_sem<=0 ? 'ya' : Math.ceil(r.eta_dias_sem)+' d') : '—';
+    const etaG = r.eta_grad===null ? NA
+      : `<b>${_eFecha(emb.generado_ms, r.eta_grad)}</b> <span class="hint" style="margin:0">(${r.eta_dias_sem>=r.eta_dias_n?'reloj':'N'})</span>`;
+    const ev = r.ek3_val;
+    const ek = (m,n)=> (m===null||m===undefined) ? NA : `<span class="${_eCls(m)}">${_eS3(m)}</span> <span class="hint" style="margin:0">n=${n}</span>`;
+    return `<tr${act}>${nom}<td>${dirTxt}</td><td>${_eInt(r.n_ab_log)}</td><td>${_eInt(r.n_cerr)}</td>`
+      + `<td class="${r.n_cerr>=10 ? _eCls(r.mean_R) : ''}" ${r.n_cerr<10 ? 'style="opacity:.5" title="N&lt;10 cerradas: no interpretable"' : ''}>${_eS3(r.mean_R)}</td><td>${_eInt(r.n_cerr_x)}</td><td class="${_eCls(r.mean_R_x)}">${_eS3(r.mean_R_x)}</td>`
+      + `<td>${ev ? ek(ev.mean_pass, ev.n_pass) : NA}</td><td>${ev ? ek(ev.mean_fail, ev.n_fail) : NA}</td>`
+      + `<td>${r.ritmo_sem ? r.ritmo_sem.toFixed(1) : '—'}</td>`
+      + `<td class="embudo-cell"><div class="embudo-bar" style="width:${semPct}%"></div><span class="embudo-val">${r.primera_ts ? r.semanas.toFixed(1) : '—'}</span></td>`
+      + `<td>${etaN}</td><td>${etaS}</td><td>${etaG}</td></tr>`;
   }).join('');
 
-  bindSort(thead, state.sortEmbudo, renderEmbudo);
+  document.getElementById('embNota').innerHTML = E.vista === 'embudo'
+    ? 'Destino de los crudos: <span style="color:#8b96a8">■</span> falla causal · <span style="color:#d9a441">■</span> falla E_K3 · <span style="color:#c792ea">■</span> ATR/X1 · <span style="color:var(--pos)">■</span> abierto. '
+      + (w24 ? '' : 'Las columnas Δ aparecen cuando el historial horario cubre ≥1 h. ')
+      + (((w24 && w24.endsWith('*')) || (w7 && w7.endsWith('*'))) ? '* ventana parcial: el historial aún no cubre la ventana completa. ' : '')
+    : 'N, ritmo y ETA están a nivel <b>familia entera</b> (aperturas/cierres del log sombra). La graduación real se evalúa por <b>segmento</b> (familia×corte×dirección) en el tab Graduación, así que el ETA de acá es una cota optimista. mean_R sin IC: orientativo, no es veredicto (regla: SEGMENTAR antes de concluir).';
+
+  bindSort(thead, sortSt, renderEmbudo);
+  tbody.querySelectorAll('td[data-fam]').forEach(td=>{
+    td.onclick = ()=>{ E.sel = (E.sel === td.dataset.fam) ? null : td.dataset.fam; renderEmbudo(); };
+  });
+  document.querySelectorAll('#embChips .chip').forEach(ch=>{
+    ch.onclick = ()=>{ E.cuello = (E.cuello === ch.dataset.cuello) ? null : ch.dataset.cuello; renderEmbudo(); };
+  });
+  document.querySelectorAll('#embVista .seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.vista === E.vista);
+    b.onclick = ()=>{ if (E.vista !== b.dataset.vista){ E.vista = b.dataset.vista; state.sortEmbudo.col = null; renderEmbudo(); } };
+  });
 }
+
+// controles estáticos del tab Embudo (viven fuera de la tabla: re-renderizar no les quita el foco)
+document.getElementById('embBusca').addEventListener('input', (e)=>{ state.embudo.busca = e.target.value; renderEmbudo(); });
+document.getElementById('embMudas').addEventListener('change', (e)=>{ state.embudo.ocultarMudas = e.target.checked; renderEmbudo(); });
 
 // 🔧 2026-09-23 · tab POR SÍMBOLO — cruza LIVE/SOMBRA (`state.data.trades`) con
 // ESPEJO (`state.data.espejo_trades`, cierres forward de espejos condicionales,
