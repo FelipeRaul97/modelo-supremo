@@ -693,7 +693,7 @@ function buildFilterUI(){
     { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
     { key:'btc_1h', label:'Régimen BTC', values:['RANGE','BULL','BEAR'] },
-    { key:'familia', label:'Familia', values:[...new Set(trades.map(t=>t.familia))].sort() },
+    { key:'familia', label:'Familia', values:[...new Set(trades.map(t=>t.familia).concat((state.data.familias_catalogo||[]).map(c=>c.familia)))].sort() },
   ];
   groups.forEach(g=>{
     const div = document.createElement('div');
@@ -743,6 +743,33 @@ function buildFilterUI(){
   });
   cdiv.appendChild(cchips);
   cbox.appendChild(cdiv);
+}
+
+// Familias que YA abrieron posiciones sombra (cualquiera de los dos brazos) pero aún no cerraron nada en el brazo BASE: sus filas
+// se construyen desde los trades cerrados, así que sin esto no existían en las tablas (p.ej. las 20 de #S111-#S119, que pasan
+// E_K3 muy poco). Se agregan como grupos vacíos (N=0). `conFiltros`: respetar los chips de Resumen.
+function completarConCatalogo(byGroup, conFiltros){
+  (state.data.familias_catalogo || []).forEach(c=>{
+    const k = 'SOMBRA·' + c.familia + '·' + c.dir;
+    if (byGroup[k]) return;
+    if (conFiltros){
+      const f = state.filters;
+      if (f.origen.size && !f.origen.has('SOMBRA')) return;
+      if (f.dir.size && !f.dir.has(c.dir)) return;
+      if (f.familia.size && !f.familia.has(c.familia)) return;
+      if (f.btc_1h.size) return;
+    }
+    byGroup[k] = { origen:'SOMBRA', familia:c.familia, dir:c.dir, rows:[] };
+  });
+  return byGroup;
+}
+// Marca "brazo exento: X cerradas / Y abiertas" para las familias con actividad en el brazo SIN E_K3 (`shadow_familias_ek3x`).
+// Esa población NO entra en N hist./Graduación (por diseño #S120: el brazo base es la población de siempre).
+function etiquetaBrazoX(fam, dir){
+  const c = (state.data.familias_catalogo || []).find(x=>x.familia===fam && x.dir===dir);
+  if (!c || (c.ab_x + c.ce_x) === 0) return '';
+  const abiertas = Math.max(0, c.ab_x - c.ce_x);
+  return ` <span class="hint" style="margin:0" title="Brazo SIN E_K3 (tab E_K3): ${c.ce_x} cerradas, ${abiertas} abiertas. No cuenta en N hist. ni en Graduación.">+${c.ce_x}/${abiertas} sin E_K3</span>`;
 }
 
 function aggregate(trades){
@@ -991,7 +1018,7 @@ function renderTable(filtered){
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>`<th data-col="${c.k}">${c.label}</th>`).join('') + '</tr>';
 
-  const byGroup = aggregate(filtered);
+  const byGroup = completarConCatalogo(aggregate(filtered), true);
   let rows = [];
   Object.values(byGroup).forEach(g=>{
     const s = statsOf(g.rows);
@@ -1043,7 +1070,7 @@ function renderTable(filtered){
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
     const estado = r.esTotal ? '' : estadoDe(r.familia, r.corteId, r.dir, r.mean, excl, r.n);
     return `<tr class="${r.esTotal?'totalrow':'segrow'}">
-      <td>${r.familia}</td>
+      <td>${r.familia}${r.esTotal ? etiquetaBrazoX(r.familia, r.dir) : ''}</td>
       <td>${r.dir}</td>
       <td>${r.origen?`<span class="tag ${r.origen}">${r.origen}</span>`:''}</td>
       <td>${r.esTotal?`<b>${r.segmento}</b>`:r.segmento}</td>
@@ -1113,7 +1140,7 @@ function computeTodosSegmentos(){
   const espejoIndex = {};
   (state.data.espejos || []).forEach(e=>{ espejoIndex[e.familia+'|'+e.corte+'|'+e.dir] = e; });
 
-  const byGroup = aggregate(state.data.trades);
+  const byGroup = completarConCatalogo(aggregate(state.data.trades), false);
   const out = [];
   Object.values(byGroup).forEach(g=>{
     const claveGrupo = g.origen + '·' + g.familia + '·' + g.dir;
@@ -1206,6 +1233,7 @@ function renderGraduacion(){
   const nArmadosPos = rows.filter(r=>r.armado && r.signo==='positivo').length;
   const nCand = rows.filter(r=>r.gate && r.gate.estado==='CANDIDATA').length;
   const nRefut = rows.filter(r=>r.gate && r.gate.estado==='REFUTADA').length;
+  const nArch = rows.filter(r=>r.gate && r.gate.archivado).length;
   const nObs = rows.filter(r=>r.armado && r.gate && r.gate.estado==='EN OBSERVACION').length;
   const nN40 = rows.filter(r=>r.gate && r.gate.n_c2>=40).length;
   const nN100 = rows.filter(r=>r.gate && r.gate.n_c2>=100).length;
@@ -1221,7 +1249,7 @@ function renderGraduacion(){
     <div><b>${nTotal}</b> segmentos${filtroTxt} (LIVE+SOMBRA${state.filtroGraduacionFamilia.size?'':', todas las familias'} × ${MENU.length} cortes del menú — incluye N&lt;30) · <b>${nPocaMuestra}</b> aún con poca muestra (N&lt;30, el watch exige &ge;30) · <b>${nInestables}</b> con N&ge;30 y IC90 que excluye 0 pero signo inestable entre mitades</div>
     <div><b>${nArmadosNeg}</b> armados negativo (candidatos a excluir, con espejo) · <b>${nArmadosPos}</b> armados positivo (candidatos a graduar, watch)</div>
     <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
-    <div>Paso 1 (estándar único #S121): <b class="pos">${nCand}</b> CANDIDATA &middot; <b>${nObs}</b> en observación &middot; <b class="neg">${nRefut}</b> refutadas</div>
+    <div>Paso 1 (estándar único #S121): <b class="pos">${nCand}</b> CANDIDATA &middot; <b>${nObs}</b> en observación &middot; <b class="neg">${nRefut}</b> refutadas (${nArch} archivadas: ya no abren espejos)</div>
     <div>Cuánto falta: <b>${nN40}</b> con N&ge;40 fwd &middot; <b>${nN100}</b> con N&ge;100 &middot; <b>${nSem8}</b> con &ge;8 semanas forward
       <span style="color:var(--muted)">(las 8 semanas son hoy la condición que más limita: los armados más antiguos son de fines de septiembre)</span></div>
     <div style="color:var(--muted)">0 en paso 2 (validación real) — mecanismo sin construir a propósito, ver hint arriba</div>
@@ -1346,7 +1374,7 @@ function renderGraduacion(){
     const gMit = G ? cel(G.cond.d, `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, 'dif vs azar en la 1ª y 2ª mitad temporal: ambas deben ser > 0') : '<td class="checkcell wait">—</td>';
     const gA02 = G ? cel(G.a02 ? G.cond.e : null, G.a02 ? `${sg(G.a02.diff)}` : 'n/a', 'Media forward del segmento menos la del resto del sistema en el mismo periodo (> 0 para pasar)') : '<td class="checkcell wait">—</td>';
     const ESTG = { 'CANDIDATA':'<span class="badge-pos">✅ CANDIDATA</span>', 'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>', 'REFUTADA':'<span class="badge-neg">🔴 refutada</span>' };
-    const gEst = G ? `<td title="${(G.falta||[]).join(' · ').replace(/"/g,'')}">${ESTG[G.estado]||G.estado}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}</td>` : '<td class="checkcell wait">—</td>';
+    const gEst = G ? `<td title="${(G.falta||[]).join(' · ').replace(/"/g,'')}">${ESTG[G.estado]||G.estado}${G.archivado ? ' <span class="hint" style="margin:0" title="Archivado por evidencia madura (REFUTADA): no abre espejos nuevos; historial conservado.">🗄️ archivada</span>' : ''}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}</td>` : '<td class="checkcell wait">—</td>';
     const c1 = { cls: (G && G.estado==='CANDIDATA') ? 'ok' : 'wait' };
     const c2 = c1;
     // 🔧 2026-09-23 · "manual" sugería que existe un script para correr a mano.
@@ -1373,7 +1401,7 @@ function renderGraduacion(){
       ? `<span class="checkcell ok">✅ armado</span>${(r.gate && r.gate.watch_v2 === false) ? ' <span class="hint" style="margin:0" title="Armado con el criterio anterior (N≥15). Con su histórico de HOY todavía no cumple el Paso 0 v2 (N≥30, ≥15 por mitad, mismo signo). No se desarma ni afecta su forward; pasa a v2 solo cuando lo cumpla.">v1</span>' : ''}`
       : `<span class="checkcell wait">—</span>`;
     return `<tr>
-      <td>${r.familia}</td>
+      <td>${r.familia}${etiquetaBrazoX(r.familia, r.dir)}</td>
       <td>${r.corte}</td>
       <td>${r.dir}</td>
       <td>${origenTag}</td>
