@@ -111,6 +111,7 @@
   <div class="tabbtn active" data-tab="resumen">📊 Resumen histórico</div>
   <div class="tabbtn" data-tab="abiertas">🟢 Posiciones abiertas ahora</div>
   <div class="tabbtn" data-tab="graduacion">🎓 Graduación</div>
+  <div class="tabbtn" data-tab="espejos">🪞 Espejos</div>
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
   <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
@@ -254,8 +255,13 @@
       <b>Paso 2 (validación real, tamaño ~25-30%, N&ge;15)</b> sin bandera roja.
       Nunca se cuenta el histórico que disparó el armado como prueba — sería circular.
       <br><br>
-      <b>Negativo armado</b> (candidato a <u>excluir</u>) corre un <b>espejo</b> en dirección contraria, capital cero — mecanismo #S81 original.
-      <b>Positivo armado</b> (candidato a <u>graduar</u>) es puro <b>watch</b>: su forward se lee de su propio log desde que se armó, sin abrir ninguna posición nueva.
+      <b>Watch universal (#S123, addendum <code>ESTUDIO_GRADUACION_MAESTRA_ADDENDUM_WATCH_UNIVERSAL.md</code>):</b>
+      <u>todo</u> segmento armado &mdash; positivo o negativo &mdash; se mide sobre su <b>BASE</b> (su propio log, misma dirección de la familia)
+      desde su <b>armado original</b>, sin abrir ninguna posición nueva. El signo solo fija el <b>sentido</b>:
+      <b>&uarr; graduar</b> (positivo: la base debe ganar frente al azar) o <b>&darr; vetar</b> (negativo: la base debe perder frente al azar).
+      Mismos umbrales para ambos (N&ge;100, &ge;8 semanas&hellip;); un negativo se <b>refuta</b> si su base gana con evidencia madura.
+      El <b>espejo</b> (dirección contraria) ya <u>no decide</u> nada aquí: se analiza aparte en el tab <b>🪞 Espejos</b> (informativo).
+      <br><br>
       El Paso 1 se calcula abajo con un <b>evaluador único</b> (<code>SUPREMO/graduacion.py</code>) que aplica las MISMAS condiciones, con los mismos umbrales, a todos los segmentos de todas las familias y or&iacute;genes. &alpha; fijo (IC90, una cola): no hay ajuste din&aacute;mico de multiplicidad (§6 del documento). El <b>Paso 2</b> (capital real) solo se habilita desde el estado <b>CANDIDATA</b>; sigue sin construir a prop&oacute;sito porque coloca &oacute;rdenes reales.
       <br><br>
       Muestra TODOS los segmentos de TODAS las familias × todos los cortes del menú (LIVE+SOMBRA, "segmento" = "corte"), incluyendo los que aún tienen N&lt;15 (badge "poca muestra") — no solo los ya armados, para ver también las familias recién nacidas (0-14 trades) que antes desaparecían enteras de la tabla si ningún corte suyo llegaba a 15.
@@ -268,6 +274,15 @@
     <div class="grid2" style="margin:14px 0">
       <div class="panel" style="margin:0"><h2>Los 15 armados m&aacute;s avanzados <span class="hint" style="margin:0">([watch] = positivo, su propio log &middot; [espejo] = negativo, dirección contraria)</span></h2><div id="chartGradProgWrap" style="position:relative; height:440px"><canvas id="chartGradProg"></canvas></div></div>
       <div class="panel" style="margin:0"><h2>Diferencia forward vs azar (C2)</h2><div class="hint" id="gradDifTxt" style="margin-top:0"></div><div class="chart-wrap small"><canvas id="chartGradDif"></canvas></div></div>
+    </div>
+    <div class="panel" style="margin:14px 0">
+      <h2>Datos rescatados y ritmo hacia la graduaci&oacute;n</h2>
+      <div class="hint" style="margin-top:0">Con el <b>armado original</b> como T0 el forward base <u>ya existe</u>: pasar a watch universal no pierde ning&uacute;n d&iacute;a ni trade (reclasificar con T0 nuevo, #S104, s&iacute; los pierde). Solo conteos, ning&uacute;n resultado (<code>python -m SUPREMO.reporte_rescate_forward</code>).</div>
+      <div class="kpis" id="gradRescateKpis" style="margin-top:12px"></div>
+      <div class="grid2">
+        <div><h3 style="margin-top:0">ETA de graduaci&oacute;n por segmento (d&iacute;as, al ritmo de los &uacute;ltimos 14 d)</h3><div class="chart-wrap small"><canvas id="chartGradEta"></canvas></div></div>
+        <div id="gradRescateTxt" style="font-size:0.84rem; line-height:1.55"></div>
+      </div>
     </div>
     <div class="filters" id="graduacionFilters" style="margin-top:10px;"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
@@ -437,6 +452,32 @@
   </div>
 </div>
 
+<div id="tab-espejos" style="display:none;">
+  <div class="panel">
+    <h2><span class="badge-arm">ESPEJO</span> Espejos &middot; la dirección contraria de cada segmento negativo (informativo)</h2>
+    <div class="hint" style="margin-top:0">
+      Cada segmento <b>negativo</b> armado abre, por cada fire, una posición espejo en la dirección <b>contraria</b> (capital cero, #S81). Desde #S123 el espejo
+      <u>ya no decide</u> el Paso 1 (eso lo hace la <b>base</b> en el tab Graduación, con sentido <i>vetar</i>); aqu&iacute; se ve por separado si la dirección contraria
+      <b>funcionaría</b>. &Eacute;sta es otra pregunta: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane, y una base que pierde no implica que la contraria gane
+      (TP 4R / SL 2R pesan igual en los dos lados). <b>No gradúa, no archiva, no decide nada</b>: un espejo con IC90 &gt; 0 es una <b>pista</b> (regla #S62) y operar la contraria exigiría su propio pre-registro.
+      Base y espejo son las <u>mismas señales vistas de lados opuestos</u> (correlaci&oacute;n por par t&iacute;picamente cercana a &minus;1): no cuentan como dos fuentes independientes.
+    </div>
+    <div class="kpis" id="espKpis" style="margin-top:12px"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Base vs espejo por segmento (forward, N&ge;15 en ambos)</h2>
+      <div class="hint" style="margin-top:0">Cada punto es un segmento negativo. La diagonal punteada es el espejo "perfecto" (R<sub>espejo</sub> = &minus;R<sub>base</sub>); lo que cae <b>por debajo</b> pierde en ambos lados. Tama&ntilde;o = N del espejo.</div>
+      <div class="chart-wrap"><canvas id="chartEspScatter"></canvas></div></div>
+    <div class="panel"><h2>mean_R del espejo por segmento (top/bottom 12, N&ge;15)</h2><div id="chartEspBarWrap" style="position:relative; height:420px"><canvas id="chartEspBar"></canvas></div></div>
+  </div>
+  <div class="panel">
+    <div class="toolbar"><h2 style="margin:0">Detalle por segmento</h2>
+      <div class="toolbar-right"><input id="espBusca" type="search" placeholder="buscar familia o corte…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;"><span class="filtercount" id="espCount"></span></div></div>
+    <div class="tablewrap"><table id="tablaEsp"><thead></thead><tbody></tbody></table></div>
+    <div class="hint" id="espNota"></div>
+  </div>
+</div>
+
 <div id="tab-tpcond" style="display:none;">
   <div class="panel">
     <h2>TP condicional · validación forward en sombra (#S102/#S102b)</h2>
@@ -601,6 +642,8 @@ const state = {
   curva: { familia: null, direccion: null, corte: null, scope: 'dir' },
   // 🔧 2026-10-03 · E_K3 por segmento: filtro de dirección y orden del detalle.
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
+  // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
+  esp: { sort: { col: null, dir: -1 }, busca: '' },
 };
 
 // Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
@@ -1394,7 +1437,7 @@ function renderGraduacion(){
     ? ` (filtrado a ${[...state.filtroGraduacionFamilia].join(', ')})` : '';
   document.getElementById('gradSummary').innerHTML = `
     <div><b>${nTotal}</b> segmentos${filtroTxt} (LIVE+SOMBRA${state.filtroGraduacionFamilia.size?'':', todas las familias'} × ${MENU.length} cortes del menú — incluye N&lt;30) · <b>${nPocaMuestra}</b> aún con poca muestra (N&lt;30, el watch exige &ge;30) · <b>${nInestables}</b> con N&ge;30 y IC90 que excluye 0 pero signo inestable entre mitades</div>
-    <div><b>${nArmadosNeg}</b> armados negativo (candidatos a excluir, con espejo) · <b>${nArmadosPos}</b> armados positivo (candidatos a graduar, watch)</div>
+    <div><b>${nArmadosNeg}</b> watch · vetar (negativos, medidos sobre su base) · <b>${nArmadosPos}</b> watch · graduar (positivos)</div>
     <div><b>${nCandidatosSinArmar}</b> negativos significativos AÚN sin armar (el próximo ciclo de <code>espejo_condicional</code> los arma)</div>
     <div>Paso 1 (estándar único #S121): <b class="pos">${nCand}</b> CANDIDATA &middot; <b>${nObs}</b> en observación &middot; <b class="neg">${nRefut}</b> refutadas (${nArch} archivadas: ya no abren espejos)</div>
     <div>Cuánto falta: <b>${nN40}</b> con N&ge;40 fwd &middot; <b>${nN100}</b> con N&ge;100 &middot; <b>${nSem8}</b> con &ge;8 semanas forward
@@ -1437,13 +1480,13 @@ function renderGraduacion(){
     {k:'sum_hist', label:'PnL hist. total (R)'},
     {k:'ic_hist', label:'IC90 hist. (segmento)', sortable:false},
     {k:'paso0', label:'Paso0 · watch', sortable:false},
-    {k:'estado', label:'estado'},
+    {k:'estado', label:'estado'}, {k:'sentido', label:'sentido', sortable:false},
     {k:'g_n', label:'Paso1 · N fwd (≥100, ≥50/mitad)', espejo:true}, {k:'g_sem', label:'Paso1 · semanas (≥8)'},
     {k:'g_dif', label:'Paso1 · dif vs azar C2 [IC90]'},
     {k:'g_mit', label:'Paso1 · ambas mitades', sortable:false}, {k:'g_a02', label:'Paso1 · mejora sistema (A-02)', sortable:false},
     {k:'g_estado', label:'Paso1 · estado'},
     {k:'paso2', label:'Paso2 · validación real', sortable:false, espejo:true},
-    {k:'wr_cerrados', label:'WR fwd', espejo:true}, {k:'regimen_cerrados', label:'régimen fwd', sortable:false, espejo:true},
+    {k:'g_wr', label:'WR fwd (base)', espejo:true},
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>{
     const cls = [c.sortable===false ? 'nosort' : '', c.espejo ? 'col-espejo' : ''].filter(Boolean).join(' ');
@@ -1473,7 +1516,7 @@ function renderGraduacion(){
     r.icLoHist = r.ic_hist ? r.ic_hist[0] : null; r.estadoRow = estadoDeFila(r);
     const g = r.gate;
     r.g_n = g ? g.n_c2 : null; r.g_sem = g ? g.semanas : null; r.g_dif = g ? g.dif_mean : null;
-    r.g_estado = g ? RANK_G[g.estado] : null;
+    r.g_estado = g ? RANK_G[g.estado] : null; r.g_wr = g ? g.wr : null;
   });
 
   // por defecto: armados primero (más N forward primero), luego negativos sin
@@ -1498,8 +1541,8 @@ function renderGraduacion(){
   });
 
   const ESTADO_BADGE = {
-    armado_negativo: '<span class="badge-neg">🎓 vetando (espejo)</span>',
-    armado_positivo: '<span class="badge-pos">🎓 candidato (watch)</span>',
+    armado_negativo: '<span class="badge-neg" title="Watch universal (#S123): se mide la BASE de este segmento; el sentido esperado es que PIERDA (candidato a vetar). Su espejo está en el tab Espejos.">🛡️ watch · vetar</span>',
+    armado_positivo: '<span class="badge-pos" title="Watch universal (#S123): se mide la BASE; el sentido esperado es que GANE (candidato a graduar).">🎓 watch · graduar</span>',
     negativo: '<span class="checkcell wait">negativo, sin armar</span>',
     positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
@@ -1514,12 +1557,13 @@ function renderGraduacion(){
     const regTxt = rc ? `R${rc.RANGE} B${rc.BULL} Be${rc.BEAR}` : '—';
     const G = r.armado ? r.gate : null;
     const sg = (x)=> (x===null||x===undefined) ? 'n/a' : ((x>=0?'+':'') + x.toFixed(2));
+    const vetoTip = (G && G.sentido==='vetar') ? 'Negativo (vetar): la hipótesis es que la base PIERDE, así que ✓ = dif < 0 con el IC90 por debajo de 0. ' : '';
     const cel = (ok, txt, tip)=> `<td class="checkcell ${ok===null?'wait':(ok?'ok':'wait')}"${tip?` title="${tip}"`:''}>${txt}</td>`;
     const gN = G ? cel(G.cond.a, `${G.n_c2}/100 <span class="hint" style="margin:0">(${G.n_h1}+${G.n_h2})</span>`, 'N forward con control C2; ≥50 en cada mitad temporal') : '<td class="checkcell wait">—</td>';
     const gSem = G ? cel(G.cond.b, `${G.semanas}/8`, 'Semanas ISO distintas con ≥3 trades forward') : '<td class="checkcell wait">—</td>';
-    const gDif = G ? cel(G.cond.c, G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 de doble clúster (símbolo, semana); sin IC si hay menos de 3 semanas o 3 símbolos.') : '<td class="checkcell wait">—</td>';
-    const gMit = G ? cel(G.cond.d, `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, 'dif vs azar en la 1ª y 2ª mitad temporal: ambas deben ser > 0') : '<td class="checkcell wait">—</td>';
-    const gA02 = G ? cel(G.a02 ? G.cond.e : null, G.a02 ? `${sg(G.a02.diff)}` : 'n/a', 'Media forward del segmento menos la del resto del sistema en el mismo periodo (> 0 para pasar)') : '<td class="checkcell wait">—</td>';
+    const gDif = G ? cel(G.cond.c, G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, vetoTip + 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 de doble clúster (símbolo, semana); sin IC si hay menos de 3 semanas o 3 símbolos.') : '<td class="checkcell wait">—</td>';
+    const gMit = G ? cel(G.cond.d, `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, vetoTip + 'dif vs azar en la 1ª y 2ª mitad temporal: en el sentido de la hipótesis en ambas') : '<td class="checkcell wait">—</td>';
+    const gA02 = G ? cel(G.a02 ? G.cond.e : null, G.a02 ? `${sg(G.a02.diff)}` : 'n/a', vetoTip + 'Media forward del segmento menos la del resto del sistema en el mismo periodo (> 0 para pasar; < 0 si es un veto)') : '<td class="checkcell wait">—</td>';
     const ESTG = { 'CANDIDATA':'<span class="badge-pos">✅ CANDIDATA</span>', 'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>', 'REFUTADA':'<span class="badge-neg">🔴 refutada</span>' };
     const gEst = G ? `<td title="${(G.falta||[]).join(' · ').replace(/"/g,'')}">${ESTG[G.estado]||G.estado}${G.archivado ? ' <span class="hint" style="margin:0" title="Archivado por evidencia madura (REFUTADA): no abre espejos nuevos; historial conservado.">🗄️ archivada</span>' : ''}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}</td>` : '<td class="checkcell wait">—</td>';
     const c1 = { cls: (G && G.estado==='CANDIDATA') ? 'ok' : 'wait' };
@@ -1560,10 +1604,10 @@ function renderGraduacion(){
       }</td>
       <td class="nosort">${paso0}</td>
       <td>${ESTADO_BADGE[r.estadoRow]}</td>
+      <td>${G ? (G.sentido==='vetar' ? '<span class="badge-neg">↓ vetar</span>' : '<span class="badge-pos">↑ graduar</span>') : '—'}</td>
       ${gN}${gSem}${gDif}${gMit}${gA02}${gEst}
       <td>${paso2}</td>
-      <td>${r.armado && r.n_cerrados && r.wr_cerrados!=null ? r.wr_cerrados.toFixed(0)+'%' : '—'}</td>
-      <td>${r.armado ? regTxt : '—'}</td>
+      <td>${G && G.wr!=null ? G.wr.toFixed(0)+'%' : '—'}</td>
     </tr>`;
   }).join('');
 
@@ -2495,7 +2539,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','embudo','simbolo','curva','tpcond','ek3'].forEach(t=>{
+  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','tpcond','ek3'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -2735,51 +2779,52 @@ function renderExtrasAbiertas(){
 
 // ── GRADUACIÓN ───────────────────────────────────────────────────────────────────────────
 function renderExtrasGraduacion(rows){
-  // Dos poblaciones distintas, nunca mezcladas: segmentos NEGATIVOS armados corren un ESPEJO (dirección
-  // contraria, capital cero); los POSITIVOS armados son watch sobre su propio log (LIVE/SOMBRA).
+  // Watch universal (#S123): TODO armado se mide sobre su BASE. El signo solo fija el SENTIDO: positivo = graduar (↑, verde),
+  // negativo = vetar (↓, rojo). Los espejos ya no entran aquí: viven en el tab "Espejos".
   const arm = rows.filter(r=>r.armado && r.gate);
-  const esEsp = (r)=> r.signo==='negativo';
-  const armW = arm.filter(r=>!esEsp(r)), armE = arm.filter(esEsp);
+  const esVeto = (r)=> r.signo==='negativo';
+  const armG = arm.filter(r=>!esVeto(r)), armV = arm.filter(esVeto);
   const n = (f)=> rows.filter(f).length;
-  const splitRow = (label, fW, fE, mx, extra)=>{
-    const t = fW + fE, wW = mx ? 100*fW/mx : 0, wE = mx ? 100*fE/mx : 0;
+  const splitRow = (label, fG, fV, mx, extra)=>{
+    const t = fG + fV, wG = mx ? 100*fG/mx : 0, wV = mx ? 100*fV/mx : 0;
     return `<div style="margin-bottom:9px"><div style="display:flex; justify-content:space-between; gap:10px; font-size:0.82rem; margin-bottom:3px">
-      <span>${label}</span><span><b>${xInt(t)}</b> <span class="hint" style="margin:0">${extra||''} · watch ${fW} · espejo ${fE}</span></span></div>
+      <span>${label}</span><span><b>${xInt(t)}</b> <span class="hint" style="margin:0">${extra||''} · graduar ${fG} · vetar ${fV}</span></span></div>
       <div style="background:var(--panel2); border-radius:5px; height:12px; overflow:hidden; display:flex">
-        <div style="width:${wW}%; background:${X_LIVE}" title="watch (positivo)"></div><div style="width:${wE}%; background:${X_ESP}" title="espejo (negativo)"></div></div></div>`;
+        <div style="width:${wG}%; background:${X_POS}" title="graduar (positivo)"></div><div style="width:${wV}%; background:${X_NEG}" title="vetar (negativo)"></div></div></div>`;
   };
   const mx = Math.max(1, rows.length), mxArm = Math.max(1, arm.length);
   const cnt = (list, f)=> list.filter(f).length;
   document.getElementById('gradFunnel').innerHTML =
       xBarRow('Segmentos del menú (familia×corte×dir)', rows.length, mx, X_MUT, '')
     + xBarRow('Paso 0 · watch: N hist.≥30', n(r=>r.n_hist>=30), mx, X_IDX, (100*n(r=>r.n_hist>=30)/mx).toFixed(1)+'% del total')
-    + splitRow('Armados', armW.length, armE.length, mxArm, '')
-    + splitRow('N forward ≥ 40', cnt(armW,r=>r.gate.n_c2>=40), cnt(armE,r=>r.gate.n_c2>=40), mxArm, '')
-    + splitRow('N forward ≥ 100', cnt(armW,r=>r.gate.n_c2>=100), cnt(armE,r=>r.gate.n_c2>=100), mxArm, '')
-    + splitRow('≥ 8 semanas forward', cnt(armW,r=>r.gate.semanas>=8), cnt(armE,r=>r.gate.semanas>=8), mxArm, '')
-    + splitRow('Paso 1 · CANDIDATA', cnt(armW,r=>r.gate.estado==='CANDIDATA'), cnt(armE,r=>r.gate.estado==='CANDIDATA'), mxArm, '')
-    + `<div class="hint"><span style="color:${X_LIVE}">■</span> watch (positivo, su propio log) · <span style="color:${X_ESP}">■</span> espejo (negativo, dirección contraria). Desde "Armados" las barras se miden sobre los ${arm.length} armados.</div>`;
+    + splitRow('Armados (watch sobre su base)', armG.length, armV.length, mxArm, '')
+    + splitRow('N forward ≥ 40', cnt(armG,r=>r.gate.n_c2>=40), cnt(armV,r=>r.gate.n_c2>=40), mxArm, '')
+    + splitRow('N forward ≥ 100', cnt(armG,r=>r.gate.n_c2>=100), cnt(armV,r=>r.gate.n_c2>=100), mxArm, '')
+    + splitRow('≥ 8 semanas forward', cnt(armG,r=>r.gate.semanas>=8), cnt(armV,r=>r.gate.semanas>=8), mxArm, '')
+    + splitRow('Paso 1 · CANDIDATA', cnt(armG,r=>r.gate.estado==='CANDIDATA'), cnt(armV,r=>r.gate.estado==='CANDIDATA'), mxArm, '')
+    + splitRow('REFUTADA (la base va contra la hipótesis, evidencia madura)', cnt(armG,r=>r.gate.estado==='REFUTADA'), cnt(armV,r=>r.gate.estado==='REFUTADA'), mxArm, '')
+    + `<div class="hint"><span style="color:${X_POS}">■</span> graduar (positivo: la base debe ganar) · <span style="color:${X_NEG}">■</span> vetar (negativo: la base debe perder). Desde "Armados" las barras se miden sobre los ${arm.length} armados.</div>`;
 
-  // qué condición falta más — apilado por población
-  const cat = (s)=> /^N /.test(s) ? 'N forward' : /semanas/.test(s) ? 'semanas' : /IC/.test(s) ? 'IC dif vs azar' : /signo/.test(s) ? 'signo entre mitades'
-                  : /A-02|sistema/i.test(s) ? 'mejora al sistema (A-02)' : 'otra';
-  const faltaDe = (list)=>{ const f = {}; list.forEach(r=> (r.gate.falta||[]).forEach(s=>{ const c = cat(s); f[c] = (f[c]||0)+1; })); return f; };
-  const fW = faltaDe(armW), fE = faltaDe(armE);
-  const cats = [...new Set(Object.keys(fW).concat(Object.keys(fE)))].sort((x,y)=> ((fW[y]||0)+(fE[y]||0)) - ((fW[x]||0)+(fE[x]||0)));
+  // qué condición falta más — apilado por sentido
+  const cat = (s2)=> /^N /.test(s2) ? 'N forward' : /semanas/.test(s2) ? 'semanas' : /IC/.test(s2) ? 'IC dif vs azar' : /signo/.test(s2) ? 'signo entre mitades'
+                  : /A-02|sistema/i.test(s2) ? 'mejora al sistema (A-02)' : 'otra';
+  const faltaDe = (list)=>{ const f = {}; list.forEach(r=> (r.gate.falta||[]).forEach(s2=>{ const c = cat(s2); f[c] = (f[c]||0)+1; })); return f; };
+  const fG = faltaDe(armG), fV = faltaDe(armV);
+  const cats = [...new Set(Object.keys(fG).concat(Object.keys(fV)))].sort((x,y)=> ((fG[y]||0)+(fV[y]||0)) - ((fG[x]||0)+(fV[x]||0)));
   xChart('chartGradFalta', { type:'bar',
     data:{ labels: cats, datasets:[
-      { label:`watch (n=${armW.length})`, data: cats.map(c=>fW[c]||0), backgroundColor:X_LIVE+'cc', stack:'s' },
-      { label:`espejo (n=${armE.length})`, data: cats.map(c=>fE[c]||0), backgroundColor:X_ESP+'cc', stack:'s' } ] },
+      { label:`graduar (n=${armG.length})`, data: cats.map(c=>fG[c]||0), backgroundColor:X_POS+'cc', stack:'s' },
+      { label:`vetar (n=${armV.length})`, data: cats.map(c=>fV[c]||0), backgroundColor:X_NEG+'cc', stack:'s' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
       tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${c.raw} segmentos no la cumplen`}}},
       scales:{ x:{ stacked:true, ...X_AX }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT} } } } });
 
-  // los armados más avanzados (progreso = el menor entre N/100 y semanas/8), con su población en la etiqueta
+  // los armados más avanzados (progreso = el menor entre N/100 y semanas/8), con su sentido en la etiqueta
   const prog = arm.map(r=>({ r, pN: Math.min(1, r.gate.n_c2/100), pS: Math.min(1, r.gate.semanas/8) }))
     .map(x=>({ ...x, p: Math.min(x.pN, x.pS) })).sort((a,b)=> b.p - a.p || b.pN - a.pN).slice(0,15);
   document.getElementById('chartGradProgWrap').style.height = Math.max(300, prog.length*26+70)+'px';
   xChart('chartGradProg', { type:'bar',
-    data:{ labels: prog.map(x=>`${esEsp(x.r)?'[espejo]':'[watch]'} ${x.r.familia} · ${x.r.corte} ${x.r.dir}`), datasets:[
+    data:{ labels: prog.map(x=>`${esVeto(x.r)?'[↓ vetar]':'[↑ graduar]'} ${x.r.familia} · ${x.r.corte} ${x.r.dir}`), datasets:[
       { label:'N fwd / 100', data: prog.map(x=>100*x.pN), backgroundColor:X_IDX+'dd' },
       { label:'semanas / 8', data: prog.map(x=>100*x.pS), backgroundColor:X_ROSA+'cc' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
@@ -2787,23 +2832,139 @@ function renderExtrasGraduacion(rows){
         afterBody:(it)=>{ const g = prog[it[0].dataIndex].r.gate; return `${g.estado}${g.dif_mean!=null?' · dif vs azar '+xR(g.dif_mean,2):''}`; }}}},
       scales:{ x:{ max:100, grid:{color:'#232a36'}, ticks:{color:X_MUT, callback:(v)=>v+'%'} }, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
 
-  // distribución de la diferencia forward vs azar (C2) — watch y espejo apilados, no mezclados
+  // diferencia forward vs azar EN EL SENTIDO DE LA HIPÓTESIS (s·dif): >0 = la base va como se armó
   const bins = 16, lo = -4, hi = 4, w = (hi-lo)/bins;
   const hist = (list)=>{ const c = new Array(bins).fill(0); list.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5)
-    .forEach(r=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, r.gate.dif_mean))-lo)/w); c[i]++; }); return c; };
-  const cW = hist(armW), cE = hist(armE);
+    .forEach(r=>{ const v = r.gate.dif_mean * (r.gate.sgn||1); let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, v))-lo)/w); c[i]++; }); return c; };
+  const cG = hist(armG), cV = hist(armV);
   xChart('chartGradDif', { type:'bar',
-    data:{ labels: cW.map((_,i)=> (lo+i*w).toFixed(1)), datasets:[
-      { label:'watch', data:cW, backgroundColor:X_LIVE+'cc', stack:'s' },
-      { label:'espejo', data:cE, backgroundColor:X_ESP+'cc', stack:'s' } ] },
+    data:{ labels: cG.map((_,i)=> (lo+i*w).toFixed(1)), datasets:[
+      { label:'graduar', data:cG, backgroundColor:X_POS+'cc', stack:'s' },
+      { label:'vetar', data:cV, backgroundColor:X_NEG+'cc', stack:'s' } ] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:{callbacks:{label:(c2)=>`${c2.dataset.label}: ${c2.raw} segmentos`}}},
-      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'dif forward vs azar (R) — armados con N≥5',color:X_MUT} }, y:{ stacked:true, ...X_AX } } } });
-  const sumDif = (list)=> { const d = list.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5); return { n:d.length, p:d.filter(r=>r.gate.dif_mean>0).length }; };
-  const dW = sumDif(armW), dE = sumDif(armE);
-  document.getElementById('gradDifTxt').innerHTML = (dW.n+dE.n)
-    ? `Watch: ${dW.n} segmentos con N fwd≥5, <b class="pos">${dW.p}</b> con diferencia &gt;0. Espejo: ${dE.n} segmentos, <b class="pos">${dE.p}</b> con diferencia &gt;0. Con tantos segmentos parte de los positivos es azar — la regla es el IC90 y N≥100, no esta barra.`
+      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'dif forward vs azar en el sentido de la hipótesis (R; >0 = la base va como se armó) — armados con N≥5',color:X_MUT} }, y:{ stacked:true, ...X_AX } } } });
+  const sumDif = (list)=> { const d = list.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5); return { n:d.length, p:d.filter(r=>r.gate.dif_mean*(r.gate.sgn||1)>0).length }; };
+  const dG = sumDif(armG), dV = sumDif(armV);
+  document.getElementById('gradDifTxt').innerHTML = (dG.n+dV.n)
+    ? `Graduar: ${dG.n} segmentos con N fwd≥5, <b class="pos">${dG.p}</b> van como se armaron. Vetar: ${dV.n} segmentos, <b class="pos">${dV.p}</b> van como se armaron (la base pierde). Con tantos segmentos parte es azar — la regla es el IC90 y N≥100, no esta barra.`
     : 'Aún sin segmentos con N forward ≥5.';
+
+  // ── rescate de forward (conteos, ningún resultado) ──
+  const R = state.data.rescate;
+  const kEl = document.getElementById('gradRescateKpis'), tEl = document.getElementById('gradRescateTxt');
+  if (!R || R.error || !R.resumen){ kEl.innerHTML = ''; tEl.innerHTML = `<div class="hint">Sin datos de rescate todavía${R&&R.error?' ('+R.error+')':''}.</div>`; return; }
+  const T = R.resumen.todos, NG = R.resumen.negativos, PG = R.resumen.positivos;
+  const cob = R.cobertura_espejo || {}, cobPct = (cob.con||0)+(cob.sin||0) ? 100*cob.con/(cob.con+cob.sin) : null;
+  kEl.innerHTML = xKpi('Segmentos armados', xInt(T.segmentos), `${PG.segmentos} graduar · ${NG.segmentos} vetar`)
+    + xKpi('Trades base forward', xInt(T.n_base_fwd_total), `${xInt(NG.n_base_fwd_total)} de negativos que antes solo se medían por su espejo`)
+    + xKpi('Con N ≥ 15', xInt(T.con_N_ge_15), `de ${T.segmentos} · N≥100: ${T.con_N_ge_100}`)
+    + xKpi('Sin ritmo (14 d)', xInt(T.sin_ritmo), 'sin trades recientes: candidatos a revisar/archivar')
+    + xKpi('ETA graduación (mediana)', T.eta_mediana_dias!=null ? Math.round(T.eta_mediana_dias)+' d' : '—', `mín ${T.eta_min_dias!=null?Math.round(T.eta_min_dias):'—'} d · máx ${T.eta_max_dias!=null?Math.round(T.eta_max_dias).toLocaleString('es'):'—'} d`)
+    + xKpi('Espejo por disparo', cobPct!=null ? cobPct.toFixed(0)+'%' : '—', `${xInt(cob.con)} de ${xInt((cob.con||0)+(cob.sin||0))} cierres SOMBRA`);
+  const segs = R.segmentos || [];
+  const edges = [[0,35,'≤35 d'],[35,60,'36-60 d'],[60,90,'61-90 d'],[90,120,'91-120 d'],[120,365,'121-365 d'],[365,1e9,'>1 año']];
+  const bucket = (sg, lo2, hi2)=> segs.filter(x=>x.signo===sg && x.eta_graduacion_dias!=null && x.eta_graduacion_dias>lo2 && x.eta_graduacion_dias<=hi2 + (lo2===0?0:0)).length;
+  const sinR = (sg)=> segs.filter(x=>x.signo===sg && x.eta_graduacion_dias==null).length;
+  const labs = edges.map(e=>e[2]).concat(['sin ritmo']);
+  xChart('chartGradEta', { type:'bar',
+    data:{ labels: labs, datasets:[
+      { label:'graduar', data: edges.map(e=>bucket('positivo', e[0]-(e[0]===0?1:0), e[1])).concat([sinR('positivo')]), backgroundColor:X_POS+'cc', stack:'s' },
+      { label:'vetar', data: edges.map(e=>bucket('negativo', e[0]-(e[0]===0?1:0), e[1])).concat([sinR('negativo')]), backgroundColor:X_NEG+'cc', stack:'s' } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${c.raw} segmentos`}}},
+      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT} }, y:{ stacked:true, ...X_AX } } } });
+  const arm0 = segs.map(x=>x.dias_desde_armado).filter(v=>v!=null);
+  const primero = segs.filter(x=>x.eta_sem_dias!=null).map(x=>x.eta_sem_dias).sort((a,b)=>a-b)[0];
+  tEl.innerHTML = `<ul style="margin:0; padding-left:18px">
+    <li><b>${xInt(Math.round(T.dias_forward_total))}</b> días-segmento de forward acumulados y <b>${xInt(T.n_base_fwd_total)}</b> trades base se conservan: ninguno se resetea al pasar a watch universal.</li>
+    <li>El cuello es el <b>reloj</b>: ${T.con_8_semanas} segmentos cumplen ≥8 semanas y ${T.con_N_ge_100} N≥100; el primero cumpliría las 8 semanas en <b>${primero!=null?Math.ceil(primero):'—'}</b> d.</li>
+    <li><b>${T.sin_ritmo}</b> de ${T.segmentos} segmentos no tuvieron trades en 14 días (ETA no estimable): revisar o archivar es una decisión aparte.</li>
+    <li>El espejo por disparo cubre ${cobPct!=null?cobPct.toFixed(0):'—'}% de los cierres de SOMBRA, por familia (no por fecha): solo lo llevan unas ~13 familias. Limita el tab Espejos, no la graduación.</li>
+    <li>No se rescata a propósito: el histórico previo al armado ni el forward tras cambiar de hipótesis sin T0 nuevo (sería circular).</li></ul>`;
 }
+
+// ── ESPEJOS (#S123) · la dirección contraria de cada negativo, informativo y separado de Graduación ─────────────────
+function renderEspejos(){
+  const lista = (state.data && state.data.espejos || []).filter(e=>e.signo==='negativo');
+  const E = state.esp;
+  const f2 = (x)=> (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(2));
+  const NA = '<span class="hint" style="margin:0">—</span>';
+  const todas = lista.map(e=>{
+    const g = e.gate || {}, ge = g.espejo || null, fb = e.fwd_base || {};
+    const ic = e.ic90_R_cerrados, icb = fb.ic90, n = e.n_cerrados || 0, nb = fb.n || 0;
+    const mGana = !!(ic && ic[0] > 0), mPierde = !!(ic && ic[1] < 0), bGana = !!(icb && icb[0] > 0), bPierde = !!(icb && icb[1] < 0);
+    let lectura, cls;
+    if (mGana)                    { lectura = 'espejo gana · pista (¿invertir?)'; cls = 'badge-pos'; }
+    else if (bGana && mPierde)    { lectura = 'base gana · espejo pierde (contradice el veto)'; cls = 'badge-arm'; }
+    else if (mPierde && bPierde)  { lectura = 'ambos pierden'; cls = 'badge-neg'; }
+    else if (bPierde)             { lectura = 'base pierde (sostiene el veto) · espejo sin ventaja'; cls = 'badge-neg'; }
+    else if (n < 15 && nb < 15)   { lectura = 'N bajo'; cls = 'badge-wait'; }
+    else                          { lectura = 'sin evidencia (IC90 cruza 0)'; cls = 'badge-wait'; }
+    return { familia:e.familia, corte:e.corte, dir:e.dir, edir: e.espejo_dir || (e.dir==='LONG' ? 'SHORT' : 'LONG'), n, mean:e.mean_R_cerrados, ic, wr:e.wr_cerrados,
+             abiertas:e.abiertas||0, difm: ge ? ge.dif_mean : null, dific: ge ? ge.dif_ic : null, nb, meanb: fb.mean_R, icb, lectura, cls, reg:e.regimen_cerrados,
+             estEsp: ge ? ge.estado : null };
+  });
+  // KPIs
+  const con = todas.filter(r=>r.n>=15);
+  const gana = con.filter(r=>r.ic && r.ic[0]>0).length, pierde = con.filter(r=>r.ic && r.ic[1]<0).length;
+  const ambos = todas.filter(r=>r.n>=15 && r.nb>=15 && r.lectura==='ambos pierden').length;
+  const pares = todas.filter(r=>r.n>=15 && r.nb>=15 && r.mean!=null && r.meanb!=null);
+  let corr = null;
+  if (pares.length >= 5){
+    const mx = pares.reduce((a,r)=>a+r.meanb,0)/pares.length, my = pares.reduce((a,r)=>a+r.mean,0)/pares.length;
+    const sxy = pares.reduce((a,r)=>a+(r.meanb-mx)*(r.mean-my),0), sx = Math.sqrt(pares.reduce((a,r)=>a+(r.meanb-mx)**2,0)), sy = Math.sqrt(pares.reduce((a,r)=>a+(r.mean-my)**2,0));
+    corr = (sx && sy) ? sxy/(sx*sy) : null;
+  }
+  const k = (l, v, sub, c)=> xKpi(l, v, sub, c);
+  document.getElementById('espKpis').innerHTML =
+      k('Negativos armados', xInt(todas.length), `${con.length} con espejo N≥15`)
+    + k('Espejo gana (IC90>0)', String(gana), 'pistas, no candidatos', 'pos')
+    + k('Espejo pierde (IC90<0)', String(pierde), 'la contraria no funciona', 'neg')
+    + k('Ambos pierden', String(ambos), 'base y espejo con IC90<0')
+    + k('Correlación base↔espejo', corr!=null ? corr.toFixed(2) : '—', corr!=null ? `${pares.length} segmentos con N≥15 en ambos` : 'faltan segmentos con N≥15')
+    + k('Espejos abiertos', xInt(todas.reduce((a,r)=>a+r.abiertas,0)), 'corriendo ahora');
+  // scatter base vs espejo
+  const col = { 'badge-pos':X_POS, 'badge-arm':X_IDX, 'badge-neg':X_NEG, 'badge-wait':'#8b96a8' };
+  const nombres = { 'badge-pos':'espejo gana', 'badge-arm':'base gana · espejo pierde', 'badge-neg':'pierden / base pierde', 'badge-wait':'sin evidencia' };
+  const maxN = Math.max(1, ...pares.map(r=>r.n));
+  xChart('chartEspScatter', { type:'scatter',
+    data:{ datasets: Object.keys(col).map(c=>({ label:nombres[c], backgroundColor:col[c]+'bb', borderColor:col[c],
+        data: pares.filter(r=>r.cls===c).map(r=>({ x:r.meanb, y:r.mean, r:4+8*Math.sqrt(r.n/maxN), t:`${r.familia} · ${r.corte} ${r.dir}`, n:r.n, nb:r.nb })) }))
+      .concat([{ label:'espejo perfecto (R_esp = −R_base)', type:'line', data:[{x:-3,y:3},{x:3,y:-3}], borderColor:X_MUT, borderDash:[4,3], pointRadius:0, borderWidth:1 }]) },
+    options:{ responsive:true, maintainAspectRatio:false, elements:{ point:{ radius:(c)=> (c.raw && c.raw.r) || 5 } },
+      plugins:{ legend:X_LEG, tooltip:{ callbacks:{ label:(c)=>{ const p=c.raw; return p.t ? `${p.t}: base ${xR(p.x)} (N=${p.nb}) · espejo ${xR(p.y)} (N=${p.n})` : ''; } } } },
+      scales:{ x:{ ...X_AX, title:{display:true,text:'mean_R de la base (forward desde el armado)',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R del espejo (dirección contraria)',color:X_MUT} } } } });
+  // barras del espejo
+  const conN = todas.filter(r=>r.n>=15 && r.mean!=null).sort((a,b)=>b.mean-a.mean);
+  const barras = conN.length>24 ? conN.slice(0,12).concat(conN.slice(-12)) : conN;
+  document.getElementById('chartEspBarWrap').style.height = Math.max(240, barras.length*19+60)+'px';
+  xChart('chartEspBar', { type:'bar',
+    data:{ labels: barras.map(r=>`${r.familia} · ${r.corte} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n}${r.ic?` · IC90 [${r.ic[0].toFixed(2)}, ${r.ic[1].toFixed(2)}]`:''}`; }}}},
+      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
+  // tabla
+  const q = (E.busca||'').trim().toLowerCase();
+  let rows = todas.filter(r=>!q || (r.familia+' '+r.corte).toLowerCase().includes(q));
+  document.getElementById('espCount').innerHTML = `<b>${rows.length}</b> / ${todas.length} segmentos`;
+  const th = (c,l,t)=> `<th data-col="${c}" title="${t||''}">${l}</th>`;
+  const thead = document.querySelector('#tablaEsp thead'), tbody = document.querySelector('#tablaEsp tbody');
+  thead.innerHTML = '<tr>' + th('familia','familia') + th('corte','segmento') + th('dir','base') + th('edir','espejo','dirección del espejo (contraria)')
+    + th('n','N espejo') + th('mean','mean_R espejo') + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('difm','dif vs azar (C2)','espejo menos el azar del mismo símbolo y semana')
+    + th('nb','N base') + th('meanb','mean_R base') + th('abiertas','abiertas') + '<th class="nosort">régimen BTC (R/B/Be)</th><th class="nosort">lectura</th></tr>';
+  rows = E.sort.col ? sortRows(rows, E.sort) : rows.sort((a,b)=> b.n - a.n);
+  tbody.innerHTML = rows.map(r=>{
+    const ex = r.ic && (r.ic[0]>0 || r.ic[1]<0), poco = r.n < 15;
+    const reg = r.reg ? `${r.reg.RANGE}/${r.reg.BULL}/${r.reg.BEAR}` : '—';
+    return `<tr style="${poco?'opacity:.6':''}"><td>${r.familia}</td><td>${r.corte}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td>`
+      + `<td>${r.n}</td><td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td>`
+      + `<td>${r.ic ? `[${f2(r.ic[0])}, ${f2(r.ic[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr!=null ? r.wr.toFixed(0)+'%' : '—'}</td>`
+      + `<td class="${r.difm==null?'':(r.difm>=0?'pos':'neg')}">${f2(r.difm)}${r.dific?` <span class="hint" style="margin:0">[${f2(r.dific[0])}, ${f2(r.dific[1])}]</span>`:''}</td>`
+      + `<td>${r.nb}</td><td class="${r.meanb==null?'':(r.meanb>=0?'pos':'neg')}">${f2(r.meanb)}</td><td>${r.abiertas}</td><td>${reg}</td><td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="14" class="hint">Sin segmentos negativos armados.</td></tr>';
+  document.getElementById('espNota').innerHTML = '* = IC90 (clúster por símbolo) excluye 0. Atenuado = N espejo &lt; 15. "base" = su propio log desde el armado original (lo que mide Graduación). Una lectura "espejo gana" es una pista para pre-registrar, nunca una graduación.';
+  bindSort(thead, E.sort, renderEspejos);
+}
+document.getElementById('espBusca').addEventListener('input', (e)=>{ state.esp.busca = e.target.value; renderEspejos(); });
 
 // ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
 function renderExtrasSimbolo(universo){
@@ -3101,6 +3262,7 @@ fetch('data.json?_=' + Date.now())
     renderTpCondicional();
     renderEk3();
     renderExtrasTodos();
+    try { renderEspejos(); } catch(e){ console.error('espejos', e); }
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
