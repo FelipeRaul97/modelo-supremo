@@ -210,7 +210,7 @@
   <div class="kpis" id="abiertasKpis"></div>
   <div class="grid2">
     <div class="panel"><h2>Distribución del uPnL (R) de las abiertas</h2><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
-    <div class="panel"><h2>Abiertas por familia &middot; dirección</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
+    <div class="panel"><h2>Abiertas por familia (con su dirección) &middot; por origen</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
   </div>
   <div class="panel"><h2><span class="tag LIVE">LIVE</span> Progreso de cada posición entre SL y TP</h2><div id="liveProgreso"></div></div>
 
@@ -2593,17 +2593,27 @@ function renderExtrasAbiertas(){
       scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, maxTicksLimit:14}, title:{display:true,text:'uPnL (R)',color:X_MUT} },
                y:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} } } } });
 
-  // abiertas por familia × dirección (LIVE + SOMBRA + ESPEJO)
+  // abiertas por familia (con SU dirección), apiladas por ORIGEN. Cada familia opera en una sola
+  // dirección; el ESPEJO abre en la contraria por diseño (#S81), así que se agrupa bajo la dirección
+  // de su familia base (la opuesta a la del espejo) — mezclarlas por `dir` hacía que una familia
+  // pareciera operar LONG y SHORT a la vez.
+  const dirBase = (o, p)=> o==='ESPEJO' ? (p.dir==='LONG' ? 'SHORT' : 'LONG') : p.dir;
   const porFam = {};
-  grupos.forEach(([o,rows])=> rows.forEach(p=>{ const g = (porFam[p.familia] = porFam[p.familia] || { f:p.familia, L:0, S:0, sumR:0, nR:0 }); (p.dir==='LONG'?g.L++:g.S++); if (p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; } }));
-  const fams = Object.values(porFam).sort((x,y)=>(y.L+y.S)-(x.L+x.S)).slice(0,22);
+  grupos.forEach(([o,rows])=> rows.forEach(p=>{
+    const key = p.familia + ' · ' + dirBase(o,p);
+    const g = (porFam[key] = porFam[key] || { k:key, LIVE:0, SOMBRA:0, ESPEJO:0, sumR:0, nR:0 });
+    g[o]++;
+    if (o!=='ESPEJO' && p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; }
+  }));
+  const fams = Object.values(porFam).sort((x,y)=>(y.LIVE+y.SOMBRA+y.ESPEJO)-(x.LIVE+x.SOMBRA+x.ESPEJO)).slice(0,22);
   document.getElementById('chartAbFamWrap').style.height = Math.max(280, fams.length*19+60)+'px';
   xChart('chartAbFam', { type:'bar',
-    data:{ labels: fams.map(g=>g.f), datasets:[
-      { label:'LONG', data:fams.map(g=>g.L), backgroundColor:X_POS+'cc', stack:'s' },
-      { label:'SHORT', data:fams.map(g=>g.S), backgroundColor:X_NEG+'cc', stack:'s' } ] },
+    data:{ labels: fams.map(g=>g.k), datasets:[
+      { label:'LIVE', data:fams.map(g=>g.LIVE), backgroundColor:X_LIVE+'dd', stack:'s' },
+      { label:'SOMBRA', data:fams.map(g=>g.SOMBRA), backgroundColor:X_SOM+'cc', stack:'s' },
+      { label:'ESPEJO (dir. contraria)', data:fams.map(g=>g.ESPEJO), backgroundColor:X_ESP+'99', stack:'s' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
+      plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio (LIVE+SOMBRA) ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
       scales:{ x:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
 
   // progreso a TP vs SL de cada posición LIVE (barra −1R … TP), con edad
