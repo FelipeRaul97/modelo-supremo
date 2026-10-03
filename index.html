@@ -346,14 +346,21 @@
     </div>
   </div>
   <div class="panel" id="curvaPanorama" style="display:none;">
-    <h2>Panorama &middot; todas las celdas a la vez</h2>
-    <div class="hint" style="margin-top:0">Las selecciones de abajo miran UNA celda; esto resume todas para ver el patr&oacute;n: por qu&eacute; casi nada se sugiere, cu&aacute;ndo llegan los trades a su pico, y cu&aacute;nto &ldquo;potencial&rdquo; hay en cambiar el TP (sin corregir multiplicidad: lo que est&eacute; lejos de la diagonal es en gran parte selecci&oacute;n del mejor de 6).</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px">
+      <h2 style="margin:0">Panorama &middot; <span id="curvaPanTitulo">todas las celdas</span></h2>
+      <div class="segmented" id="curvaPanScope">
+        <div class="seg-btn" data-scope="dir">Familia + dirección elegidas</div>
+        <div class="seg-btn" data-scope="familia">Familia elegida</div>
+        <div class="seg-btn" data-scope="todas">Todas las celdas</div>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:8px">Sigue la selecci&oacute;n de arriba (familia / direcci&oacute;n / segmento): el punto amarillo del gr&aacute;fico de dispersi&oacute;n es la celda elegida. Resume las celdas del alcance para ver el patr&oacute;n: por qu&eacute; casi nada se sugiere, cu&aacute;ndo llegan los trades a su pico, y cu&aacute;nto &ldquo;potencial&rdquo; hay en cambiar el TP (sin corregir multiplicidad: lo que est&eacute; lejos de la diagonal es en gran parte selecci&oacute;n del mejor de 6).</div>
     <div class="kpis" id="curvaPanoramaKpis" style="margin-top:12px"></div>
     <div class="grid2">
       <div class="panel" style="margin:0"><h2>Por qu&eacute; (no) se sugiere un cambio de salida</h2><div class="chart-wrap small"><canvas id="chartCurvaMotivos"></canvas></div></div>
       <div class="panel" style="margin:0"><h2>Horas hasta el pico del MFE (mediana por celda)</h2><div class="chart-wrap small"><canvas id="chartCurvaPico"></canvas></div></div>
     </div>
-    <div class="panel" style="margin:14px 0 0"><h2>TP actual vs mejor TP del barrido (celdas N&ge;40)</h2><div class="chart-wrap"><canvas id="chartCurvaPotencial"></canvas></div></div>
+    <div class="panel" style="margin:14px 0 0"><h2>TP actual vs mejor TP del barrido (celdas N&ge;40 del alcance + la elegida)</h2><div class="chart-wrap"><canvas id="chartCurvaPotencial"></canvas></div></div>
   </div>
   <div class="panel" id="curvaPanelChart" style="display:none;">
     <h2>MFE_R acumulado por hora de hold (p25 / mediana / p75, sobre supervivientes)</h2>
@@ -590,7 +597,7 @@ const state = {
   filtroGraduacionFamilia: new Set(),
   // 🔧 2026-09-25 · selección (única, no Set) del tab Curva de acumulación —
   // una celda familia×dirección×segmento a la vez, no un filtro multi-select.
-  curva: { familia: null, direccion: null, corte: null },
+  curva: { familia: null, direccion: null, corte: null, scope: 'dir' },
   // 🔧 2026-10-03 · E_K3 por segmento: filtro de dirección y orden del detalle.
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
 };
@@ -2271,6 +2278,7 @@ function renderCurva(){
     state.curva.corte = cortesDisp.includes('TODOS') ? 'TODOS' : cortesDisp[0];
   }
   const corteSel = state.curva.corte;
+  try { renderExtrasCurva(); } catch(e){ console.error('extras curva', e); }   // el panorama sigue la selección
 
   const boxFam = document.getElementById('curvaFamiliaFilter');
   boxFam.innerHTML = '';
@@ -2970,7 +2978,18 @@ function renderExtrasCurva(){
   const box = document.getElementById('curvaPanorama');
   if (!ca || !ca.celdas){ box.style.display = 'none'; return; }
   box.style.display = '';
-  const cel = Object.entries(ca.celdas).map(([k,v])=>({ k, ...v }));
+  const todasCel = Object.entries(ca.celdas).map(([k,v])=>({ k, ...v }));
+  const sel = state.curva, selKey = `${sel.familia}|${sel.direccion}|${sel.corte}`;
+  const scope = sel.scope || 'dir';
+  const cel = scope==='todas' ? todasCel
+    : scope==='familia' ? todasCel.filter(c=>c.k.split('|')[0]===sel.familia)
+    : todasCel.filter(c=>{ const [f,d] = c.k.split('|'); return f===sel.familia && d===sel.direccion; });
+  document.getElementById('curvaPanTitulo').textContent = scope==='todas' ? `todas las celdas (${cel.length})`
+    : scope==='familia' ? `${sel.familia} · ${cel.length} celdas` : `${sel.familia} ${sel.direccion} · ${cel.length} celdas`;
+  document.querySelectorAll('#curvaPanScope .seg-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.scope === scope);
+    b.onclick = ()=>{ state.curva.scope = b.dataset.scope; renderExtrasCurva(); };
+  });
   const grad = cel.filter(c=>c.n>=ca.n_min_graduado);
   // por qué no se sugiere nada: clasificación de motivos por barrido
   const clasif = (m)=> !m ? 'sin dato' : m.determinable ? 'SUGERIDO' : /N<40/.test(m.motivo) ? 'N<40 (aún no evaluable)'
@@ -2992,11 +3011,15 @@ function renderExtrasCurva(){
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`${c.raw} celdas`}}},
       scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'mediana de horas hasta el pico del MFE',color:X_MUT} }, y:X_AX } } });
   // potencial vs ruido: mean_R actual vs mejor mean_R del barrido de TP (celdas N≥40)
-  const pts = grad.map(c=>{ const sw = Object.values(c.sweep_tp||{}); const best = sw.length ? Math.max(...sw.map(s=>s.mean_R)) : null;
-    return { x:c.tp_actual.mean_R, y:best, k:c.k, n:c.n }; }).filter(p=>p.y!=null);
+  const ptDe = (c)=>{ const sw = Object.values(c.sweep_tp||{}); const best = sw.length ? Math.max(...sw.map(s=>s.mean_R)) : null;
+    return { x:c.tp_actual ? c.tp_actual.mean_R : null, y:best, k:c.k, n:c.n }; };
+  const pts = grad.filter(c=>c.k!==selKey).map(ptDe).filter(p=>p.y!=null && p.x!=null);
+  const celSel = todasCel.find(c=>c.k===selKey);
+  const ptSel = celSel ? ptDe(celSel) : null;
   xChart('chartCurvaPotencial', { type:'scatter',
     data:{ datasets:[
       { label:'celda (N≥40)', data:pts, backgroundColor:X_ROSA+'aa', pointRadius:4 },
+      { label:'celda elegida' + (celSel ? ` (N=${celSel.n})` : ''), data: (ptSel && ptSel.y!=null && ptSel.x!=null) ? [ptSel] : [], backgroundColor:'#ffe066', borderColor:'#ffffff', borderWidth:2, pointRadius:9, pointStyle:'rectRot' },
       { label:'y = x (sin ganancia)', type:'line', data:[{x:-3,y:-3},{x:3,y:3}], borderColor:X_MUT, borderDash:[4,3], pointRadius:0, borderWidth:1 } ] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
       tooltip:{callbacks:{label:(c)=>{ const p=c.raw; return p.k ? `${p.k}: actual ${xR(p.x,2)} → mejor TP ${xR(p.y,2)} (N=${p.n})` : ''; }}}},
@@ -3006,10 +3029,12 @@ function renderExtrasCurva(){
   const neg = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[1]<0).length;
   const sug = cel.filter(c=>['mejor_tp','mejor_mh','mejor_sl','mejor_joint'].some(k=>c[k] && c[k].determinable));
   document.getElementById('curvaPanoramaKpis').innerHTML =
-      xKpi('Celdas', xInt(cel.length), `${grad.length} con N≥${ca.n_min_graduado}`)
+      xKpi('Celdas del alcance', xInt(cel.length), `${grad.length} con N≥${ca.n_min_graduado}`)
     + xKpi('Rentables hoy (IC90>0)', String(rent), 'con el TP/MH/SL actuales, N≥40', 'pos')
     + xKpi('Perdedoras (IC90<0)', String(neg), 'con la salida actual, N≥40', 'neg')
     + xKpi('Con sugerencia', String(sug.length), sug.slice(0,3).map(c=>c.k.replace(/\|/g,' · ')).join(' / ') || 'ninguna supera los candados')
+    + xKpi('Celda elegida', celSel ? `${sel.corte} · N=${celSel.n}` : '—', celSel && ptSel && ptSel.x!=null
+        ? `TP actual ${xR(ptSel.x,2)} R · mejor TP del barrido ${xR(ptSel.y,2)} R · pico mediana ${celSel.hold_al_pico ? celSel.hold_al_pico.p50.toFixed(0)+' h' : '—'}` : 'sin datos')
     + xKpi('Grilla evaluada', `${(ca.tp_grid||[]).length}×${(ca.mh_grid||[]).length}`, `TP×MH · SL ${(ca.sl_grid||[]).join('/')}R`);
 }
 
