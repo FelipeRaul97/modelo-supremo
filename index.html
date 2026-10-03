@@ -209,8 +209,12 @@
 
   <div class="kpis" id="abiertasKpis"></div>
   <div class="grid2">
-    <div class="panel"><h2>Distribución del uPnL (R) de las abiertas</h2><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
-    <div class="panel"><h2>Abiertas por familia (con su dirección) &middot; por origen</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
+    <div class="panel"><h2>Distribución del uPnL (R) · LIVE y SOMBRA</h2><div class="hint" style="margin-top:0">% de las posiciones de cada origen en cada tramo de uPnL (así LIVE, que son pocas, se ve junto a SOMBRA). Son las familias operando en su dirección real.</div><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
+    <div class="panel"><h2>Abiertas por familia (con su dirección) &middot; LIVE y SOMBRA</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2><span class="badge-arm">ESPEJO</span> Distribución del uPnL (R) · espejos abiertos</h2><div class="hint" style="margin-top:0">Los espejos son otra población: abren en la dirección CONTRARIA a su familia, con capital cero (#S81). No se suman a LIVE/SOMBRA.</div><div class="chart-wrap small"><canvas id="chartAbHistEsp"></canvas></div></div>
+    <div class="panel"><h2><span class="badge-arm">ESPEJO</span> Espejos abiertos por familia base</h2><div id="chartAbEspWrap" style="position:relative; height:320px"><canvas id="chartAbEsp"></canvas></div></div>
   </div>
   <div class="panel"><h2><span class="tag LIVE">LIVE</span> Progreso de cada posición entre SL y TP</h2><div id="liveProgreso"></div></div>
 
@@ -300,15 +304,22 @@
     <div class="hint">Cruza LIVE (capital real), SOMBRA (familias denegadas, #S75) y ESPEJO (mini-posiciones condicionales, #S81) por símbolo — cada origen es una posición DISTINTA aunque compartan símbolo/barra, no se suman entre sí salvo que quieras verlas juntas. N mínimo 3 para IC90 clúster.</div>
     <div class="filters" id="simboloFilters" style="margin-top:10px;"></div>
   </div>
+  <div class="hint" style="margin:0 0 6px"><b>LIVE + SOMBRA</b> (familias en su dirección real)</div>
   <div class="kpis" id="simboloKpis"></div>
+  <div class="hint" style="margin:0 0 6px"><b>ESPEJO</b> (dirección contraria, capital cero) — población aparte</div>
+  <div class="kpis" id="simboloKpisEsp"></div>
   <div class="panel">
     <h2>mean_R por símbolo (top/bottom 15, filtros aplicados)</h2>
     <div class="chart-wrap"><canvas id="chartSimbolo"></canvas></div>
   </div>
   <div class="panel">
-    <h2>N vs mean_R por símbolo (tama&ntilde;o = |&Sigma;R|)</h2>
+    <h2>N vs mean_R por símbolo · LIVE + SOMBRA (tama&ntilde;o = |&Sigma;R|)</h2>
     <div class="hint" style="margin-top:0">Los s&iacute;mbolos con N bajo y mean_R extremo son ruido; los verdes/rojos son los que tienen IC90 (bootstrap simple) fuera de 0.</div>
     <div class="chart-wrap"><canvas id="chartSimboloBub"></canvas></div>
+  </div>
+  <div class="panel">
+    <h2><span class="badge-arm">ESPEJO</span> N vs mean_R por símbolo · solo espejos (tama&ntilde;o = |&Sigma;R|)</h2>
+    <div class="chart-wrap"><canvas id="chartSimboloBubEsp"></canvas></div>
   </div>
   <div class="panel">
     <h2>Tabla completa por símbolo (click en encabezado para ordenar)</h2>
@@ -2034,7 +2045,7 @@ function renderSimbolo(){
       renderSimbolo();
     };
   });
-  try { renderExtrasSimbolo(rows); } catch(e){ console.error("extras simbolo", e); }
+  try { renderExtrasSimbolo(universo); } catch(e){ console.error("extras simbolo", e); }
 }
 
 function fmtAge(ts){
@@ -2583,38 +2594,63 @@ function renderExtrasAbiertas(){
     + xKpi('ESPEJO abiertas', xInt(k('ESPEJO').n), `uPnL mean ${xR(k('ESPEJO').mean,3)}`, '')
     + xKpi('Símbolos repetidos LIVE', symDup.length ? String(symDup.length) : '0', symDup.length ? symDup.map(([s,n])=>`${s}×${n}`).join(' · ') : 'sin concentración por símbolo');
 
-  // distribución del uPnL_R (histograma por origen, mismos bins)
-  const lo = -2.5, hi = 4.5, nb = 28, w = (hi-lo)/nb;
-  const hist = (rows)=>{ const c = new Array(nb).fill(0); rows.filter(p=>p.upnl_R!=null).forEach(p=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, p.upnl_R))-lo)/w); c[i]++; }); return c; };
+  // distribución del uPnL_R — LIVE y SOMBRA juntos (familias, dirección real) y ESPEJO APARTE
+  // (otra población: dirección contraria, capital cero). Cada serie como % de sus propias posiciones.
+  const todos = [].concat(...grupos.map(([,rows])=> rows.filter(p=>p.upnl_R!=null).map(p=>p.upnl_R)));
+  const lo = todos.length ? Math.min(-1, Math.floor(todos.reduce((m,v)=>v<m?v:m, 0)*4)/4) : -1;
+  const hi = todos.length ? Math.max(0.5, Math.ceil(todos.reduce((m,v)=>v>m?v:m, 0)*4)/4) : 1;
+  const w = 0.25, nb = Math.max(1, Math.round((hi-lo)/w));
+  const histPct = (rows)=>{ const u = rows.filter(p=>p.upnl_R!=null), c = new Array(nb).fill(0);
+    u.forEach(p=>{ let i = Math.floor((p.upnl_R-lo)/w); i = Math.max(0, Math.min(nb-1, i)); c[i]++; });
+    return { pct: c.map(x=> u.length ? 100*x/u.length : 0), cnt: c, tot: u.length }; };
+  const labelsH = Array.from({length:nb}, (_,i)=> (lo+i*w).toFixed(2));
+  const tipH = (hs)=> ({ callbacks:{ title:(it)=>`uPnL ${labelsH[it[0].dataIndex]} a ${(parseFloat(labelsH[it[0].dataIndex])+w).toFixed(2)} R`,
+    label:(c)=>{ const h = hs[c.datasetIndex]; return `${c.dataset.label}: ${c.raw.toFixed(1)}% (${h.cnt[c.dataIndex]} de ${h.tot})`; } } });
+  const scH = { x:{ grid:{display:false}, ticks:{color:X_MUT, maxTicksLimit:16}, title:{display:true,text:'uPnL (R)',color:X_MUT} },
+                y:{ grid:{color:'#232a36'}, ticks:{color:X_MUT, callback:(v)=>v+'%'} } };
+  const hL = histPct(a.live), hS = histPct(a.sombra), hE = histPct(a.espejo);
   xChart('chartAbHist', { type:'bar',
-    data:{ labels: Array.from({length:nb}, (_,i)=> (lo+i*w).toFixed(1)),
-      datasets: grupos.map(([o,rows,c])=>({ label:o, data:hist(rows), backgroundColor:c+'bb', stack:'s' })) },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG},
-      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, maxTicksLimit:14}, title:{display:true,text:'uPnL (R)',color:X_MUT} },
-               y:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} } } } });
+    data:{ labels: labelsH, datasets:[
+      { label:`LIVE (n=${hL.tot})`, data:hL.pct, backgroundColor:X_LIVE+'dd' },
+      { label:`SOMBRA (n=${hS.tot})`, data:hS.pct, backgroundColor:X_SOM+'aa' } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:tipH([hL,hS])}, scales:scH } });
+  xChart('chartAbHistEsp', { type:'bar',
+    data:{ labels: labelsH, datasets:[ { label:`ESPEJO (n=${hE.tot})`, data:hE.pct, backgroundColor:X_ESP+'bb' } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:tipH([hE])}, scales:scH } });
 
-  // abiertas por familia (con SU dirección), apiladas por ORIGEN. Cada familia opera en una sola
-  // dirección; el ESPEJO abre en la contraria por diseño (#S81), así que se agrupa bajo la dirección
-  // de su familia base (la opuesta a la del espejo) — mezclarlas por `dir` hacía que una familia
-  // pareciera operar LONG y SHORT a la vez.
-  const dirBase = (o, p)=> o==='ESPEJO' ? (p.dir==='LONG' ? 'SHORT' : 'LONG') : p.dir;
+  // abiertas por familia: LIVE y SOMBRA (cada familia en su única dirección), apiladas por origen.
   const porFam = {};
-  grupos.forEach(([o,rows])=> rows.forEach(p=>{
-    const key = p.familia + ' · ' + dirBase(o,p);
-    const g = (porFam[key] = porFam[key] || { k:key, LIVE:0, SOMBRA:0, ESPEJO:0, sumR:0, nR:0 });
+  [['LIVE', a.live], ['SOMBRA', a.sombra]].forEach(([o,rows])=> rows.forEach(p=>{
+    const key = p.familia + ' · ' + p.dir;
+    const g = (porFam[key] = porFam[key] || { k:key, LIVE:0, SOMBRA:0, sumR:0, nR:0 });
     g[o]++;
-    if (o!=='ESPEJO' && p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; }
+    if (p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; }
   }));
-  const fams = Object.values(porFam).sort((x,y)=>(y.LIVE+y.SOMBRA+y.ESPEJO)-(x.LIVE+x.SOMBRA+x.ESPEJO)).slice(0,22);
+  const fams = Object.values(porFam).sort((x,y)=>(y.LIVE+y.SOMBRA)-(x.LIVE+x.SOMBRA)).slice(0,22);
   document.getElementById('chartAbFamWrap').style.height = Math.max(280, fams.length*19+60)+'px';
   xChart('chartAbFam', { type:'bar',
     data:{ labels: fams.map(g=>g.k), datasets:[
       { label:'LIVE', data:fams.map(g=>g.LIVE), backgroundColor:X_LIVE+'dd', stack:'s' },
-      { label:'SOMBRA', data:fams.map(g=>g.SOMBRA), backgroundColor:X_SOM+'cc', stack:'s' },
-      { label:'ESPEJO (dir. contraria)', data:fams.map(g=>g.ESPEJO), backgroundColor:X_ESP+'99', stack:'s' } ] },
+      { label:'SOMBRA', data:fams.map(g=>g.SOMBRA), backgroundColor:X_SOM+'cc', stack:'s' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio (LIVE+SOMBRA) ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
+      plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
       scales:{ x:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
+
+  // espejos abiertos por familia base (su dirección propia es la CONTRARIA a la de la familia)
+  const porEsp = {};
+  a.espejo.forEach(p=>{
+    const key = p.familia + ' · base ' + (p.dir==='LONG' ? 'SHORT' : 'LONG');
+    const g = (porEsp[key] = porEsp[key] || { k:key, n:0, sumR:0, nR:0, cortes:new Set() });
+    g.n++; g.cortes.add(p.corte); if (p.upnl_R!=null){ g.sumR+=p.upnl_R; g.nR++; }
+  });
+  const esp = Object.values(porEsp).sort((x,y)=>y.n-x.n).slice(0,22);
+  document.getElementById('chartAbEspWrap').style.height = Math.max(240, esp.length*19+60)+'px';
+  xChart('chartAbEsp', { type:'bar',
+    data:{ labels: esp.map(g=>g.k), datasets:[ { label:'espejos abiertos', data:esp.map(g=>g.n), backgroundColor:X_ESP+'99' } ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`${c.raw} espejos en ${esp[c.dataIndex].cortes.size} corte(s)`,
+        afterBody:(it)=>{ const g = esp[it[0].dataIndex]; return g.nR ? `uPnL medio ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
+      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
 
   // progreso a TP vs SL de cada posición LIVE (barra −1R … TP), con edad
   const tpR = (p)=> (p.TP_price && p.SL_price && p.entry_price) ? Math.abs(p.TP_price-p.entry_price)/Math.abs(p.entry_price-p.SL_price) : null;
@@ -2633,88 +2669,119 @@ function renderExtrasAbiertas(){
 
 // ── GRADUACIÓN ───────────────────────────────────────────────────────────────────────────
 function renderExtrasGraduacion(rows){
+  // Dos poblaciones distintas, nunca mezcladas: segmentos NEGATIVOS armados corren un ESPEJO (dirección
+  // contraria, capital cero); los POSITIVOS armados son watch sobre su propio log (LIVE/SOMBRA).
   const arm = rows.filter(r=>r.armado && r.gate);
+  const esEsp = (r)=> r.signo==='negativo';
+  const armW = arm.filter(r=>!esEsp(r)), armE = arm.filter(esEsp);
   const n = (f)=> rows.filter(f).length;
-  const pasos = [
-    ['Segmentos del menú (familia×corte×dir)', rows.length, X_MUT],
-    ['Paso 0 · watch: N hist.≥30', n(r=>r.n_hist>=30), '#4d9bd6'],
-    ['Armados (espejo o watch corriendo)', rows.filter(r=>r.armado).length, X_ESP],
-    ['N forward ≥ 40', arm.filter(r=>r.gate.n_c2>=40).length, '#c792ea'],
-    ['N forward ≥ 100', arm.filter(r=>r.gate.n_c2>=100).length, '#a77bd0'],
-    ['≥ 8 semanas forward', arm.filter(r=>r.gate.semanas>=8).length, '#8b6bb8'],
-    ['Paso 1 · CANDIDATA', arm.filter(r=>r.gate.estado==='CANDIDATA').length, X_POS],
-  ];
-  const mx = Math.max(1, rows.length), mxArm = Math.max(1, pasos[2][1]);
-  // los pasos posteriores a "armados" se escalan contra los armados (si no, quedan invisibles frente a ~970 segmentos)
-  document.getElementById('gradFunnel').innerHTML = pasos.map((p,i)=> i<3
-    ? xBarRow(p[0], p[1], mx, p[2], (100*p[1]/mx).toFixed(1)+'% del total')
-    : xBarRow(p[0], p[1], mxArm, p[2], (100*p[1]/mxArm).toFixed(0)+'% de los armados')).join('')
-    + '<div class="hint">Los 4 pasos de abajo se miden sobre los armados (su forward corre desde el armado).</div>';
+  const splitRow = (label, fW, fE, mx, extra)=>{
+    const t = fW + fE, wW = mx ? 100*fW/mx : 0, wE = mx ? 100*fE/mx : 0;
+    return `<div style="margin-bottom:9px"><div style="display:flex; justify-content:space-between; gap:10px; font-size:0.82rem; margin-bottom:3px">
+      <span>${label}</span><span><b>${xInt(t)}</b> <span class="hint" style="margin:0">${extra||''} · watch ${fW} · espejo ${fE}</span></span></div>
+      <div style="background:var(--panel2); border-radius:5px; height:12px; overflow:hidden; display:flex">
+        <div style="width:${wW}%; background:${X_LIVE}" title="watch (positivo)"></div><div style="width:${wE}%; background:${X_ESP}" title="espejo (negativo)"></div></div></div>`;
+  };
+  const mx = Math.max(1, rows.length), mxArm = Math.max(1, arm.length);
+  const cnt = (list, f)=> list.filter(f).length;
+  document.getElementById('gradFunnel').innerHTML =
+      xBarRow('Segmentos del menú (familia×corte×dir)', rows.length, mx, X_MUT, '')
+    + xBarRow('Paso 0 · watch: N hist.≥30', n(r=>r.n_hist>=30), mx, '#4d9bd6', (100*n(r=>r.n_hist>=30)/mx).toFixed(1)+'% del total')
+    + splitRow('Armados', armW.length, armE.length, mxArm, '')
+    + splitRow('N forward ≥ 40', cnt(armW,r=>r.gate.n_c2>=40), cnt(armE,r=>r.gate.n_c2>=40), mxArm, '')
+    + splitRow('N forward ≥ 100', cnt(armW,r=>r.gate.n_c2>=100), cnt(armE,r=>r.gate.n_c2>=100), mxArm, '')
+    + splitRow('≥ 8 semanas forward', cnt(armW,r=>r.gate.semanas>=8), cnt(armE,r=>r.gate.semanas>=8), mxArm, '')
+    + splitRow('Paso 1 · CANDIDATA', cnt(armW,r=>r.gate.estado==='CANDIDATA'), cnt(armE,r=>r.gate.estado==='CANDIDATA'), mxArm, '')
+    + `<div class="hint"><span style="color:${X_LIVE}">■</span> watch (positivo, su propio log) · <span style="color:${X_ESP}">■</span> espejo (negativo, dirección contraria). Desde "Armados" las barras se miden sobre los ${arm.length} armados.</div>`;
 
-  // qué condición falta más (de `gate.falta`)
+  // qué condición falta más — apilado por población
   const cat = (s)=> /^N /.test(s) ? 'N forward' : /semanas/.test(s) ? 'semanas' : /IC/.test(s) ? 'IC dif vs azar' : /signo/.test(s) ? 'signo entre mitades'
                   : /A-02|sistema/i.test(s) ? 'mejora al sistema (A-02)' : 'otra';
-  const falta = {}; arm.forEach(r=> (r.gate.falta||[]).forEach(s=>{ const c = cat(s); falta[c] = (falta[c]||0)+1; }));
-  const fe = Object.entries(falta).sort((a,b)=>b[1]-a[1]);
+  const faltaDe = (list)=>{ const f = {}; list.forEach(r=> (r.gate.falta||[]).forEach(s=>{ const c = cat(s); f[c] = (f[c]||0)+1; })); return f; };
+  const fW = faltaDe(armW), fE = faltaDe(armE);
+  const cats = [...new Set(Object.keys(fW).concat(Object.keys(fE)))].sort((x,y)=> ((fW[y]||0)+(fE[y]||0)) - ((fW[x]||0)+(fE[x]||0)));
   xChart('chartGradFalta', { type:'bar',
-    data:{ labels: fe.map(x=>x[0]), datasets:[{ data: fe.map(x=>x[1]), backgroundColor:'#d9a441cc' }] },
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>`${c.raw} de ${arm.length} armados no la cumplen`}}},
-      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT} } } } });
+    data:{ labels: cats, datasets:[
+      { label:`watch (n=${armW.length})`, data: cats.map(c=>fW[c]||0), backgroundColor:X_LIVE+'cc', stack:'s' },
+      { label:`espejo (n=${armE.length})`, data: cats.map(c=>fE[c]||0), backgroundColor:X_ESP+'cc', stack:'s' } ] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
+      tooltip:{callbacks:{label:(c)=>`${c.dataset.label}: ${c.raw} segmentos no la cumplen`}}},
+      scales:{ x:{ stacked:true, ...X_AX }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT} } } } });
 
-  // los armados más avanzados (progreso = el menor entre N/100 y semanas/8)
+  // los armados más avanzados (progreso = el menor entre N/100 y semanas/8), con su población en la etiqueta
   const prog = arm.map(r=>({ r, pN: Math.min(1, r.gate.n_c2/100), pS: Math.min(1, r.gate.semanas/8) }))
     .map(x=>({ ...x, p: Math.min(x.pN, x.pS) })).sort((a,b)=> b.p - a.p || b.pN - a.pN).slice(0,15);
   document.getElementById('chartGradProgWrap').style.height = Math.max(300, prog.length*26+70)+'px';
   xChart('chartGradProg', { type:'bar',
-    data:{ labels: prog.map(x=>`${x.r.familia} · ${x.r.corte} ${x.r.dir}`), datasets:[
-      { label:'N fwd / 100', data: prog.map(x=>100*x.pN), backgroundColor:'#c792eacc' },
-      { label:'semanas / 8', data: prog.map(x=>100*x.pS), backgroundColor:'#5eb0efcc' } ] },
+    data:{ labels: prog.map(x=>`${esEsp(x.r)?'[espejo]':'[watch]'} ${x.r.familia} · ${x.r.corte} ${x.r.dir}`), datasets:[
+      { label:'N fwd / 100', data: prog.map(x=>100*x.pN), backgroundColor: prog.map(x=> esEsp(x.r) ? X_ESP+'cc' : X_LIVE+'cc') },
+      { label:'semanas / 8', data: prog.map(x=>100*x.pS), backgroundColor: prog.map(x=> esEsp(x.r) ? X_ESP+'66' : X_LIVE+'66') } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:X_LEG, tooltip:{callbacks:{label:(c)=>{ const x = prog[c.dataIndex]; return c.datasetIndex===0 ? `N fwd ${x.r.gate.n_c2}/100` : `semanas ${x.r.gate.semanas}/8`; },
+      plugins:{legend:{display:true, labels:{color:X_MUT, font:{size:11}, generateLabels:()=>[
+          { text:'N fwd / 100 (barra sólida)', fillStyle:'#8b96a8', strokeStyle:'#8b96a8', hidden:false },
+          { text:'semanas / 8 (barra tenue)', fillStyle:'#8b96a855', strokeStyle:'#8b96a8', hidden:false } ]}},
+        tooltip:{callbacks:{label:(c)=>{ const x = prog[c.dataIndex]; return c.datasetIndex===0 ? `N fwd ${x.r.gate.n_c2}/100` : `semanas ${x.r.gate.semanas}/8`; },
         afterBody:(it)=>{ const g = prog[it[0].dataIndex].r.gate; return `${g.estado}${g.dif_mean!=null?' · dif vs azar '+xR(g.dif_mean,2):''}`; }}}},
       scales:{ x:{ max:100, grid:{color:'#232a36'}, ticks:{color:X_MUT, callback:(v)=>v+'%'} }, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
 
-  // distribución de la diferencia forward vs azar (C2), armados con dif calculada
-  const dif = arm.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5);
-  const bins = 16, lo = -4, hi = 4, w = (hi-lo)/bins, c = new Array(bins).fill(0);
-  dif.forEach(r=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, r.gate.dif_mean))-lo)/w); c[i]++; });
+  // distribución de la diferencia forward vs azar (C2) — watch y espejo apilados, no mezclados
+  const bins = 16, lo = -4, hi = 4, w = (hi-lo)/bins;
+  const hist = (list)=>{ const c = new Array(bins).fill(0); list.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5)
+    .forEach(r=>{ let i = Math.floor((Math.max(lo, Math.min(hi-1e-9, r.gate.dif_mean))-lo)/w); c[i]++; }); return c; };
+  const cW = hist(armW), cE = hist(armE);
   xChart('chartGradDif', { type:'bar',
-    data:{ labels: c.map((_,i)=> (lo+i*w).toFixed(1)), datasets:[{ data:c, backgroundColor: c.map((_,i)=> (lo+i*w)>=0 ? X_POS+'cc' : X_NEG+'cc') }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c2)=>`${c2.raw} segmentos`}}},
-      scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'dif forward vs azar (R) — armados con N≥5',color:X_MUT} }, y:X_AX } } });
-  document.getElementById('gradDifTxt').innerHTML = dif.length
-    ? `${dif.length} segmentos con N fwd≥5: <b class="pos">${dif.filter(r=>r.gate.dif_mean>0).length}</b> con diferencia &gt;0 · <b class="neg">${dif.filter(r=>r.gate.dif_mean<=0).length}</b> ≤0. Con tantos segmentos, parte de los positivos es azar — la regla es el IC90 y N≥100, no esta barra.`
+    data:{ labels: cW.map((_,i)=> (lo+i*w).toFixed(1)), datasets:[
+      { label:'watch', data:cW, backgroundColor:X_LIVE+'cc', stack:'s' },
+      { label:'espejo', data:cE, backgroundColor:X_ESP+'cc', stack:'s' } ] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:{callbacks:{label:(c2)=>`${c2.dataset.label}: ${c2.raw} segmentos`}}},
+      scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'dif forward vs azar (R) — armados con N≥5',color:X_MUT} }, y:{ stacked:true, ...X_AX } } } });
+  const sumDif = (list)=> { const d = list.filter(r=>r.gate.dif_mean!=null && r.gate.n_c2>=5); return { n:d.length, p:d.filter(r=>r.gate.dif_mean>0).length }; };
+  const dW = sumDif(armW), dE = sumDif(armE);
+  document.getElementById('gradDifTxt').innerHTML = (dW.n+dE.n)
+    ? `Watch: ${dW.n} segmentos con N fwd≥5, <b class="pos">${dW.p}</b> con diferencia &gt;0. Espejo: ${dE.n} segmentos, <b class="pos">${dE.p}</b> con diferencia &gt;0. Con tantos segmentos parte de los positivos es azar — la regla es el IC90 y N≥100, no esta barra.`
     : 'Aún sin segmentos con N forward ≥5.';
 }
 
 // ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
-function renderExtrasSimbolo(rows){
-  if (!rows.length){ document.getElementById('simboloKpis').innerHTML = ''; return; }
-  const totalSum = rows.reduce((s,r)=>s+r.sum,0);
-  const pos = rows.filter(r=>r.sum>0).sort((a,b)=>b.sum-a.sum), posSum = pos.reduce((s,r)=>s+r.sum,0);
-  const top10 = pos.slice(0,10).reduce((s,r)=>s+r.sum,0);
-  const sigPos = rows.filter(r=>r.ic && r.ic[0]>0), sigNeg = rows.filter(r=>r.ic && r.ic[1]<0);
-  const masAct = [...rows].sort((a,b)=>b.n-a.n)[0];
-  document.getElementById('simboloKpis').innerHTML =
-      xKpi('Símbolos', xInt(rows.length), `${rows.filter(r=>r.n>=10).length} con N≥10`)
-    + xKpi('Σ R total', xR(totalSum,1), '', xCls(totalSum))
-    + xKpi('Top 10 símbolos', posSum ? (100*top10/posSum).toFixed(0)+'%' : '—', 'del R positivo viene de 10 símbolos')
-    + xKpi('IC90 excluye 0 (+)', String(sigPos.length), sigPos.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'pos')
-    + xKpi('IC90 excluye 0 (−)', String(sigNeg.length), sigNeg.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'neg')
-    + xKpi('Más activo', masAct.sym.replace('USDT',''), `N=${masAct.n} · mean ${xR(masAct.mean,2)}`);
-  // burbujas: x = N, y = mean_R, radio ∝ √|Σ R|
-  const maxS = Math.max(1, ...rows.map(r=>Math.abs(r.sum)));
-  const pt = (r)=> ({ x:r.n, y:r.mean, r: 3 + 14*Math.sqrt(Math.abs(r.sum)/maxS), s:r.sym, sum:r.sum, ic:r.ic });
-  xChart('chartSimboloBub', { type:'bubble',
-    data:{ datasets:[
-      { label:'IC90 excluye 0 (+)', data: rows.filter(r=>r.ic&&r.ic[0]>0).map(pt), backgroundColor:X_POS+'aa', borderColor:X_POS },
-      { label:'IC90 excluye 0 (−)', data: rows.filter(r=>r.ic&&r.ic[1]<0).map(pt), backgroundColor:X_NEG+'aa', borderColor:X_NEG },
-      { label:'sin significancia', data: rows.filter(r=>!r.ic || (r.ic[0]<=0 && r.ic[1]>=0)).map(pt), backgroundColor:'#8b96a855', borderColor:X_MUT } ] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
-      tooltip:{callbacks:{label:(c)=>{ const p=c.raw; return `${p.s}: mean ${xR(p.y)} · N=${p.x} · ΣR ${xR(p.sum,1)}${p.ic?` · IC90 [${p.ic[0].toFixed(2)}, ${p.ic[1].toFixed(2)}]`:''}`; }}}},
-      scales:{ x:{ ...X_AX, title:{display:true,text:'N de trades',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R',color:X_MUT} } } } });
+function renderExtrasSimbolo(universo){
+  // LIVE+SOMBRA (familias, dirección real) y ESPEJO (dirección contraria) son poblaciones distintas: se agregan,
+  // se resumen y se grafican POR SEPARADO (respetando los chips de origen/dirección del tab).
+  const agg = (origs)=>{
+    const by = {};
+    universo.filter(t=>origs.includes(t.origen)).forEach(t=>{ (by[t.sym] = by[t.sym] || { sym:t.sym, vals:[] }).vals.push(t.pnl_R); });
+    return Object.values(by).map(g=>{ const n = g.vals.length, sum = g.vals.reduce((a,b)=>a+b,0);
+      return { sym:g.sym, n, sum, mean:sum/n, ic:ic90Simple(g.vals) }; });
+  };
+  const kpis = (rows, id)=>{
+    const el = document.getElementById(id);
+    if (!rows.length){ el.innerHTML = '<div class="hint">Sin datos con los filtros actuales.</div>'; return; }
+    const totalSum = rows.reduce((s,r)=>s+r.sum,0);
+    const pos = rows.filter(r=>r.sum>0).sort((a,b)=>b.sum-a.sum), posSum = pos.reduce((s,r)=>s+r.sum,0);
+    const top10 = pos.slice(0,10).reduce((s,r)=>s+r.sum,0);
+    const sigPos = rows.filter(r=>r.ic && r.ic[0]>0), sigNeg = rows.filter(r=>r.ic && r.ic[1]<0);
+    const masAct = [...rows].sort((a,b)=>b.n-a.n)[0];
+    el.innerHTML = xKpi('Símbolos', xInt(rows.length), `${rows.filter(r=>r.n>=10).length} con N≥10`)
+      + xKpi('Σ R total', xR(totalSum,1), '', xCls(totalSum))
+      + xKpi('Top 10 símbolos', posSum ? (100*top10/posSum).toFixed(0)+'%' : '—', 'del R positivo viene de 10 símbolos')
+      + xKpi('IC90 excluye 0 (+)', String(sigPos.length), sigPos.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'pos')
+      + xKpi('IC90 excluye 0 (−)', String(sigNeg.length), sigNeg.slice(0,6).map(r=>r.sym.replace('USDT','')).join(' · '), 'neg')
+      + xKpi('Más activo', masAct.sym.replace('USDT',''), `N=${masAct.n} · mean ${xR(masAct.mean,2)}`);
+  };
+  const burbujas = (rows, id)=>{
+    const maxS = Math.max(1, ...rows.map(r=>Math.abs(r.sum)));
+    const pt = (r)=> ({ x:r.n, y:r.mean, r: 3 + 14*Math.sqrt(Math.abs(r.sum)/maxS), s:r.sym, sum:r.sum, ic:r.ic });
+    xChart(id, { type:'bubble',
+      data:{ datasets:[
+        { label:'IC90 excluye 0 (+)', data: rows.filter(r=>r.ic&&r.ic[0]>0).map(pt), backgroundColor:X_POS+'aa', borderColor:X_POS },
+        { label:'IC90 excluye 0 (−)', data: rows.filter(r=>r.ic&&r.ic[1]<0).map(pt), backgroundColor:X_NEG+'aa', borderColor:X_NEG },
+        { label:'sin significancia', data: rows.filter(r=>!r.ic || (r.ic[0]<=0 && r.ic[1]>=0)).map(pt), backgroundColor:'#8b96a855', borderColor:X_MUT } ] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG,
+        tooltip:{callbacks:{label:(c)=>{ const p=c.raw; return `${p.s}: mean ${xR(p.y)} · N=${p.x} · ΣR ${xR(p.sum,1)}${p.ic?` · IC90 [${p.ic[0].toFixed(2)}, ${p.ic[1].toFixed(2)}]`:''}`; }}}},
+        scales:{ x:{ ...X_AX, title:{display:true,text:'N de trades',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R',color:X_MUT} } } } });
+  };
+  const base = agg(['LIVE','SOMBRA']), esp = agg(['ESPEJO']);
+  kpis(base, 'simboloKpis'); kpis(esp, 'simboloKpisEsp');
+  burbujas(base, 'chartSimboloBub'); burbujas(esp, 'chartSimboloBubEsp');
 }
 
 // ── E_K3 ────────────────────────────────────────────────────────────────────────────────
