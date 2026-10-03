@@ -2855,12 +2855,13 @@ function renderExtrasGraduacion(rows){
   if (!R || R.error || !R.resumen){ kEl.innerHTML = ''; tEl.innerHTML = `<div class="hint">Sin datos de rescate todavía${R&&R.error?' ('+R.error+')':''}.</div>`; return; }
   const T = R.resumen.todos, NG = R.resumen.negativos, PG = R.resumen.positivos;
   const cob = R.cobertura_espejo || {}, cobPct = (cob.con||0)+(cob.sin||0) ? 100*cob.con/(cob.con+cob.sin) : null;
+  const cobTot = (cob.con||0)+(cob.sin||0) ? 100*((cob.con||0)+(cob.con_replay||0))/(cob.con+cob.sin) : null;
   kEl.innerHTML = xKpi('Segmentos armados', xInt(T.segmentos), `${PG.segmentos} graduar · ${NG.segmentos} vetar`)
     + xKpi('Trades base forward', xInt(T.n_base_fwd_total), `${xInt(NG.n_base_fwd_total)} de negativos que antes solo se medían por su espejo`)
     + xKpi('Con N ≥ 15', xInt(T.con_N_ge_15), `de ${T.segmentos} · N≥100: ${T.con_N_ge_100}`)
     + xKpi('Sin ritmo (14 d)', xInt(T.sin_ritmo), 'sin trades recientes: candidatos a revisar/archivar')
     + xKpi('ETA graduación (mediana)', T.eta_mediana_dias!=null ? Math.round(T.eta_mediana_dias)+' d' : '—', `mín ${T.eta_min_dias!=null?Math.round(T.eta_min_dias):'—'} d · máx ${T.eta_max_dias!=null?Math.round(T.eta_max_dias).toLocaleString('es'):'—'} d`)
-    + xKpi('Espejo por disparo', cobPct!=null ? cobPct.toFixed(0)+'%' : '—', `${xInt(cob.con)} de ${xInt((cob.con||0)+(cob.sin||0))} cierres SOMBRA`);
+    + xKpi('Espejo por disparo', cobTot!=null ? cobTot.toFixed(0)+'%' : '—', `vivo ${cobPct!=null?cobPct.toFixed(0):'—'}% + replay ${xInt(cob.con_replay||0)} (${xInt(cob.con_replay_exacto||0)} exactos) de ${xInt((cob.con||0)+(cob.sin||0))} cierres`);
   const segs = R.segmentos || [];
   const edges = [[0,35,'≤35 d'],[35,60,'36-60 d'],[60,90,'61-90 d'],[90,120,'91-120 d'],[120,365,'121-365 d'],[365,1e9,'>1 año']];
   const bucket = (sg, lo2, hi2)=> segs.filter(x=>x.signo===sg && x.eta_graduacion_dias!=null && x.eta_graduacion_dias>lo2 && x.eta_graduacion_dias<=hi2 + (lo2===0?0:0)).length;
@@ -2878,7 +2879,7 @@ function renderExtrasGraduacion(rows){
     <li><b>${xInt(Math.round(T.dias_forward_total))}</b> días-segmento de forward acumulados y <b>${xInt(T.n_base_fwd_total)}</b> trades base se conservan: ninguno se resetea al pasar a watch universal.</li>
     <li>El cuello es el <b>reloj</b>: ${T.con_8_semanas} segmentos cumplen ≥8 semanas y ${T.con_N_ge_100} N≥100; el primero cumpliría las 8 semanas en <b>${primero!=null?Math.ceil(primero):'—'}</b> d.</li>
     <li><b>${T.sin_ritmo}</b> de ${T.segmentos} segmentos no tuvieron trades en 14 días (ETA no estimable): revisar o archivar es una decisión aparte.</li>
-    <li>El espejo por disparo cubre ${cobPct!=null?cobPct.toFixed(0):'—'}% de los cierres de SOMBRA, por familia (no por fecha): solo lo llevan unas ~13 familias. Limita el tab Espejos, no la graduación.</li>
+    <li>El espejo por disparo vivo cubre ${cobPct!=null?cobPct.toFixed(0):'—'}% de los cierres de SOMBRA, por familia (solo ~13 familias lo abren). El <b>backfill por replay</b> reconstruyó ${xInt(cob.con_replay||0)} más (${xInt(cob.con_replay_exacto||0)} exactos: salida por SL/TP validada ≥99% contra el vivo; el resto, salida por close, es aproximado: error mediano 0,12 R) y lleva la cobertura a ${cobTot!=null?cobTot.toFixed(0):'—'}%. Habilita analizar la dirección contraria de cualquier familia sin tocar el motor.</li>
     <li>No se rescata a propósito: el histórico previo al armado ni el forward tras cambiar de hipótesis sin T0 nuevo (sería circular).</li></ul>`;
 }
 
