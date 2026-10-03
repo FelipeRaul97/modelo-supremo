@@ -383,9 +383,10 @@
   </div>
   <div class="panel" id="curvaPanelJoint" style="display:none;">
     <h2>Grilla cruzada TP &times; MAX_HOLD (mean_R por combinación)</h2>
-    <div class="hint">Las 42 combinaciones (6 TP &times; 7 MAX_HOLD) a la vez &mdash; los dos barridos de arriba son cada uno un corte de UNA fila/columna de esta grilla. Con 42 comparaciones en vez de 6+7=13, un "mejor" que sobreviva acá pesa MÁS multiplicidad, no menos &mdash; léelo con más escepticismo todavía. Celda con borde azul = actual (4R/96h). Celda con borde amarillo = sugerida (solo si N&ge;15 y su IC90 no se solapa con la actual).</div>
+    <div class="hint">Las 42 combinaciones (6 TP &times; 7 MAX_HOLD) a la vez &mdash; los dos barridos de arriba son cada uno un corte de UNA fila/columna de esta grilla. Con 42 comparaciones en vez de 6+7=13, un "mejor" que sobreviva acá pesa MÁS multiplicidad, no menos &mdash; léelo con más escepticismo todavía. Celda con borde azul = actual (4R/96h). Borde amarillo = sugerida (solo si pasa los candados). Borde rojo = mejor mean_R de la grilla (opci&oacute;n parcial: el m&aacute;ximo de las 42, sin garant&iacute;a estad&iacute;stica).</div>
     <div class="grad-summary" id="curvaJointStats"></div>
     <div class="tablewrap"><table id="tablaCurvaJoint" style="font-size:0.76rem;"><thead></thead><tbody></tbody></table></div>
+    <div class="hint" id="curvaJointLeyenda"></div>
   </div>
 </div>
 
@@ -2386,6 +2387,10 @@ function renderCurva(){
   document.getElementById('curvaJointStats').innerHTML =
     `<div>Mejor combinación TP&times;MAX_HOLD: ${renderMejorJointBadge(celda.mejor_joint)}</div>`;
   renderJointHeatmap(celda.sweep_joint || {}, tpGrid, mhGrid, kAct, mhAct, celda.mejor_joint);
+  document.getElementById('curvaJointLeyenda').innerHTML =
+    '<span style="display:inline-block;width:12px;height:12px;border:3px solid #5eb0ef;vertical-align:-2px"></span> actual (4R/96h) &nbsp; '
+    + '<span style="display:inline-block;width:12px;height:12px;border:3px solid #ffcf5c;vertical-align:-2px"></span> sugerida (pasa los candados) &nbsp; '
+    + '<span style="display:inline-block;width:12px;height:12px;border:3px solid #ff3b3b;vertical-align:-2px"></span> mejor mean_R de la grilla (parcial: máximo de 42 combinaciones, no pasa necesariamente los candados)';
 }
 
 // 🔧 2026-09-25 · "mejor TP"/"mejor tiempo de vida" — candado igual al que se usa
@@ -2425,6 +2430,12 @@ function renderJointHeatmap(sweepJoint, tpGrid, mhGrid, tpAct, mhAct, mejor){
     const fila = sweepJoint[Number(tp).toFixed(1)] || {};
     mhGrid.forEach(mh=>{ const s = fila[String(mh)]; if (s) maxAbs = Math.max(maxAbs, Math.abs(s.mean_R)); });
   });
+  // 🔧 2026-10-03 · borde ROJO = la mejor combinación PARCIAL: la de mayor mean_R de la grilla, aunque no pase los
+  // candados de "sugerida" (IC90 sin solape, N≥40, estable entre mitades). Es el máximo de 42 comparaciones: léase como
+  // "dónde apunta la grilla", no como recomendación.
+  let mejorParcial = -Infinity;
+  tpGrid.forEach(tp=>{ const fila = sweepJoint[Number(tp).toFixed(1)] || {};
+    mhGrid.forEach(mh=>{ const x = fila[String(mh)]; if (x && x.mean_R > mejorParcial) mejorParcial = x.mean_R; }); });
   const head = '<tr><th class="nosort"></th>' + mhGrid.map(mh=>`<th class="nosort">${mh}h</th>`).join('') + '</tr>';
   const rows = tpGrid.map(tp=>{
     const fila = sweepJoint[Number(tp).toFixed(1)] || {};
@@ -2438,9 +2449,14 @@ function renderJointHeatmap(sweepJoint, tpGrid, mhGrid, tpAct, mhAct, mejor){
         style += `background:${heatColor(s.mean_R, maxAbs)};`;
         txt = `${s.mean_R>=0?'+':''}${s.mean_R.toFixed(2)}`;
       }
-      if (esActual) style += 'box-shadow:inset 0 0 0 2px #5eb0ef;';
-      if (esMejor) style += 'box-shadow:inset 0 0 0 2px #ffcf5c;';
-      const titulo = `TP=${tp}R MH=${mh}h${esActual ? ' (actual)' : ''}${esMejor ? ' (sugerido)' : ''}`
+      const esMejorParcial = !!s && Math.abs(s.mean_R - mejorParcial) < 1e-9;
+      // bordes apilados (de afuera hacia adentro) para que una celda que sea actual Y mejor parcial muestre ambos
+      const sombras = [];
+      if (esMejorParcial) sombras.push('inset 0 0 0 3px #ff3b3b');
+      if (esMejor) sombras.push(`inset 0 0 0 ${sombras.length ? 6 : 3}px #ffcf5c`);
+      if (esActual) sombras.push(`inset 0 0 0 ${sombras.length ? 6 : 3}px #5eb0ef`);
+      if (sombras.length) style += `box-shadow:${sombras.join(',')};`;
+      const titulo = `TP=${tp}R MH=${mh}h${esActual ? ' (actual)' : ''}${esMejor ? ' (sugerido)' : ''}${esMejorParcial ? ' (mejor mean_R de la grilla)' : ''}`
         + (s ? ` · N=${s.n} · mean_R=${s.mean_R.toFixed(3)}` : '');
       return `<td style="${style}" title="${titulo}">${txt}</td>`;
     }).join('');
