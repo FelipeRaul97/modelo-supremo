@@ -56,6 +56,13 @@ try {
     & $python -m SUPREMO.sombra_tp_condicional_47bajista 2>&1 | Out-Null
     Write-Log "sombra_tp_condicional_47bajista: OK"
 
+    # 1.6) Espejo por disparo de los cierres nuevos (SOMBRA y LIVE) por replay con las klines locales (#S123):
+    #      completa lo que el motor no abre en vivo, tras hist_extiende (que trae las velas). Idempotente, ~3 s;
+    #      un cierre cuyas velas aun no llegan se reintenta en la siguiente corrida. No bloquea el dashboard si falla.
+    $bfEsp = & $python -m SUPREMO.backfill_espejo_replay --incremental 2>&1
+    if ($LASTEXITCODE -eq 0) { Write-Log ("backfill_espejo_replay: {0}" -f ($bfEsp -join " ")) }
+    else { Write-Log ("backfill_espejo_replay FALLO (exit {0}): {1}" -f $LASTEXITCODE, ($bfEsp -join " | ")) }
+
     # 2) Gate barato de armado (#S81/#S82) - automatico, sin intervencion humana.
     $armado = & $python -m SUPREMO.espejo_condicional 2>&1
     Write-Log "espejo_condicional: OK"
