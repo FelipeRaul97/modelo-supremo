@@ -247,7 +247,7 @@
     <h2>Posiciones abiertas</h2>
     <div class="sub">Lo que el motor y las sombras tienen abierto ahora, con su uPnL.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li><b>LIVE</b>: posiciones del motor con capital real (<code>testnet_open=false</code> = el executor la rechazó). <b>SOMBRA</b>: familias denegadas acumulando sin capital. <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados.</li>
+  <li><b>LIVE</b>: posiciones del motor con capital real (<code>testnet_open=false</code> = el executor la rechazó). <b>SOMBRA</b>: familias denegadas acumulando sin capital. <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados, visibles mientras vive su base; el espejo independiente completo se mide al madurar (tab Espejos).</li>
   <li>El uPnL se estima con el último close en caché (se refresca cada hora): es una foto, no un tick en vivo.</li>
   <li>Excluidas del conteo LIVE: lane de investigación E_K5, símbolos ghost y posiciones nunca ejecutadas (barra atrasada, drenaje, sin margen o rechazo del executor); ninguna llegó a ser una posición real.</li>
   <li>La barra de progreso va de &minus;1R (SL) a +TP; la marca vertical es la entrada. MAX_HOLD típico: 96&nbsp;h.</li>
@@ -500,8 +500,9 @@
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li><b>Espejo</b> = la misma entrada en dirección contraria (R=3&middot;ATR, TP 4R, SL 2R, MAX_HOLD 96). Es una pregunta distinta a la de Graduación: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane, y una base que pierde no implica que la contraria gane.</li>
   <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. El espejo no gradúa, no archiva y no decide nada; un espejo con IC90&gt;0 es una pista, y operar la contraria exigiría su propio pre-registro.</li>
-  <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo, vivo para ~13 familias y reconstruido por replay (<code>backfill_espejo_replay</code>) para el resto: <b>exacto</b> si salió por nivel SL/TP (validado &ge;99&nbsp;% contra el vivo) y <b>aproximado</b> si salió por close (error mediano 0,12&nbsp;R). Se parte por los cortes del menú #S82 y se pone al lado de su base. En LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R de diferencia).</li>
-  <li><b>Negativos armados</b>: el espejo en vivo que abre el motor por cada fire de un segmento negativo armado, desde el armado (#S81).</li>
+  <li><b>Definición única</b>: el espejo es <b>independiente</b>: corre hasta su propio SL, TP o MAX_HOLD (96 barras) sin importar cuándo cierre la base, con las velas 1h locales y sin coste. El que escribe el motor se fuerza a cerrar con la base (~21&nbsp;% de los casos) y por eso ya no se usa. Un espejo cuenta cuando maduró (96 barras de velas desde la entrada).</li>
+  <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo. <b>Salida por nivel</b> = SL/TP, independiente del precio de cierre; <b>salida por tiempo</b> = cierre de la vela a las 96 barras. Se parte por los cortes del menú #S82 y se pone al lado de su base; en LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R).</li>
+  <li><b>Negativos armados</b>: los espejos que el motor abre por cada fire de un segmento negativo armado, desde el armado (#S81), medidos con la misma definición independiente.</li>
 </ul></div></details>
   </div>
   <div class="toolbar">
@@ -514,8 +515,8 @@
   <div id="espVistaTodos">
     <div class="toolbar">
       <div class="segmented" id="espCalidad">
-        <div class="seg-btn active" data-q="todos">Vivo + replay</div>
-        <div class="seg-btn" data-q="exactos">Solo exactos</div>
+        <div class="seg-btn active" data-q="todos">Todas las salidas</div>
+        <div class="seg-btn" data-q="exactos">Solo salida por nivel</div>
       </div>
       <div class="segmented" id="espOrigen">
         <div class="seg-btn active" data-o="todos">LIVE + SOMBRA</div><div class="seg-btn" data-o="LIVE">LIVE</div><div class="seg-btn" data-o="SOMBRA">SOMBRA</div>
@@ -2870,13 +2871,12 @@ function renderExtrasGraduacion(rows){
   if (!R || R.error || !R.resumen){ kEl.innerHTML = '<div class="vacio">Sin datos de ritmo todavía.</div>'; return; }
   const T = R.resumen.todos, NG = R.resumen.negativos, PG = R.resumen.positivos;
   const cob = R.cobertura_espejo || {}, cobPct = (cob.con||0)+(cob.sin||0) ? 100*cob.con/(cob.con+cob.sin) : null;
-  const cobTot = (cob.con||0)+(cob.sin||0) ? 100*((cob.con||0)+(cob.con_replay||0))/(cob.con+cob.sin) : null;
   kEl.innerHTML = xKpi('Segmentos armados', xInt(T.segmentos), `${PG.segmentos} con hist. ↑ · ${NG.segmentos} con hist. ↓`)
     + xKpi('Trades base forward', xInt(T.n_base_fwd_total), `${xInt(NG.n_base_fwd_total)} de negativos que antes solo se medían por su espejo`)
     + xKpi('Con N ≥ 15', xInt(T.con_N_ge_15), `de ${T.segmentos} · N≥100: ${T.con_N_ge_100}`)
     + xKpi('Sin ritmo (14 d)', xInt(T.sin_ritmo), 'sin trades recientes: candidatos a revisar/archivar')
     + xKpi('ETA graduación (mediana)', T.eta_mediana_dias!=null ? Math.round(T.eta_mediana_dias)+' d' : '—', `mín ${T.eta_min_dias!=null?Math.round(T.eta_min_dias):'—'} d · máx ${T.eta_max_dias!=null?Math.round(T.eta_max_dias).toLocaleString('es'):'—'} d`)
-    + xKpi('Espejo por disparo', cobTot!=null ? cobTot.toFixed(0)+'%' : '—', `vivo ${cobPct!=null?cobPct.toFixed(0):'—'}% + replay ${xInt(cob.con_replay||0)} (${xInt(cob.con_replay_exacto||0)} exactos) de ${xInt((cob.con||0)+(cob.sin||0))} cierres`);
+    + xKpi('Espejo independiente', cobPct!=null ? cobPct.toFixed(0)+'%' : '—', `${xInt(cob.con)} de ${xInt((cob.con||0)+(cob.sin||0))} cierres SOMBRA maduros`);
   const segs = R.segmentos || [];
   const edges = [[0,35,'≤35 d'],[35,60,'36-60 d'],[60,90,'61-90 d'],[90,120,'91-120 d'],[120,365,'121-365 d'],[365,1e9,'>1 año']];
   const bucket = (sg, lo2, hi2)=> segs.filter(x=>x.signo===sg && x.eta_graduacion_dias!=null && x.eta_graduacion_dias>lo2 && x.eta_graduacion_dias<=hi2 + (lo2===0?0:0)).length;
@@ -2925,8 +2925,8 @@ function renderEspejos(){
   const k = (l, v, sub, c)=> xKpi(l, v, sub, c);
   document.getElementById('espKpis').innerHTML =
       k('Negativos armados', xInt(todas.length), `${con.length} con espejo N≥15`)
-    + k('Espejo gana (IC90>0)', String(gana), 'pistas, no candidatos', 'pos')
-    + k('Espejo pierde (IC90<0)', String(pierde), 'la contraria no funciona', 'neg')
+    + k('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
+    + k('Espejo pierde (IC90<0)', String(pierde), 'segmentos con N≥15', 'neg')
     + k('Ambos pierden', String(ambos), 'base y espejo con IC90<0')
     + k('Correlación base↔espejo', corr!=null ? corr.toFixed(2) : '—', corr!=null ? `${pares.length} segmentos con N≥15 en ambos` : 'faltan segmentos con N≥15')
     + k('Espejos abiertos', xInt(todas.reduce((a,r)=>a+r.abiertas,0)), 'corriendo ahora');
@@ -3036,11 +3036,11 @@ function renderEspejosTodos(){
   const fams = new Set(filas.map(r=>r.familia));
   const nm = vis.filter(r=>r.n>=15);
   const gana = nm.filter(r=>r.cls==='badge-pos').length, ambos = nm.filter(r=>r.lectura==='ambos pierden').length, baseGana = nm.filter(r=>r.cls==='badge-arm').length;
-  const tot = ED.n_vivo + ED.n_exacto + ED.n_aprox + (ED.n_live_exacto||0) + (ED.n_live_aprox||0);
+  const tot = ED.n_exacto + ED.n_aprox + (ED.n_live_exacto||0) + (ED.n_live_aprox||0);
   kEl.innerHTML = xKpi('Familias con espejo', xInt(fams.size), `${xInt(Object.keys(grupos).length)} origen×familia×dirección`)
-    + xKpi('Trades con espejo', xInt(tot), `vivo ${xInt(ED.n_vivo)} · replay exacto ${xInt(ED.n_exacto + (ED.n_live_exacto||0))} · replay aprox. ${xInt(ED.n_aprox + (ED.n_live_aprox||0))} (LIVE: ${xInt((ED.n_live_exacto||0)+(ED.n_live_aprox||0))})`)
+    + xKpi('Trades con espejo', xInt(tot), `por nivel ${xInt(ED.n_exacto + (ED.n_live_exacto||0))} · por tiempo ${xInt(ED.n_aprox + (ED.n_live_aprox||0))} (LIVE: ${xInt((ED.n_live_exacto||0)+(ED.n_live_aprox||0))})`)
     + xKpi('Segmentos con N≥15', xInt(nm.length), `de ${xInt(todasF.length)} celdas con algún trade`)
-    + xKpi('Espejo gana (IC90>0)', String(gana), 'pistas (¡multiplicidad!)', 'pos')
+    + xKpi('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
     + xKpi('Base gana · espejo pierde', String(baseGana), 'IC90 de ambos fuera de 0', '')
     + xKpi('Ambos pierden', String(ambos), 'base y espejo con IC90<0', 'neg');
   // barras por familia (corte TODOS)
@@ -3050,7 +3050,7 @@ function renderEspejosTodos(){
   xChart('chartEspFam', { type:'bar',
     data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[L] ':''}${r.familia} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n} · ${r.pEx.toFixed(0)}% vivo/exacto${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
+      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n} · ${r.pEx.toFixed(0)}% por nivel${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
       scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
   // dispersión base vs espejo
   const pts = filas.filter(r=>r.n>=15 && r.mean!=null && r.meanb!=null);
@@ -3072,7 +3072,7 @@ function renderEspejosTodos(){
   const thead = document.querySelector('#tablaEsp2 thead'), tbody = document.querySelector('#tablaEsp2 tbody');
   thead.innerHTML = '<tr>' + th('origen','origen') + th('familia','familia') + th('dir','base') + th('edir','espejo') + th('corte','segmento') + th('n','N') + th('mean','mean_R espejo')
     + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('meanb','mean_R base') + '<th class="nosort">IC90 base</th>'
-    + th('pEx','% vivo/exacto','proporción de trades cuyo espejo es vivo o replay por nivel (el resto es aproximado)') + '<th class="nosort">lectura</th></tr>';
+    + th('pEx','% por nivel','proporción de espejos que salieron por SL/TP (el resto salió por tiempo, con el close de la vela)') + '<th class="nosort">lectura</th></tr>';
   rows = E.sort2.col ? sortRows(rows, E.sort2) : rows.sort((a,b)=> b.n - a.n);
   tbody.innerHTML = rows.slice(0, 600).map(r=>{
     const ex = r.ice && (r.ice[0]>0 || r.ice[1]<0), exb = r.icb && (r.icb[0]>0 || r.icb[1]<0), poco = r.n < 15;
