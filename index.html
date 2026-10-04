@@ -1601,8 +1601,9 @@ function renderGraduacion(){
   });
 
   const ESTADO_BADGE = {
-    armado_negativo: '<span class="badge-neg" title="Watch universal: se mide la BASE de este segmento desde su armado. Su histórico al armar era NEGATIVO (↓); la dirección del veredicto la fija el dato forward.">👁️ watch · hist. ↓</span>',
-    armado_positivo: '<span class="badge-pos" title="Watch universal: se mide la BASE de este segmento desde su armado. Su histórico al armar era POSITIVO (↑); la dirección del veredicto la fija el dato forward.">👁️ watch · hist. ↑</span>',
+    // Todo segmento armado está en watch: mismo estado, misma etiqueta y mismo color. El signo del histórico (↑/↓) solo va en el tooltip.
+    armado_negativo: '<span class="badge-wait" title="Watch: se mide la BASE de este segmento desde su armado. Histórico al armar: ↓. La dirección del veredicto la fija el dato forward.">👁️ watch</span>',
+    armado_positivo: '<span class="badge-wait" title="Watch: se mide la BASE de este segmento desde su armado. Histórico al armar: ↑. La dirección del veredicto la fija el dato forward.">👁️ watch</span>',
     negativo: '<span class="checkcell wait">negativo, sin armar</span>',
     positivo: '<span class="checkcell wait">positivo, sin armar</span>',
     plano: '<span class="checkcell wait">sin significancia</span>',
