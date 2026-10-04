@@ -502,7 +502,9 @@
     <div class="sub">La dirección contraria de cada trade, por segmento: espejo vivo o reconstruido por replay.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li><b>Espejo</b> = la misma entrada en dirección contraria (R=3&middot;ATR, TP 4R, SL 2R, MAX_HOLD 96). Es una pregunta distinta a la de Graduación: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane, y una base que pierde no implica que la contraria gane.</li>
-  <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. El espejo no gradúa, no archiva y no decide nada; un espejo con IC90&gt;0 es una pista, y operar la contraria exigiría su propio pre-registro.</li>
+  <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. </li>
+  <li><b>Graduación del espejo</b> (#S123d, camino B): cada espejo se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidata</b> = cumple todo ganando (candidata a invertir; operar la contraria sigue exigiendo el Paso 2); <b>refutada</b> = el espejo pierde con evidencia; si no, en observación. No gradúa si la base ya es candidata a graduar. No archiva ni decide nada de la base.</li>
+  <li>Colores de Paso 1: verde a favor del espejo (R &gt; 0), rojo en contra, gris sin evidencia (IC90 que cruza 0, mitades de signo distinto).</li>
   <li><b>Definición única</b>: el espejo es <b>independiente</b>: corre hasta su propio SL, TP o MAX_HOLD (96 barras) sin importar cuándo cierre la base, con las velas 1h locales y sin coste. El que escribe el motor se fuerza a cerrar con la base (~21&nbsp;% de los casos) y por eso ya no se usa. Un espejo cuenta cuando maduró (96 barras de velas desde la entrada).</li>
   <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo. <b>Salida por nivel</b> = SL/TP, independiente del precio de cierre; <b>salida por tiempo</b> = cierre de la vela a las 96 barras. Se parte por los cortes del menú #S82 y se pone al lado de su base; en LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R).</li>
   <li>En &ldquo;Todos los segmentos&rdquo;, el N cuenta los trades con espejo ya maduro y la base se mide sobre esos mismos trades: por eso puede diferir de Resumen y Graduación.</li>
@@ -2917,6 +2919,24 @@ function renderExtrasGraduacion(rows){
 }
 
 // ── ESPEJOS (#S123) · la dirección contraria de cada negativo, informativo y separado de Graduación ─────────────────
+function espPaso1(ge){
+  const f2 = (x)=> (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(2));
+  if (!ge) return '<td class="checkcell wait">—</td>'.repeat(5);
+  const c = ge.cond || {};
+  const cOk = (ok)=> ok ? 'ok' : 'wait';
+  const clsMit = (a,b)=> (a==null||b==null) ? 'wait' : ((a>0&&b>0) ? 'ok' : ((a<0&&b<0) ? 'bad' : 'wait'));
+  const a02 = ge.a02 ? ge.a02.diff : null;
+  const EST = { 'CANDIDATA':'<span class="badge-pos" title="Candidata a invertir (camino B, mérito propio). Operar la contraria exige el Paso 2.">✅ CANDIDATA</span>',
+                'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>',
+                'REFUTADA':'<span class="badge-neg" title="El espejo pierde con evidencia: no es graduable.">🔴 refutada</span>' };
+  const falta = (ge.falta||[]).join(' · ').replace(/"/g,'');
+  return `<td class="checkcell ${cOk(c.a)}" title="N con control C2; ≥50 en cada mitad temporal">${ge.n_c2}/100 <span class="hint" style="margin:0">(${ge.n_h1}+${ge.n_h2})</span></td>`
+    + `<td class="checkcell ${cOk(c.b)}">${ge.semanas}/8</td>`
+    + `<td class="checkcell ${clsMit(ge.dif_h1, ge.dif_h2)}">${f2(ge.dif_h1)} / ${f2(ge.dif_h2)}</td>`
+    + `<td class="checkcell ${a02==null?'wait':(a02>0?'ok':(a02<0?'bad':'wait'))}">${a02==null?'n/a':f2(a02)}</td>`
+    + `<td title="${falta}">${EST[ge.estado]||ge.estado}</td>`;
+}
+
 function renderEspejos(){
   const lista = (state.data && state.data.espejos || []).filter(e=>e.signo==='negativo');
   const E = state.esp;
@@ -2927,7 +2947,7 @@ function renderEspejos(){
     const ic = e.ic90_R_cerrados, icb = fb.ic90, n = e.n_cerrados || 0, nb = fb.n || 0;
     const mGana = !!(ic && ic[0] > 0), mPierde = !!(ic && ic[1] < 0), bGana = !!(icb && icb[0] > 0), bPierde = !!(icb && icb[1] < 0);
     let lectura, cls;
-    if (mGana)                    { lectura = 'espejo gana · pista (¿invertir?)'; cls = 'badge-pos'; }
+    if (mGana)                    { lectura = 'espejo gana (IC90 > 0)'; cls = 'badge-pos'; }
     else if (bGana && mPierde)    { lectura = 'base gana · espejo pierde (contradice el veto)'; cls = 'badge-arm'; }
     else if (mPierde && bPierde)  { lectura = 'ambos pierden'; cls = 'badge-neg'; }
     else if (bPierde)             { lectura = 'base pierde (sostiene el veto) · espejo sin ventaja'; cls = 'badge-neg'; }
@@ -2935,7 +2955,7 @@ function renderEspejos(){
     else                          { lectura = 'sin evidencia (IC90 cruza 0)'; cls = 'badge-wait'; }
     return { familia:e.familia, corte:e.corte, dir:e.dir, edir: e.espejo_dir || (e.dir==='LONG' ? 'SHORT' : 'LONG'), n, mean:e.mean_R_cerrados, ic, wr:e.wr_cerrados,
              abiertas:e.abiertas||0, difm: ge ? ge.dif_mean : null, dific: ge ? ge.dif_ic : null, nb, meanb: fb.mean_R, icb, lectura, cls, reg:e.regimen_cerrados,
-             estEsp: ge ? ge.estado : null };
+             estEsp: ge ? ge.estado : null, ge, camino: ge ? ge.camino : null };
   });
   // KPIs
   const con = todas.filter(r=>r.n>=15);
@@ -2955,6 +2975,7 @@ function renderEspejos(){
     + k('Espejo pierde (IC90<0)', String(pierde), 'segmentos con N≥15', 'neg')
     + k('Ambos pierden', String(ambos), 'base y espejo con IC90<0')
     + k('Correlación base↔espejo', corr!=null ? corr.toFixed(2) : '—', corr!=null ? `${pares.length} segmentos con N≥15 en ambos` : 'faltan segmentos con N≥15')
+    + k('Espejos candidatos', String(todas.filter(r=>r.estEsp==='CANDIDATA').length), `${todas.filter(r=>r.estEsp==='REFUTADA').length} refutados · ${todas.filter(r=>r.estEsp==='EN OBSERVACION').length} en observación`, 'pos')
     + k('Espejos abiertos', xInt(todas.reduce((a,r)=>a+r.abiertas,0)), 'corriendo ahora');
   // scatter base vs espejo
   const col = { 'badge-pos':X_POS, 'badge-arm':X_IDX, 'badge-neg':X_NEG, 'badge-wait':'#8b96a8' };
@@ -2984,6 +3005,7 @@ function renderEspejos(){
   const thead = document.querySelector('#tablaEsp thead'), tbody = document.querySelector('#tablaEsp tbody');
   thead.innerHTML = '<tr>' + th('familia','familia') + th('corte','segmento') + th('dir','base') + th('edir','espejo','dirección del espejo (contraria)')
     + th('n','N espejo') + th('mean','mean_R espejo') + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('difm','dif vs azar (C2)','espejo menos el azar del mismo símbolo y semana')
+    + '<th class="nosort" title="N del espejo con control C2; ≥50 en cada mitad temporal">Paso 1 · N</th><th class="nosort" title="Semanas ISO distintas con ≥3 trades del espejo">Paso 1 · semanas</th><th class="nosort" title="dif vs azar en la 1ª y 2ª mitad temporal del espejo. Verde: ambas > 0 · rojo: ambas < 0 · gris: signos distintos">Paso 1 · ambas mitades</th><th class="nosort" title="Media del espejo menos la del resto del sistema en el mismo periodo. Verde: > 0 · rojo: < 0">Paso 1 · mejora sistema (A-02)</th><th data-col="estEsp" title="Graduación del espejo (#S123d, camino B): mismo estándar que la base, desde su primer trade">Paso 1 · estado espejo</th>'
     + th('nb','N base') + th('meanb','mean_R base') + th('abiertas','abiertas') + '<th class="nosort">régimen BTC (R/B/Be)</th><th class="nosort">lectura</th></tr>';
   rows = E.sort.col ? sortRows(rows, E.sort) : rows.sort((a,b)=> b.n - a.n);
   tbody.innerHTML = rows.map(r=>{
@@ -2992,9 +3014,10 @@ function renderEspejos(){
     return `<tr style="${poco?'opacity:.6':''}"><td>${r.familia}</td><td>${r.corte}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td>`
       + `<td>${r.n}</td><td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td>`
       + `<td>${r.ic ? `[${f2(r.ic[0])}, ${f2(r.ic[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr!=null ? r.wr.toFixed(0)+'%' : '—'}</td>`
-      + `<td class="${r.difm==null?'':(r.difm>=0?'pos':'neg')}">${f2(r.difm)}${r.dific?` <span class="hint" style="margin:0">[${f2(r.dific[0])}, ${f2(r.dific[1])}]</span>`:''}</td>`
+      + `<td class="checkcell ${!r.dific?'wait':(r.dific[0]>0?'ok':(r.dific[1]<0?'bad':'wait'))}">${f2(r.difm)}${r.dific?` <span class="hint" style="margin:0">[${f2(r.dific[0])}, ${f2(r.dific[1])}]</span>`:` <span class="hint" style="margin:0">sin IC</span>`}</td>`
+      + espPaso1(r.ge)
       + `<td>${r.nb}</td><td class="${r.meanb==null?'':(r.meanb>=0?'pos':'neg')}">${f2(r.meanb)}</td><td>${r.abiertas}</td><td>${reg}</td><td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
-  }).join('') || '<tr><td colspan="14" class="vacio">Sin segmentos negativos armados.</td></tr>';
+  }).join('') || '<tr><td colspan="19" class="vacio">Sin segmentos negativos armados.</td></tr>';
   bindSort(thead, E.sort, renderEspejos);
 }
 document.getElementById('espBusca').addEventListener('input', (e)=>{ state.esp.busca = e.target.value; renderEspejos(); });
@@ -3048,7 +3071,7 @@ function renderEspejosTodos(){
       const mGana = !!(ice && ice[0] > 0), mPierde = !!(ice && ice[1] < 0), bGana = !!(icb && icb[0] > 0), bPierde = !!(icb && icb[1] < 0);
       let lectura, cls;
       if (n < 15)                    { lectura = 'N bajo'; cls = 'badge-wait'; }
-      else if (mGana)                { lectura = 'espejo gana · pista (¿invertir?)'; cls = 'badge-pos'; }
+      else if (mGana)                { lectura = 'espejo gana (IC90 > 0)'; cls = 'badge-pos'; }
       else if (bGana && mPierde)     { lectura = 'base gana · espejo pierde'; cls = 'badge-arm'; }
       else if (mPierde && bPierde)   { lectura = 'ambos pierden'; cls = 'badge-neg'; }
       else if (bPierde)              { lectura = 'base pierde · espejo sin ventaja'; cls = 'badge-neg'; }
