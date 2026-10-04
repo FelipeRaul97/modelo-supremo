@@ -247,7 +247,7 @@
     <h2>Posiciones abiertas</h2>
     <div class="sub">Lo que el motor y las sombras tienen abierto ahora, con su uPnL.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li><b>LIVE</b>: posiciones del motor con capital real (<code>testnet_open=false</code> = el executor la rechazó). <b>SOMBRA</b>: familias denegadas acumulando sin capital. <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados, visibles mientras vive su base; el espejo independiente completo se mide al madurar (tab Espejos).</li>
+  <li><b>LIVE</b>: posiciones del motor con capital real (<code>testnet_open=false</code> = el executor la rechazó). <b>SOMBRA</b>: familias denegadas acumulando sin capital (incluye el brazo sin E_K3 de las familias exentas, marcado en la tabla). <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados, visibles mientras vive su base; el espejo independiente completo se mide al madurar (tab Espejos).</li>
   <li>El uPnL se estima con el último close en caché (se refresca cada hora): es una foto, no un tick en vivo.</li>
   <li>Excluidas del conteo LIVE: lane de investigación E_K5, símbolos ghost y posiciones nunca ejecutadas (barra atrasada, drenaje, sin margen o rechazo del executor); ninguna llegó a ser una posición real.</li>
   <li>La barra de progreso va de &minus;1R (SL) a +TP; la marca vertical es la entrada. MAX_HOLD típico: 96&nbsp;h.</li>
@@ -323,6 +323,7 @@
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>Cada familia denegada corre su detector sobre cada símbolo y barra. El recorrido es una partición exacta: <b>disparos</b> = bloqueados (R1: una posición por familia&times;símbolo&times;dirección · no-opuesto · STRIDE/cooldown) + <b>candidatos crudos</b>.</li>
   <li><b>Crudos</b> = descartados por revalidación causal (el fire no sobrevive sin mirar al futuro) + descartados por E_K3 + ATR/X1 + <b>abiertos</b>. Los abiertos exentos son los que abren en el brazo sin E_K3.</li>
+  <li>Los contadores del embudo (disparos, crudos, abiertos…) acumulan desde su instrumentación (23-sep); la vista &ldquo;Pipeline&rdquo; usa el log completo de aperturas y cierres, por eso &ldquo;abiertos&rdquo; y &ldquo;aperturas base&rdquo; no coinciden en las familias con aperturas anteriores a esa fecha.</li>
   <li>El <b>cuello</b> de cada familia es el escalón que más crudos elimina. Las columnas &Delta; salen de snapshots horarios; con * la ventana aún no está completa.</li>
   <li>N, ritmo y ETA de la vista &ldquo;Pipeline&rdquo; son de la familia entera; la graduación real se evalúa por segmento, así que el ETA es una cota optimista. El <code>mean_R</code> es orientativo, sin IC.</li>
 </ul></div></details>
@@ -355,9 +356,9 @@
     <h2>Por símbolo</h2>
     <div class="sub">Rendimiento por símbolo para LIVE + SOMBRA y, aparte, para ESPEJO.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li>Cada origen es una población distinta aunque comparta símbolo y barra: LIVE + SOMBRA son las familias en su dirección real; ESPEJO es la dirección contraria. No se suman entre sí.</li>
+  <li>Cada origen es una población distinta aunque comparta símbolo y barra: LIVE + SOMBRA son las familias en su dirección real; ESPEJO es la dirección contraria. Nunca se promedian entre sí: en la tabla el espejo va en columnas aparte.</li>
   <li>El IC90 por símbolo es un bootstrap simple con N&ge;3. En las burbujas el tamaño es |&Sigma;R| y el color indica si el IC90 queda fuera de 0; un N bajo con mean_R extremo es ruido.</li>
-  <li>Los chips de origen y dirección filtran los gráficos, los KPIs y la tabla.</li>
+  <li>El chip de origen (LIVE / SOMBRA) filtra la población base; el de dirección filtra ambas poblaciones.</li>
 </ul></div></details>
   </div>
   <div class="panel"><div class="filters" id="simboloFilters"></div></div>
@@ -395,6 +396,7 @@
   <li>Los barridos de TP, MAX_HOLD (24&ndash;96&nbsp;h) y SL (1&ndash;4R) son independientes: cada uno fija los otros dos en su valor actual, no son un óptimo conjunto.</li>
   <li>La grilla cruza 6 TP &times; 7 MAX_HOLD (42 combinaciones): un &ldquo;mejor&rdquo; pesa más multiplicidad que en los barridos sueltos. El borde rojo es el máximo de las 42, sin garantía estadística.</li>
   <li>El panorama resume las celdas del alcance elegido; en la dispersión, el punto amarillo es la celda seleccionada y lo que se aleja de la diagonal es en parte selección del mejor de 6.</li>
+  <li>La población es el corpus LIVE de cualquier familia más SOMBRA, con ruta de velas reconstruible: el N puede diferir del Resumen en familias con historia LIVE previa o sin ruta completa.</li>
   <li>Es diagnóstico: nada se cablea hasta que una celda concreta se pre-registre y confirme aparte.</li>
 </ul></div></details>
   </div>
@@ -502,6 +504,7 @@
   <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. El espejo no gradúa, no archiva y no decide nada; un espejo con IC90&gt;0 es una pista, y operar la contraria exigiría su propio pre-registro.</li>
   <li><b>Definición única</b>: el espejo es <b>independiente</b>: corre hasta su propio SL, TP o MAX_HOLD (96 barras) sin importar cuándo cierre la base, con las velas 1h locales y sin coste. El que escribe el motor se fuerza a cerrar con la base (~21&nbsp;% de los casos) y por eso ya no se usa. Un espejo cuenta cuando maduró (96 barras de velas desde la entrada).</li>
   <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo. <b>Salida por nivel</b> = SL/TP, independiente del precio de cierre; <b>salida por tiempo</b> = cierre de la vela a las 96 barras. Se parte por los cortes del menú #S82 y se pone al lado de su base; en LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R).</li>
+  <li>En &ldquo;Todos los segmentos&rdquo;, el N cuenta los trades con espejo ya maduro y la base se mide sobre esos mismos trades: por eso puede diferir de Resumen y Graduación.</li>
   <li><b>Negativos armados</b>: los espejos que el motor abre por cada fire de un segmento negativo armado, desde el armado (#S81), medidos con la misma definición independiente.</li>
 </ul></div></details>
   </div>
@@ -1092,16 +1095,16 @@ function render(){
   const roiCls = (roi) => roi && roi.roiPct < 0 ? 'neg' : 'pos';
   const notionalRefSombra = (sombraRows.find(r=>r.notional_simulado) || {}).notional || 0;
   kpis.innerHTML = `
-    <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div></div>
+    <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div>${filtered.some(t=>t.pnl_R==null) ? `<div class="ksub">${filtered.filter(t=>t.pnl_R==null).length} sin R válido</div>` : ''}</div>
     <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
-      <div class="value ${stLive.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${liveRows.length} · ${liveRows.length?fmtR(stLive.mean):'—'} · ${liveRows.length?fmtR(stLive.sum):'—'}</div></div>
+      <div class="value ${stLive.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stLive.n} · ${stLive.n?fmtR(stLive.mean):'—'} · ${stLive.n?fmtR(stLive.sum):'—'}</div></div>
     <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
-      <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${sombraRows.length} · ${sombraRows.length?fmtR(stSombra.mean):'—'} · ${sombraRows.length?fmtR(stSombra.sum):'—'}</div></div>
+      <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stSombra.n} · ${stSombra.n?fmtR(stSombra.mean):'—'} · ${stSombra.n?fmtR(stSombra.sum):'—'}</div></div>
     <div class="kpi"><div class="label">ROI LIVE (capital real desplegado)</div>
       <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div></div>
     <div class="kpi"><div class="label">ROI SOMBRA (simulado)</div>
       <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
-    <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${liveRows.length?stLive.wr.toFixed(0)+'%':'—'} / ${sombraRows.length?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
+    <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${stLive.n?stLive.wr.toFixed(0)+'%':'—'} / ${stSombra.n?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
     <div class="kpi"><div class="label">IC90 LIVE (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
     <div class="kpi"><div class="label">IC90 SOMBRA (clúster)</div><div class="value" style="font-size:1rem">${stSombra.ic?`[${stSombra.ic[0].toFixed(2)},${stSombra.ic[1].toFixed(2)}]`:'n/a'}</div></div>
   `;
@@ -1264,7 +1267,7 @@ function renderTable(filtered){
   const cols = [
     {k:'familia', label:'familia'}, {k:'dir', label:'dir'}, {k:'origen', label:'origen'},
     {k:'segmento', label:'segmento'}, {k:'n', label:'N'}, {k:'mean', label:'mean_R'},
-    {k:'sum', label:'PnL'}, {k:'wr', label:'WR'}, {k:'ic', label:'IC90'}, {k:'estado', label:'estado'},
+    {k:'sum', label:'Σ R'}, {k:'wr', label:'WR'}, {k:'ic', label:'IC90'}, {k:'estado', label:'estado'},
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>`<th data-col="${c.k}">${c.label}</th>`).join('') + '</tr>';
 
@@ -1325,9 +1328,9 @@ function renderTable(filtered){
       <td>${r.origen?`<span class="tag ${r.origen}">${r.origen}</span>`:''}</td>
       <td>${r.esTotal?`<b>${r.segmento}</b>`:r.segmento}</td>
       <td>${r.n}</td>
-      <td class="${r.mean>=0?'pos':'neg'}">${fmtR(r.mean)}</td>
-      <td class="${r.sum>=0?'pos':'neg'}">${fmtR(r.sum)}</td>
-      <td>${r.wr.toFixed(0)}%</td>
+      <td class="${r.n?(r.mean>=0?'pos':'neg'):''}">${r.n?fmtR(r.mean):'—'}</td>
+      <td class="${r.n?(r.sum>=0?'pos':'neg'):''}">${r.n?fmtR(r.sum):'—'}</td>
+      <td>${r.n?r.wr.toFixed(0)+'%':'—'}</td>
       <td>${r.ic?`[${r.ic[0].toFixed(2)},${r.ic[1].toFixed(2)}]${excl?'<span class="star">*</span>':''}`:'n/a'}</td>
       <td>${estado}</td>
     </tr>`;
@@ -1658,8 +1661,8 @@ function renderGraduacion(){
       <td>${r.dir}</td>
       <td>${origenTag}</td>
       <td>${r.n_hist}</td>
-      <td class="${r.mean_hist>=0?'pos':'neg'}">${fmtR(r.mean_hist)}</td>
-      <td class="${r.sum_hist>=0?'pos':'neg'}">${fmtR(r.sum_hist)}R</td>
+      <td class="${r.n_hist?(r.mean_hist>=0?'pos':'neg'):''}">${r.n_hist?fmtR(r.mean_hist):'—'}</td>
+      <td class="${r.n_hist?(r.sum_hist>=0?'pos':'neg'):''}">${r.n_hist?fmtR(r.sum_hist)+'R':'—'}</td>
       <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}${
         r.diluido ? ` <span class="checkcell wait" title="Al armar (N=${r.n_al_armar}) el IC90 era [${r.ic90_al_armar[0].toFixed(2)},${r.ic90_al_armar[1].toFixed(2)}] y excluía 0. Con más N el histórico se diluyó y hoy vuelve a cruzar 0 — no se desarma nada por esto (el Paso1, con data fresca, es la prueba real), es solo un aviso.">⚠️ diluido</span>` : ''
       }</td>
@@ -1950,7 +1953,7 @@ function renderEmbudo(){
       + th('ek3_fail','falla E_K3','')
       + th('ek3_rescate','rescat. exento','fallaron E_K3 pero abrieron en el brazo exento')
       + th('atr_x1_d','ATR/X1','')
-      + th('abiertos','abiertos','brazo base')
+      + th('abiertos','abiertos','brazo base; contador acumulado desde que se instrumentó el embudo (23-sep)')
       + th('conv','conv.','abiertos / crudos')
       + '<th class="nosort" title="destino de los crudos: causal · E_K3 · ATR/X1 · abiertos">destino de crudos</th>'
       + th('cuello','cuello','')
@@ -1958,7 +1961,7 @@ function renderEmbudo(){
       + (w7 && w7!==w24 ? th('d_abiertos_7d', w7+' abiertos') : '') + '</tr>';
   } else {
     thead.innerHTML = '<tr>' + th('familia','familia') + th('dir','dir (aperturas)')
-      + th('n_ab_log','aperturas base','sombras base abiertas (log)')
+      + th('n_ab_log','aperturas base','todas las aperturas base del log, desde la primera registrada')
       + th('n_cerr','cerradas','sombras base cerradas con pnl_R')
       + th('mean_R','mean_R base','orientativo, sin IC: la decisión vive en Graduación')
       + th('n_cerr_x','cerr. exento')
@@ -2055,7 +2058,7 @@ function renderSimboloFilters(universo){
     return t[key]===value;
   }).length;
   const groups = [
-    { key:'origen', label:'Origen', values:['LIVE','SOMBRA','ESPEJO'] },
+    { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
   ];
   groups.forEach(g=>{
@@ -2105,18 +2108,22 @@ let chartCurva;
 
 function renderSimbolo(){
   const universoTotal = universoSimbolo();
-  renderSimboloFilters(universoTotal);
+  renderSimboloFilters(universoTotal.filter(t=>t.origen!=='ESPEJO'));
 
+  // 🔧 2026-10-04 · auditoría de tablas: la tabla mezclaba LIVE + SOMBRA + ESPEJO en una sola media por símbolo (el espejo opera en dirección
+  // contraria: su R no se puede promediar con el de las familias). Ahora la población base (LIVE+SOMBRA) y la de ESPEJO van separadas; el chip de
+  // origen filtra solo la base, y ambas respetan el chip de dirección.
   const f = simboloState.filters;
   const universo = universoTotal.filter(t=>{
-    if (f.origen.size && !f.origen.has(t.origen)) return false;
+    if (t.origen!=='ESPEJO' && f.origen.size && !f.origen.has(t.origen)) return false;
     if (f.dir.size && !f.dir.has(t.dir)) return false;
     return true;
   });
 
-  const bySym = {};
+  const bySym = {}, espBy = {};
   universo.forEach(t=>{
-    const g = (bySym[t.sym] = bySym[t.sym] || { sym:t.sym, vals:[], origenes:{LIVE:0,SOMBRA:0,ESPEJO:0} });
+    if (t.origen === 'ESPEJO'){ (espBy[t.sym] = espBy[t.sym] || []).push(t.pnl_R); return; }
+    const g = (bySym[t.sym] = bySym[t.sym] || { sym:t.sym, vals:[], origenes:{LIVE:0,SOMBRA:0} });
     g.vals.push(t.pnl_R);
     g.origenes[t.origen] = (g.origenes[t.origen]||0) + 1;
   });
@@ -2126,7 +2133,9 @@ function renderSimbolo(){
     const sum = g.vals.reduce((a,b)=>a+b,0);
     const wr = 100 * g.vals.filter(v=>v>0).length / n;
     const ic = ic90Simple(g.vals);
-    return { sym:g.sym, n, mean, sum, wr, ic, origenes:g.origenes };
+    const ev = espBy[g.sym] || [];
+    return { sym:g.sym, n, mean, sum, wr, ic, origenes:g.origenes,
+             ne: ev.length || null, meane: ev.length ? ev.reduce((a,b)=>a+b,0)/ev.length : null, sume: ev.length ? ev.reduce((a,b)=>a+b,0) : null };
   });
 
   // chart: top/bottom 15 por mean_R (con N>=3, para no graficar ruido de 1 trade)
@@ -2150,7 +2159,8 @@ function renderSimbolo(){
   const cols = [
     {k:'sym', label:'símbolo'}, {k:'n', label:'N'}, {k:'mean', label:'mean_R'},
     {k:'sum', label:'Suma R'}, {k:'wr', label:'WR'}, {k:'ic', label:'IC90'},
-    {k:'mix', label:'LIVE/SOMBRA/ESPEJO', sortable:false},
+    {k:'mix', label:'LIVE / SOMBRA', sortable:false},
+    {k:'ne', label:'N espejo'}, {k:'meane', label:'mean_R espejo'}, {k:'sume', label:'Σ R espejo'},
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>
     c.sortable===false ? `<th class="nosort">${c.label}</th>` : `<th data-col="${c.k}">${c.label}</th>`
@@ -2166,7 +2176,7 @@ function renderSimbolo(){
   });
   tbody.innerHTML = rows.map(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
-    const mix = ['LIVE','SOMBRA','ESPEJO'].filter(o=>r.origenes[o]).map(o=>
+    const mix = ['LIVE','SOMBRA'].filter(o=>r.origenes[o]).map(o=>
       `<span class="tag" style="background:${colorForOrigenSimbolo(o)}22;color:${colorForOrigenSimbolo(o)}">${o} ${r.origenes[o]}</span>`).join(' ');
     return `<tr>
       <td>${r.sym}</td><td>${r.n}</td>
@@ -2175,6 +2185,9 @@ function renderSimbolo(){
       <td>${r.wr.toFixed(0)}%</td>
       <td>${r.ic?`[${r.ic[0].toFixed(2)},${r.ic[1].toFixed(2)}]${excl?'<span class="star">*</span>':''}`:'n/a (N<3)'}</td>
       <td>${mix}</td>
+      <td>${r.ne ?? '—'}</td>
+      <td class="${r.meane==null?'':(r.meane>=0?'pos':'neg')}">${r.meane==null?'—':fmtR(r.meane)}</td>
+      <td class="${r.sume==null?'':(r.sume>=0?'pos':'neg')}">${r.sume==null?'—':fmtR(r.sume)}</td>
     </tr>`;
   }).join('');
   thead.querySelectorAll('th[data-col]').forEach(th=>{
@@ -2186,6 +2199,8 @@ function renderSimbolo(){
   });
   try { renderExtrasSimbolo(universo); } catch(e){ console.error("extras simbolo", e); }
 }
+
+function brazoTag(p){ return p.brazo === 'sin_E_K3' ? '<span class="badge-wait" title="Brazo sin E_K3 de una familia exenta (#S120)">sin E_K3</span>' : 'base'; }
 
 function fmtAge(ts){
   if (!ts) return '—';
@@ -2275,7 +2290,7 @@ function renderAbiertas(){
   theadS.innerHTML = '<tr><th data-col="familia">familia</th><th data-col="dir">dir</th>'
     + '<th data-col="sym">símbolo</th><th data-col="entry_ts">abierta hace</th>'
     + '<th data-col="entry_price">entry</th><th data-col="TP_price">TP</th><th data-col="SL_price">SL</th>'
-    + '<th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
+    + '<th data-col="brazo">brazo</th><th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
   // El tope de 200 filas se aplica DESPUÉS de ordenar — con un click activo
   // (p.ej. uPnL%) muestra las 200 mejores/peores de esa columna, no siempre
   // las 200 más recientes.
@@ -2285,10 +2300,11 @@ function renderAbiertas(){
   tbodyS.innerHTML = sombraRows.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
+      <td>${brazoTag(p)}</td>
       ${upnlCell(p)}
-    </tr>`).join('') || '<tr><td colspan="9">Sin posiciones SOMBRA abiertas.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="10" class="vacio">Sin posiciones SOMBRA abiertas.</td></tr>';
   if (a.sombra.length > 200){
-    tbodyS.innerHTML += `<tr><td colspan="9" class="vacio">Mostrando 200 de ${a.sombra.length}; ordena una columna para ver otras.</td></tr>`;
+    tbodyS.innerHTML += `<tr><td colspan="10" class="vacio">Mostrando 200 de ${a.sombra.length}; ordena una columna para ver otras.</td></tr>`;
   }
   bindSort(theadS, sortA.sombra, renderAbiertas);
 
@@ -2298,15 +2314,16 @@ function renderAbiertas(){
   theadE.innerHTML = '<tr><th data-col="familia">familia</th><th data-col="corte">corte</th>'
     + '<th data-col="origen_base">origen</th><th data-col="dir">dir espejo</th><th data-col="sym">símbolo</th>'
     + '<th data-col="entry_ts">abierta hace</th><th data-col="TP_price">TP</th><th data-col="SL_price">SL</th>'
-    + '<th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
+    + '<th data-col="brazo">brazo</th><th data-col="upnl_pct">uPnL%</th><th data-col="upnl_R">uPnL (R)</th></tr>';
   const espejoRows = sortA.espejo.col ? sortRows(a.espejo, sortA.espejo)
                                        : [...a.espejo].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
   tbodyE.innerHTML = espejoRows.map(p=>`<tr>
       <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${p.origen_base}</span></td>
       <td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
+      <td>${brazoTag(p)}</td>
       ${upnlCell(p)}
-    </tr>`).join('') || '<tr><td colspan="10">Sin espejos condicionales abiertos.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="11" class="vacio">Sin espejos condicionales abiertos.</td></tr>';
   bindSort(theadE, sortA.espejo, renderAbiertas);
 }
 
@@ -2720,7 +2737,7 @@ function renderExtrasAbiertas(){
     + xKpi('uPnL LIVE (R, suma)', xR(k('LIVE').sumR,2), k('LIVE').nu ? `${k('LIVE').pos}/${k('LIVE').nu} en positivo` : '', xCls(k('LIVE').sumR))
     + xKpi('uPnL$ Binance', nUsd ? ((sumUsd>=0?'+':'')+'$'+sumUsd.toFixed(2)) : '—', nUsd ? `${nUsd} posiciones confirmadas` : 'sin confirmar', xCls(nUsd?sumUsd:null))
     + xKpi('Nocional neto LIVE', (notL||notS) ? ('L $'+notL.toFixed(0)+' / S $'+notS.toFixed(0)) : '—', (notL||notS) ? ('neto '+((notL-notS)>=0?'+$':'−$')+Math.abs(notL-notS).toFixed(0)+(notL+notS? ' · '+(100*Math.abs(notL-notS)/(notL+notS)).toFixed(0)+'% sesgo':'')) : 'Binance sin datos')
-    + xKpi('SOMBRA abiertas', xInt(k('SOMBRA').n), `L ${k('SOMBRA').L} · S ${k('SOMBRA').S}`)
+    + xKpi('SOMBRA abiertas', xInt(k('SOMBRA').n), `L ${k('SOMBRA').L} · S ${k('SOMBRA').S} · sin E_K3 ${a.sombra.filter(p=>p.brazo==='sin_E_K3').length}`)
     + xKpi('uPnL SOMBRA (mean R)', xR(k('SOMBRA').mean,3), k('SOMBRA').nu ? `${(100*k('SOMBRA').pos/k('SOMBRA').nu).toFixed(0)}% en positivo` : '', xCls(k('SOMBRA').mean))
     + xKpi('ESPEJO abiertas', xInt(k('ESPEJO').n), `uPnL mean ${xR(k('ESPEJO').mean,3)}`, '')
     + xKpi('Símbolos repetidos LIVE', symDup.length ? String(symDup.length) : '0', symDup.length ? symDup.map(([s,n])=>`${s}×${n}`).join(' · ') : 'sin concentración por símbolo');
