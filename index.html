@@ -505,6 +505,7 @@
   <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. </li>
   <li><b>Graduación del espejo</b> (#S123d, camino B): cada espejo se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidata</b> = cumple todo ganando (candidata a invertir; operar la contraria sigue exigiendo el Paso 2); <b>refutada</b> = el espejo pierde con evidencia; si no, en observación. No gradúa si la base ya es candidata a graduar. No archiva ni decide nada de la base.</li>
   <li>Colores de Paso 1: verde a favor del espejo (R &gt; 0), rojo en contra, gris sin evidencia (IC90 que cruza 0, mitades de signo distinto).</li>
+  <li><b>Espejo nativo</b> (#S123e): desde su fecha de activación (por origen, en el KPI &ldquo;Espejo nativo&rdquo;) el motor abre un espejo por <b>cada</b> trade LIVE y SOMBRA, con vida propia y sin coste. En los trades anteriores el espejo es la reconstrucción por replay. Calidad: <b>nativo</b> (real, exacto por construcción), <b>por nivel</b> (replay, salió por SL/TP) o <b>por tiempo</b> (replay, aproximado).</li>
   <li><b>Definición única</b>: el espejo es <b>independiente</b>: corre hasta su propio SL, TP o MAX_HOLD (96 barras) sin importar cuándo cierre la base, con las velas 1h locales y sin coste. El que escribe el motor se fuerza a cerrar con la base (~21&nbsp;% de los casos) y por eso ya no se usa. Un espejo cuenta cuando maduró (96 barras de velas desde la entrada).</li>
   <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo. <b>Salida por nivel</b> = SL/TP, independiente del precio de cierre; <b>salida por tiempo</b> = cierre de la vela a las 96 barras. Se parte por los cortes del menú #S82 y se pone al lado de su base; en LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R).</li>
   <li>En &ldquo;Todos los segmentos&rdquo;, el N cuenta los trades con espejo ya maduro y la base se mide sobre esos mismos trades: por eso puede diferir de Resumen y Graduación.</li>
@@ -522,7 +523,7 @@
     <div class="toolbar">
       <div class="segmented" id="espCalidad">
         <div class="seg-btn active" data-q="todos">Todas las salidas</div>
-        <div class="seg-btn" data-q="exactos">Solo salida por nivel</div>
+        <div class="seg-btn" data-q="exactos">Solo exactos (nativo o por nivel)</div>
       </div>
       <div class="segmented" id="espOrigen">
         <div class="seg-btn active" data-o="todos">LIVE + SOMBRA</div><div class="seg-btn" data-o="LIVE">LIVE</div><div class="seg-btn" data-o="SOMBRA">SOMBRA</div>
@@ -3085,9 +3086,10 @@ function renderEspejosTodos(){
   const fams = new Set(filas.map(r=>r.familia));
   const nm = vis.filter(r=>r.n>=15);
   const gana = nm.filter(r=>r.cls==='badge-pos').length, ambos = nm.filter(r=>r.lectura==='ambos pierden').length, baseGana = nm.filter(r=>r.cls==='badge-arm').length;
-  const tot = ED.n_exacto + ED.n_aprox + (ED.n_live_exacto||0) + (ED.n_live_aprox||0);
+  const nN = (ED.n_nativo||0) + (ED.n_live_nativo||0), tot = ED.n_exacto + ED.n_aprox + nN + (ED.n_live_exacto||0) + (ED.n_live_aprox||0);
   kEl.innerHTML = xKpi('Familias con espejo', xInt(fams.size), `${xInt(Object.keys(grupos).length)} origen×familia×dirección`)
-    + xKpi('Trades con espejo', xInt(tot), `por nivel ${xInt(ED.n_exacto + (ED.n_live_exacto||0))} · por tiempo ${xInt(ED.n_aprox + (ED.n_live_aprox||0))} (LIVE: ${xInt((ED.n_live_exacto||0)+(ED.n_live_aprox||0))})`)
+    + xKpi('Trades con espejo', xInt(tot), `nativo ${xInt(nN)} · replay por nivel ${xInt(ED.n_exacto + (ED.n_live_exacto||0))} · replay por tiempo ${xInt(ED.n_aprox + (ED.n_live_aprox||0))}`)
+    + xKpi('Espejo nativo', xInt(nN), (()=>{ const d = ED.nativo_desde || {}, ab = ED.nativo_abiertos || {}; const o = Object.keys(d); return o.length ? o.map(k=>`${k} desde ${new Date(d[k]).toISOString().slice(0,10)} · ${xInt(ab[k]||0)} abiertos`).join(' · ') : 'aún sin espejos nativos'; })())
     + xKpi('Segmentos con N≥15', xInt(nm.length), `de ${xInt(todasF.length)} celdas con algún trade`)
     + xKpi('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
     + xKpi('Base gana · espejo pierde', String(baseGana), 'IC90 de ambos fuera de 0', '')
@@ -3099,7 +3101,7 @@ function renderEspejosTodos(){
   xChart('chartEspFam', { type:'bar',
     data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[L] ':''}${r.familia} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n} · ${r.pEx.toFixed(0)}% por nivel${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
+      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n} · ${r.pEx.toFixed(0)}% exacto${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
       scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
   // dispersión base vs espejo
   const pts = filas.filter(r=>r.n>=15 && r.mean!=null && r.meanb!=null);
@@ -3121,7 +3123,7 @@ function renderEspejosTodos(){
   const thead = document.querySelector('#tablaEsp2 thead'), tbody = document.querySelector('#tablaEsp2 tbody');
   thead.innerHTML = '<tr>' + th('origen','origen') + th('familia','familia') + th('dir','base') + th('edir','espejo') + th('corte','segmento') + th('n','N') + th('mean','mean_R espejo')
     + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('meanb','mean_R base') + '<th class="nosort">IC90 base</th>'
-    + th('pEx','% por nivel','proporción de espejos que salieron por SL/TP (el resto salió por tiempo, con el close de la vela)') + '<th class="nosort">lectura</th></tr>';
+    + th('pEx','% exacto','proporción de espejos exactos: nativos del motor o replay con salida por SL/TP (el resto es replay con salida por tiempo, con el close de la vela)') + '<th class="nosort">lectura</th></tr>';
   rows = E.sort2.col ? sortRows(rows, E.sort2) : rows.sort((a,b)=> b.n - a.n);
   tbody.innerHTML = rows.slice(0, 600).map(r=>{
     const ex = r.ice && (r.ice[0]>0 || r.ice[1]<0), exb = r.icb && (r.icb[0]>0 || r.icb[1]<0), poco = r.n < 15;
