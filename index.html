@@ -288,6 +288,7 @@
     <div class="sub">Paso 1 de cada segmento armado: se mide su base desde el armado y el dato fija la dirección (graduar &uarr; o vetar &darr;).</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li><b>Paso 0 · watch</b>: un segmento se arma con N&ge;30 histórico, &ge;15 en cada mitad temporal con el mismo signo e IC90 que excluye 0 (cualquier signo). Los armados con el criterio anterior (N&ge;15) no se desarman y se marcan <b>v1</b>.</li>
+  <li><b>Colores de Paso 1</b>: dif vs azar, ambas mitades y A-02 se colorean por el signo del dato de la base: verde a favor (R &gt; 0), rojo en contra (R &lt; 0), gris sin evidencia (IC que cruza 0, sin IC o mitades con signo distinto). El sentido graduar/vetar lo fija el dato y se lee en la columna estado, no en el color.</li>
   <li><b>Paso 1 · candidata</b>: se mide la <b>base</b> (su propio log, misma dirección de la familia) desde el armado original, sin abrir posiciones. Condiciones: N&ge;100 (&ge;50 por mitad) &middot; &ge;8 semanas &middot; dif vs azar del mismo símbolo y semana (C2) con IC90 fuera de 0 &middot; misma dirección en ambas mitades &middot; A-02 (el segmento supera al resto del sistema; si pierde, vetarlo lo mejora).</li>
   <li><b>Dirección</b>: la fija el dato, no el histórico. Si la base gana con a&ndash;e completos es candidata a <b>graduar</b>; si pierde, a <b>vetar</b>. El histórico (&uarr;/&darr; al armar) queda como dato y marca &#9888; cuando el resultado sale al revés.</li>
   <li><b>Estados</b>: CANDIDATA (a&ndash;e completos) &middot; EN OBSERVACIÓN &middot; REFUTADA (evidencia madura contra el histórico sin completar d/e). Test de dos colas con IC90 por cola (&asymp;10&nbsp;% de falsos positivos por segmento); &alpha; fijo, sin ajuste de multiplicidad.</li>
@@ -1621,13 +1622,20 @@ function renderGraduacion(){
     const regTxt = rc ? `R${rc.RANGE} B${rc.BULL} Be${rc.BEAR}` : '—';
     const G = r.armado ? r.gate : null;
     const sg = (x)=> (x===null||x===undefined) ? 'n/a' : ((x>=0?'+':'') + x.toFixed(2));
-    const vetoTip = (G && G.sentido==='vetar') ? 'La base PIERDE frente al azar: ✓ = dif < 0 con el IC90 por debajo de 0 (veto). ' : '';
+    const vetoTip = (G && G.sentido==='vetar') ? 'Sentido veto: la base pierde frente al azar. ' : '';
     const cel = (ok, txt, tip)=> `<td class="checkcell ${ok===null?'wait':(ok?'ok':'wait')}"${tip?` title="${tip}"`:''}>${txt}</td>`;
+    // Color por SIGNO del dato BASE (no por si la condición pasa en el sentido graduar/vetar): verde = a favor de la base (R > 0),
+    // rojo = en contra (R < 0), gris = sin evidencia (IC que cruza 0 / sin IC, mitades de signo distinto, sin dato). El sentido
+    // graduar/vetar vive en el tooltip y en la columna estado.
+    const celS = (cls, txt, tip)=> `<td class="checkcell ${cls}"${tip?` title="${tip}"`:''}>${txt}</td>`;
+    const clsIC = (ic)=> !ic ? 'wait' : (ic[0] > 0 ? 'ok' : (ic[1] < 0 ? 'bad' : 'wait'));
+    const clsMit = (a,b)=> (a==null||b==null) ? 'wait' : ((a>0&&b>0) ? 'ok' : ((a<0&&b<0) ? 'bad' : 'wait'));
+    const clsSgn = (x)=> (x==null||x===0) ? 'wait' : (x>0 ? 'ok' : 'bad');
     const gN = G ? cel(G.cond.a, `${G.n_c2}/100 <span class="hint" style="margin:0">(${G.n_h1}+${G.n_h2})</span>`, 'N forward con control C2; ≥50 en cada mitad temporal') : '<td class="checkcell wait">—</td>';
     const gSem = G ? cel(G.cond.b, `${G.semanas}/8`, 'Semanas ISO distintas con ≥3 trades forward') : '<td class="checkcell wait">—</td>';
-    const gDif = G ? cel(G.cond.c, G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, vetoTip + 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 de doble clúster (símbolo, semana); sin IC si hay menos de 3 semanas o 3 símbolos.') : '<td class="checkcell wait">—</td>';
-    const gMit = G ? cel(G.cond.d, `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, vetoTip + 'dif vs azar en la 1ª y 2ª mitad temporal: en el sentido de la hipótesis en ambas') : '<td class="checkcell wait">—</td>';
-    const gA02 = G ? cel(G.a02 ? G.cond.e : null, G.a02 ? `${sg(G.a02.diff)}` : 'n/a', vetoTip + 'Media forward del segmento menos la del resto del sistema en el mismo periodo (> 0 para pasar; < 0 si es un veto)') : '<td class="checkcell wait">—</td>';
+    const gDif = G ? celS(clsIC(G.dif_ic), G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, vetoTip + 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 de doble clúster (símbolo, semana); sin IC si hay menos de 3 semanas o 3 símbolos. Verde: IC90 por encima de 0 · rojo: por debajo de 0 · gris: cruza 0 o sin IC.') : '<td class="checkcell wait">—</td>';
+    const gMit = G ? celS(clsMit(G.dif_h1,G.dif_h2), `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, vetoTip + 'dif vs azar en la 1ª y 2ª mitad temporal. Verde: ambas > 0 · rojo: ambas < 0 · gris: signos distintos') : '<td class="checkcell wait">—</td>';
+    const gA02 = G ? celS(G.a02 ? clsSgn(G.a02.diff) : 'wait', G.a02 ? `${sg(G.a02.diff)}` : 'n/a', vetoTip + 'Media forward del segmento menos la del resto del sistema en el mismo periodo. Verde: > 0 · rojo: < 0') : '<td class="checkcell wait">—</td>';
     const ESTG = { 'CANDIDATA':'<span class="badge-pos">✅ CANDIDATA</span>', 'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>', 'REFUTADA':'<span class="badge-neg">🔴 refutada</span>' };
     const gEst = G ? `<td title="${(G.falta||[]).join(' · ').replace(/"/g,'')}">${ESTG[G.estado]||G.estado}${G.archivado ? ' <span class="hint" style="margin:0" title="Archivado por evidencia madura (REFUTADA): no abre espejos nuevos; historial conservado.">🗄️ archivada</span>' : ''}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}</td>` : '<td class="checkcell wait">—</td>';
     const c1 = { cls: (G && G.estado==='CANDIDATA') ? 'ok' : 'wait' };
