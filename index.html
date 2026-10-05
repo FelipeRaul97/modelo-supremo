@@ -499,63 +499,35 @@
 <div id="tab-espejos" style="display:none;">
   <div class="panel tabhead">
     <h2>Espejos</h2>
-    <div class="sub">La dirección contraria de cada trade, por segmento: espejo vivo o reconstruido por replay.</div>
+    <div class="sub">Los espejos acumulados de los segmentos negativos armados: la misma entrada en dirección contraria.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li><b>Espejo</b> = la misma entrada en dirección contraria (R=3&middot;ATR, TP 4R, SL 2R, MAX_HOLD 96). Es una pregunta distinta a la de Graduación: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane, y una base que pierde no implica que la contraria gane.</li>
-  <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes. </li>
-  <li><b>Graduación del espejo</b> (#S123d, camino B): cada espejo se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidata</b> = cumple todo ganando (candidata a invertir; operar la contraria sigue exigiendo el Paso 2); <b>refutada</b> = el espejo pierde con evidencia; si no, en observación. No gradúa si la base ya es candidata a graduar. No archiva ni decide nada de la base.</li>
+  <li><b>Espejo</b> = la misma entrada en dirección contraria (R=3&middot;ATR, TP 4R, SL 2R, MAX_HOLD 96, sin coste). Corre hasta su propio SL, TP o MAX_HOLD sin importar cuándo cierre la base. Es una pregunta distinta a la de Graduación: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane.</li>
+  <li><b>Qué espejos hay</b>: cuando un segmento llega al Paso 0 con histórico <b>negativo</b>, queda armado y se acumula su espejo, trade a trade, desde ese momento. Los segmentos armados con histórico positivo no llevan espejo (ya son la dirección que se quiere validar). <b>N</b> cuenta los espejos ya cerrados desde el armado, y la base se mide sobre esos mismos trades.</li>
+  <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes.</li>
+  <li><b>Graduación del espejo</b> (#S123d, camino B; columnas Paso 1, solo para los negativos armados): se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidata</b> = cumple todo ganando (candidata a invertir; operar la contraria sigue exigiendo el Paso 2); <b>refutada</b> = el espejo pierde con evidencia; si no, en observación. No gradúa si la base ya es candidata a graduar.</li>
   <li>Colores de Paso 1: verde a favor del espejo (R &gt; 0), rojo en contra, gris sin evidencia (IC90 que cruza 0, mitades de signo distinto).</li>
-  <li><b>Espejo nativo</b> (#S123e): desde su fecha de activación (por origen, en el KPI &ldquo;Espejo nativo&rdquo;) el motor abre un espejo por <b>cada</b> trade LIVE y SOMBRA, con vida propia y sin coste. En los trades anteriores el espejo es la reconstrucción por replay. Calidad: <b>nativo</b> (real, exacto por construcción), <b>por nivel</b> (replay, salió por SL/TP) o <b>por tiempo</b> (replay, aproximado).</li>
-  <li><b>Definición única</b>: el espejo es <b>independiente</b>: corre hasta su propio SL, TP o MAX_HOLD (96 barras) sin importar cuándo cierre la base, con las velas 1h locales y sin coste. El que escribe el motor se fuerza a cerrar con la base (~21&nbsp;% de los casos) y por eso ya no se usa. Un espejo cuenta cuando maduró (96 barras de velas desde la entrada).</li>
-  <li><b>Todos los segmentos</b>: cada cierre de SOMBRA y LIVE tiene su espejo. <b>Salida por nivel</b> = SL/TP, independiente del precio de cierre; <b>salida por tiempo</b> = cierre de la vela a las 96 barras. Se parte por los cortes del menú #S82 y se pone al lado de su base; en LIVE la base es el R real (con costes) y el espejo es simulado bruto (&asymp;0,03&nbsp;R).</li>
-  <li>En &ldquo;Todos los segmentos&rdquo;, el N cuenta los trades con espejo ya maduro y la base se mide sobre esos mismos trades: por eso puede diferir de Resumen y Graduación.</li>
-  <li><b>Negativos armados</b>: los espejos que el motor abre por cada fire de un segmento negativo armado, desde el armado (#S81), medidos con la misma definición independiente.</li>
+  <li>Espejos nativos (#S123e): el motor registra además el espejo de cada trade LIVE y SOMBRA desde su fecha de activación; sirve de fuente para los segmentos cuando se arman (no se muestra aparte).</li>
+  <li>En LIVE la base es el R real (con costes) y el espejo es bruto (&asymp;0,03&nbsp;R de diferencia).</li>
 </ul></div></details>
   </div>
   <div class="toolbar">
-    <div class="segmented" id="espVista">
-      <div class="seg-btn active" data-vista="todos">Todos los segmentos</div>
-      <div class="seg-btn" data-vista="neg">Negativos armados</div>
+    <div class="segmented" id="espOrigen">
+      <div class="seg-btn active" data-o="todos">LIVE + SOMBRA</div><div class="seg-btn" data-o="LIVE">LIVE</div><div class="seg-btn" data-o="SOMBRA">SOMBRA</div>
+    </div>
+    <div class="toolbar-right">
+      <input id="espBusca" type="search" placeholder="buscar familia o corte…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;">
+      <label class="filtercount" style="cursor:pointer"><input type="checkbox" id="espSoloN" checked> solo N&ge;15</label>
+      <span class="filtercount" id="espCount"></span>
     </div>
   </div>
-
-  <div id="espVistaTodos">
-    <div class="toolbar">
-      <div class="segmented" id="espCalidad">
-        <div class="seg-btn active" data-q="todos">Todas las salidas</div>
-        <div class="seg-btn" data-q="exactos">Solo exactos (nativo o por nivel)</div>
-      </div>
-      <div class="segmented" id="espOrigen">
-        <div class="seg-btn active" data-o="todos">LIVE + SOMBRA</div><div class="seg-btn" data-o="LIVE">LIVE</div><div class="seg-btn" data-o="SOMBRA">SOMBRA</div>
-      </div>
-      <div class="toolbar-right">
-        <input id="espBusca2" type="search" placeholder="buscar familia o corte…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;">
-        <label class="filtercount" style="cursor:pointer"><input type="checkbox" id="espSoloN" checked> solo N&ge;15</label>
-        <span class="filtercount" id="espCount2"></span>
-      </div>
-    </div>
-    <div class="kpis" id="espKpis2"></div>
-    <div class="grid2">
-      <div class="panel"><h2>mean_R del espejo por familia · dirección</h2><div id="chartEspFamWrap" style="position:relative; height:420px"><canvas id="chartEspFam"></canvas></div></div>
-      <div class="panel"><h2>Base vs espejo por segmento</h2><div class="chart-wrap"><canvas id="chartEspScatter2"></canvas></div></div>
-    </div>
-    <div class="panel">
-      <h2>Detalle por segmento</h2>
-      <div class="tablewrap"><table id="tablaEsp2"><thead></thead><tbody></tbody></table></div>
-    </div>
+  <div class="kpis" id="espKpis"></div>
+  <div class="grid2">
+    <div class="panel"><h2>mean_R del espejo por segmento</h2><div id="chartEspFamWrap" style="position:relative; height:420px"><canvas id="chartEspFam"></canvas></div></div>
+    <div class="panel"><h2>Base vs espejo por segmento</h2><div class="chart-wrap"><canvas id="chartEspScatter"></canvas></div></div>
   </div>
-
-  <div id="espVistaNeg" style="display:none;">
-    <div class="kpis" id="espKpis"></div>
-    <div class="grid2">
-      <div class="panel"><h2>Base vs espejo por segmento</h2><div class="chart-wrap"><canvas id="chartEspScatter"></canvas></div></div>
-      <div class="panel"><h2>mean_R del espejo por segmento</h2><div id="chartEspBarWrap" style="position:relative; height:420px"><canvas id="chartEspBar"></canvas></div></div>
-    </div>
-    <div class="panel">
-      <div class="toolbar"><h2 style="margin:0">Detalle por segmento</h2>
-        <div class="toolbar-right"><input id="espBusca" type="search" placeholder="buscar familia o corte…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;"><span class="filtercount" id="espCount"></span></div></div>
-      <div class="tablewrap"><table id="tablaEsp"><thead></thead><tbody></tbody></table></div>
-    </div>
+  <div class="panel">
+    <h2>Detalle por segmento</h2>
+    <div class="tablewrap"><table id="tablaEsp"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -719,7 +691,7 @@ const state = {
   // 🔧 2026-10-03 · E_K3 por segmento: filtro de dirección y orden del detalle.
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
   // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
-  esp: { sort: { col: null, dir: -1 }, busca: '', vista: 'todos', calidad: 'todos', origen: 'todos', busca2: '', soloN: true, sort2: { col: null, dir: -1 } },
+  esp: { sort: { col: null, dir: -1 }, busca: '', origen: 'todos', soloN: true },
 };
 
 // Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
@@ -2899,13 +2871,11 @@ function renderExtrasGraduacion(rows){
   const kEl = document.getElementById('gradRescateKpis');
   if (!R || R.error || !R.resumen){ kEl.innerHTML = '<div class="vacio">Sin datos de ritmo todavía.</div>'; return; }
   const T = R.resumen.todos, NG = R.resumen.negativos, PG = R.resumen.positivos;
-  const cob = R.cobertura_espejo || {}, cobPct = (cob.con||0)+(cob.sin||0) ? 100*cob.con/(cob.con+cob.sin) : null;
   kEl.innerHTML = xKpi('Segmentos armados', xInt(T.segmentos), `${PG.segmentos} con hist. ↑ · ${NG.segmentos} con hist. ↓`)
     + xKpi('Trades base forward', xInt(T.n_base_fwd_total), `${xInt(NG.n_base_fwd_total)} de negativos que antes solo se medían por su espejo`)
     + xKpi('Con N ≥ 15', xInt(T.con_N_ge_15), `de ${T.segmentos} · N≥100: ${T.con_N_ge_100}`)
     + xKpi('Sin ritmo (14 d)', xInt(T.sin_ritmo), 'sin trades recientes: candidatos a revisar/archivar')
-    + xKpi('ETA graduación (mediana)', T.eta_mediana_dias!=null ? Math.round(T.eta_mediana_dias)+' d' : '—', `mín ${T.eta_min_dias!=null?Math.round(T.eta_min_dias):'—'} d · máx ${T.eta_max_dias!=null?Math.round(T.eta_max_dias).toLocaleString('es'):'—'} d`)
-    + xKpi('Espejo independiente', cobPct!=null ? cobPct.toFixed(0)+'%' : '—', `${xInt(cob.con)} de ${xInt((cob.con||0)+(cob.sin||0))} cierres SOMBRA maduros`);
+    + xKpi('ETA graduación (mediana)', T.eta_mediana_dias!=null ? Math.round(T.eta_mediana_dias)+' d' : '—', `mín ${T.eta_min_dias!=null?Math.round(T.eta_min_dias):'—'} d · máx ${T.eta_max_dias!=null?Math.round(T.eta_max_dias).toLocaleString('es'):'—'} d`);
   const segs = R.segmentos || [];
   const edges = [[0,35,'≤35 d'],[35,60,'36-60 d'],[60,90,'61-90 d'],[90,120,'91-120 d'],[120,365,'121-365 d'],[365,1e9,'>1 año']];
   const bucket = (sg, lo2, hi2)=> segs.filter(x=>x.signo===sg && x.eta_graduacion_dias!=null && x.eta_graduacion_dias>lo2 && x.eta_graduacion_dias<=hi2 + (lo2===0?0:0)).length;
@@ -2919,7 +2889,8 @@ function renderExtrasGraduacion(rows){
       scales:{ x:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT} }, y:{ stacked:true, ...X_AX } } } });
 }
 
-// ── ESPEJOS (#S123) · la dirección contraria de cada negativo, informativo y separado de Graduación ─────────────────
+// ── ESPEJOS · los espejos acumulados de los segmentos negativos armados ────────────────────────────────────────────────────────
+// Solo los segmentos NEGATIVOS armados: su espejo (misma entrada, dirección contraria) acumulado desde el armado, con su graduación (Paso 1).
 function espPaso1(ge){
   const f2 = (x)=> (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(2));
   if (!ge) return '<td class="checkcell wait">—</td>'.repeat(5);
@@ -2939,176 +2910,66 @@ function espPaso1(ge){
 }
 
 function renderEspejos(){
-  const lista = (state.data && state.data.espejos || []).filter(e=>e.signo==='negativo');
-  const E = state.esp;
+  const D = state.data || {}, E = state.esp;
   const f2 = (x)=> (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(2));
   const NA = '<span class="hint" style="margin:0">—</span>';
-  const todas = lista.map(e=>{
-    const g = e.gate || {}, ge = g.espejo || null, fb = e.fwd_base || {};
-    const ic = e.ic90_R_cerrados, icb = fb.ic90, n = e.n_cerrados || 0, nb = fb.n || 0;
-    const mGana = !!(ic && ic[0] > 0), mPierde = !!(ic && ic[1] < 0), bGana = !!(icb && icb[0] > 0), bPierde = !!(icb && icb[1] < 0);
-    let lectura, cls;
-    if (mGana)                    { lectura = 'espejo gana (IC90 > 0)'; cls = 'badge-pos'; }
-    else if (bGana && mPierde)    { lectura = 'base gana · espejo pierde (contradice el veto)'; cls = 'badge-arm'; }
-    else if (mPierde && bPierde)  { lectura = 'ambos pierden'; cls = 'badge-neg'; }
-    else if (bPierde)             { lectura = 'base pierde (sostiene el veto) · espejo sin ventaja'; cls = 'badge-neg'; }
-    else if (n < 15 && nb < 15)   { lectura = 'N bajo'; cls = 'badge-wait'; }
-    else                          { lectura = 'sin evidencia (IC90 cruza 0)'; cls = 'badge-wait'; }
-    return { familia:e.familia, corte:e.corte, dir:e.dir, edir: e.espejo_dir || (e.dir==='LONG' ? 'SHORT' : 'LONG'), n, mean:e.mean_R_cerrados, ic, wr:e.wr_cerrados,
-             abiertas:e.abiertas||0, difm: ge ? ge.dif_mean : null, dific: ge ? ge.dif_ic : null, nb, meanb: fb.mean_R, icb, lectura, cls, reg:e.regimen_cerrados,
-             estEsp: ge ? ge.estado : null, ge, camino: ge ? ge.camino : null };
-  });
-  // KPIs
-  const con = todas.filter(r=>r.n>=15);
-  const gana = con.filter(r=>r.ic && r.ic[0]>0).length, pierde = con.filter(r=>r.ic && r.ic[1]<0).length;
-  const ambos = todas.filter(r=>r.n>=15 && r.nb>=15 && r.lectura==='ambos pierden').length;
-  const pares = todas.filter(r=>r.n>=15 && r.nb>=15 && r.mean!=null && r.meanb!=null);
-  let corr = null;
-  if (pares.length >= 5){
-    const mx = pares.reduce((a,r)=>a+r.meanb,0)/pares.length, my = pares.reduce((a,r)=>a+r.mean,0)/pares.length;
-    const sxy = pares.reduce((a,r)=>a+(r.meanb-mx)*(r.mean-my),0), sx = Math.sqrt(pares.reduce((a,r)=>a+(r.meanb-mx)**2,0)), sy = Math.sqrt(pares.reduce((a,r)=>a+(r.mean-my)**2,0));
-    corr = (sx && sy) ? sxy/(sx*sy) : null;
-  }
-  const k = (l, v, sub, c)=> xKpi(l, v, sub, c);
-  document.getElementById('espKpis').innerHTML =
-      k('Negativos armados', xInt(todas.length), `${con.length} con espejo N≥15`)
-    + k('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
-    + k('Espejo pierde (IC90<0)', String(pierde), 'segmentos con N≥15', 'neg')
-    + k('Ambos pierden', String(ambos), 'base y espejo con IC90<0')
-    + k('Correlación base↔espejo', corr!=null ? corr.toFixed(2) : '—', corr!=null ? `${pares.length} segmentos con N≥15 en ambos` : 'faltan segmentos con N≥15')
-    + k('Espejos candidatos', String(todas.filter(r=>r.estEsp==='CANDIDATA').length), `${todas.filter(r=>r.estEsp==='REFUTADA').length} refutados · ${todas.filter(r=>r.estEsp==='EN OBSERVACION').length} en observación`, 'pos')
-    + k('Espejos abiertos', xInt(todas.reduce((a,r)=>a+r.abiertas,0)), 'corriendo ahora');
-  // scatter base vs espejo
-  const col = { 'badge-pos':X_POS, 'badge-arm':X_IDX, 'badge-neg':X_NEG, 'badge-wait':'#8b96a8' };
-  const nombres = { 'badge-pos':'espejo gana', 'badge-arm':'base gana · espejo pierde', 'badge-neg':'pierden / base pierde', 'badge-wait':'sin evidencia' };
-  const maxN = Math.max(1, ...pares.map(r=>r.n));
-  xChart('chartEspScatter', { type:'scatter',
-    data:{ datasets: Object.keys(col).map(c=>({ label:nombres[c], backgroundColor:col[c]+'bb', borderColor:col[c],
-        data: pares.filter(r=>r.cls===c).map(r=>({ x:r.meanb, y:r.mean, r:4+8*Math.sqrt(r.n/maxN), t:`${r.familia} · ${r.corte} ${r.dir}`, n:r.n, nb:r.nb })) }))
-      .concat([{ label:'espejo perfecto (R_esp = −R_base)', type:'line', data:[{x:-3,y:3},{x:3,y:-3}], borderColor:X_MUT, borderDash:[4,3], pointRadius:0, borderWidth:1 }]) },
-    options:{ responsive:true, maintainAspectRatio:false, elements:{ point:{ radius:(c)=> (c.raw && c.raw.r) || 5 } },
-      plugins:{ legend:X_LEG, tooltip:{ callbacks:{ label:(c)=>{ const p=c.raw; return p.t ? `${p.t}: base ${xR(p.x)} (N=${p.nb}) · espejo ${xR(p.y)} (N=${p.n})` : ''; } } } },
-      scales:{ x:{ ...X_AX, title:{display:true,text:'mean_R de la base (forward desde el armado)',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R del espejo (dirección contraria)',color:X_MUT} } } } });
-  // barras del espejo
-  const conN = todas.filter(r=>r.n>=15 && r.mean!=null).sort((a,b)=>b.mean-a.mean);
-  const barras = conN.length>24 ? conN.slice(0,12).concat(conN.slice(-12)) : conN;
-  document.getElementById('chartEspBarWrap').style.height = Math.max(240, barras.length*19+60)+'px';
-  xChart('chartEspBar', { type:'bar',
-    data:{ labels: barras.map(r=>`${r.familia} · ${r.corte} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n}${r.ic?` · IC90 [${r.ic[0].toFixed(2)}, ${r.ic[1].toFixed(2)}]`:''}`; }}}},
-      scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
-  // tabla
-  const q = (E.busca||'').trim().toLowerCase();
-  let rows = todas.filter(r=>!q || (r.familia+' '+r.corte).toLowerCase().includes(q));
-  document.getElementById('espCount').innerHTML = `<b>${rows.length}</b> / ${todas.length} segmentos`;
-  const th = (c,l,t)=> `<th data-col="${c}" title="${t||''}">${l}</th>`;
-  const thead = document.querySelector('#tablaEsp thead'), tbody = document.querySelector('#tablaEsp tbody');
-  thead.innerHTML = '<tr>' + th('familia','familia') + th('corte','segmento') + th('dir','base') + th('edir','espejo','dirección del espejo (contraria)')
-    + th('n','N espejo') + th('mean','mean_R espejo') + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('difm','dif vs azar (C2)','espejo menos el azar del mismo símbolo y semana')
-    + '<th class="nosort" title="N del espejo con control C2; ≥50 en cada mitad temporal">Paso 1 · N</th><th class="nosort" title="Semanas ISO distintas con ≥3 trades del espejo">Paso 1 · semanas</th><th class="nosort" title="dif vs azar en la 1ª y 2ª mitad temporal del espejo. Verde: ambas > 0 · rojo: ambas < 0 · gris: signos distintos">Paso 1 · ambas mitades</th><th class="nosort" title="Media del espejo menos la del resto del sistema en el mismo periodo. Verde: > 0 · rojo: < 0">Paso 1 · mejora sistema (A-02)</th><th data-col="estEsp" title="Graduación del espejo (#S123d, camino B): mismo estándar que la base, desde su primer trade">Paso 1 · estado espejo</th>'
-    + th('nb','N base') + th('meanb','mean_R base') + th('abiertas','abiertas') + '<th class="nosort">régimen BTC (R/B/Be)</th><th class="nosort">lectura</th></tr>';
-  rows = E.sort.col ? sortRows(rows, E.sort) : rows.sort((a,b)=> b.n - a.n);
-  tbody.innerHTML = rows.map(r=>{
-    const ex = r.ic && (r.ic[0]>0 || r.ic[1]<0), poco = r.n < 15;
-    const reg = r.reg ? `${r.reg.RANGE}/${r.reg.BULL}/${r.reg.BEAR}` : '—';
-    return `<tr style="${poco?'opacity:.6':''}"><td>${r.familia}</td><td>${r.corte}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td>`
-      + `<td>${r.n}</td><td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td>`
-      + `<td>${r.ic ? `[${f2(r.ic[0])}, ${f2(r.ic[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr!=null ? r.wr.toFixed(0)+'%' : '—'}</td>`
-      + `<td class="checkcell ${!r.dific?'wait':(r.dific[0]>0?'ok':(r.dific[1]<0?'bad':'wait'))}">${f2(r.difm)}${r.dific?` <span class="hint" style="margin:0">[${f2(r.dific[0])}, ${f2(r.dific[1])}]</span>`:` <span class="hint" style="margin:0">sin IC</span>`}</td>`
-      + espPaso1(r.ge)
-      + `<td>${r.nb}</td><td class="${r.meanb==null?'':(r.meanb>=0?'pos':'neg')}">${f2(r.meanb)}</td><td>${r.abiertas}</td><td>${reg}</td><td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
-  }).join('') || '<tr><td colspan="19" class="vacio">Sin segmentos negativos armados.</td></tr>';
-  bindSort(thead, E.sort, renderEspejos);
-}
-document.getElementById('espBusca').addEventListener('input', (e)=>{ state.esp.busca = e.target.value; renderEspejos(); });
-
-// ── ESPEJOS · todos los segmentos de todas las familias (espejo por disparo: vivo + replay) ─────────────────────────
-function renderEspejosTodos(){
-  const ED = state.data && state.data.espejo_disparo, E = state.esp;
-  const f2 = (x)=> (x===null||x===undefined) ? '—' : ((x>=0?'+':'') + x.toFixed(2));
-  const NA = '<span class="hint" style="margin:0">—</span>';
-  const kEl = document.getElementById('espKpis2');
-  if (!ED || ED.error || !ED.filas){ kEl.innerHTML = `<div class="vacio">Sin datos de espejo por disparo todavía${ED&&ED.error?' ('+ED.error+')':''}.</div>`; return; }
-  document.querySelectorAll('#espVista .seg-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.vista === E.vista);
-    b.onclick = ()=>{ E.vista = b.dataset.vista; document.getElementById('espVistaTodos').style.display = E.vista==='todos' ? '' : 'none';
-      document.getElementById('espVistaNeg').style.display = E.vista==='neg' ? '' : 'none'; Object.values(Chart.instances).forEach(c=>{ try{ c.resize(); }catch(e){} });
-      document.querySelectorAll('#espVista .seg-btn').forEach(x=>x.classList.toggle('active', x.dataset.vista===E.vista)); };
-  });
-  document.getElementById('espVistaTodos').style.display = E.vista==='todos' ? '' : 'none';
-  document.getElementById('espVistaNeg').style.display = E.vista==='neg' ? '' : 'none';
   document.querySelectorAll('#espOrigen .seg-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.o === E.origen);
-    b.onclick = ()=>{ E.origen = b.dataset.o; renderEspejosTodos(); };
+    b.onclick = ()=>{ E.origen = b.dataset.o; renderEspejos(); };
   });
-  document.querySelectorAll('#espCalidad .seg-btn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.q === E.calidad);
-    b.onclick = ()=>{ E.calidad = b.dataset.q; renderEspejosTodos(); };
+  const leer = (n, nb, ic, icb)=>{
+    const mG = !!(ic && ic[0] > 0), mP = !!(ic && ic[1] < 0), bG = !!(icb && icb[0] > 0), bP = !!(icb && icb[1] < 0);
+    if (n < 15 && nb < 15)  return ['N bajo', 'badge-wait'];
+    if (mG)                 return ['espejo gana (IC90 > 0)', 'badge-pos'];
+    if (bG && mP)           return ['base gana · espejo pierde', 'badge-arm'];
+    if (mP && bP)           return ['ambos pierden', 'badge-neg'];
+    if (bP)                 return ['base pierde · espejo sin ventaja', 'badge-neg'];
+    return ['sin evidencia (IC90 cruza 0)', 'badge-wait'];
+  };
+  // negativos armados: espejos acumulados desde el armado, con su graduación
+  const filasA = (D.espejos || []).filter(e=>e.signo==='negativo').map(e=>{
+    const g = e.gate || {}, ge = g.espejo || null, fb = e.fwd_base || {}, n = e.n_cerrados || 0, nb = fb.n || 0;
+    const [lectura, cls] = leer(n, nb, e.ic90_R_cerrados, fb.ic90);
+    return { origen: g.origen || 'SOMBRA', familia:e.familia, dir:e.dir, edir: e.espejo_dir || (e.dir==='LONG' ? 'SHORT' : 'LONG'), corte:e.corte, n,
+             mean:e.mean_R_cerrados, ice:e.ic90_R_cerrados, wr:e.wr_cerrados, meanb:fb.mean_R, icb:fb.ic90, lectura, cls, ge, estEsp: ge ? ge.estado : null, armado:true };
   });
-  // índice del espejo por (familia, símbolo, entry_ts) y cruce con los trades SOMBRA (que traen los ejes del menú de cortes)
-  const soloEx = E.calidad === 'exactos';
-  const idx = new Map();
-  ED.filas.forEach(([f,sy,t,r,q])=>{ if (!(soloEx && q==='a')) idx.set(f+'|'+sy+'|'+t, { r, q }); });
-  const grupos = {};
-  state.data.trades.forEach(t=>{
-    if (t.pnl_R==null || (E.origen!=='todos' && t.origen!==E.origen)) return;
-    const m = idx.get(t.familia+'|'+t.sym+'|'+t.ts); if (!m) return;
-    const k = t.origen+'|'+t.familia+'|'+t.dir;
-    (grupos[k] = grupos[k] || []).push({ ...t, esp:m.r, q:m.q });
-  });
-  const cortes = [{ id:'TODOS', entry:null }].concat(MENU.map(m=>({ id:m.id, entry:m })));
   const mean = (a)=> a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
-  const filas = [];
-  Object.entries(grupos).forEach(([k, rows])=>{
-    const [org, fam, dir] = k.split('|');
-    const umb = umbralesCongelados[org+'·'+fam+'·'+dir] || {};
-    cortes.forEach(c=>{
-      const sub = c.entry ? computeSegment(rows, c.entry, TERCIL_ENTRIES.includes(c.entry.id) ? umb[c.entry.id] : undefined) : rows;
-      if (!sub.length) return;
-      const ve = sub.map(r=>r.esp), vb = sub.map(r=>r.pnl_R), sy = sub.map(r=>r.sym);
-      const n = sub.length, big = n >= 15;
-      const ice = big ? ic90Cluster(ve, sy) : null, icb = big ? ic90Cluster(vb, sy) : null;
-      const mGana = !!(ice && ice[0] > 0), mPierde = !!(ice && ice[1] < 0), bGana = !!(icb && icb[0] > 0), bPierde = !!(icb && icb[1] < 0);
-      let lectura, cls;
-      if (n < 15)                    { lectura = 'N bajo'; cls = 'badge-wait'; }
-      else if (mGana)                { lectura = 'espejo gana (IC90 > 0)'; cls = 'badge-pos'; }
-      else if (bGana && mPierde)     { lectura = 'base gana · espejo pierde'; cls = 'badge-arm'; }
-      else if (mPierde && bPierde)   { lectura = 'ambos pierden'; cls = 'badge-neg'; }
-      else if (bPierde)              { lectura = 'base pierde · espejo sin ventaja'; cls = 'badge-neg'; }
-      else                           { lectura = 'sin evidencia (IC90 cruza 0)'; cls = 'badge-wait'; }
-      const pEx = 100 * sub.filter(r=>r.q!=='a').length / n;
-      filas.push({ origen:org, familia:fam, dir, edir: dir==='LONG'?'SHORT':'LONG', corte:c.id, n, mean:mean(ve), ice, wr:100*ve.filter(v=>v>0).length/n,
-                   meanb:mean(vb), icb, pEx, lectura, cls });
-    });
-  });
-  const todasF = filas, vis = filas.filter(r=>!E.soloN || r.n>=15);
-  const fams = new Set(filas.map(r=>r.familia));
+  const todas = filasA.filter(r=>E.origen==='todos' || r.origen===E.origen);
+  const vis = todas.filter(r=>!E.soloN || r.n>=15);
+  // KPIs
   const nm = vis.filter(r=>r.n>=15);
-  const gana = nm.filter(r=>r.cls==='badge-pos').length, ambos = nm.filter(r=>r.lectura==='ambos pierden').length, baseGana = nm.filter(r=>r.cls==='badge-arm').length;
-  const nN = (ED.n_nativo||0) + (ED.n_live_nativo||0), tot = ED.n_exacto + ED.n_aprox + nN + (ED.n_live_exacto||0) + (ED.n_live_aprox||0);
-  kEl.innerHTML = xKpi('Familias con espejo', xInt(fams.size), `${xInt(Object.keys(grupos).length)} origen×familia×dirección`)
-    + xKpi('Trades con espejo', xInt(tot), `nativo ${xInt(nN)} · replay por nivel ${xInt(ED.n_exacto + (ED.n_live_exacto||0))} · replay por tiempo ${xInt(ED.n_aprox + (ED.n_live_aprox||0))}`)
-    + xKpi('Espejo nativo', xInt(nN), (()=>{ const d = ED.nativo_desde || {}, ab = ED.nativo_abiertos || {}; const o = Object.keys(d); return o.length ? o.map(k=>`${k} desde ${new Date(d[k]).toISOString().slice(0,10)} · ${xInt(ab[k]||0)} abiertos`).join(' · ') : 'aún sin espejos nativos'; })())
-    + xKpi('Segmentos con N≥15', xInt(nm.length), `de ${xInt(todasF.length)} celdas con algún trade`)
+  const gana = nm.filter(r=>r.cls==='badge-pos').length, baseGana = nm.filter(r=>r.cls==='badge-arm').length, ambos = nm.filter(r=>r.cls==='badge-neg' && r.lectura==='ambos pierden').length;
+  const arm = todas.filter(r=>r.armado);
+  const cnt = (e)=> arm.filter(r=>r.estEsp===e).length;
+  const pares = arm.filter(r=>r.n>=15 && r.meanb!=null && r.mean!=null);
+  let corr = null;
+  if (pares.length >= 5){
+    const mx = mean(pares.map(r=>r.meanb)), my = mean(pares.map(r=>r.mean));
+    const sxy = pares.reduce((a,r)=>a+(r.meanb-mx)*(r.mean-my),0), sx = Math.sqrt(pares.reduce((a,r)=>a+(r.meanb-mx)**2,0)), sy2 = Math.sqrt(pares.reduce((a,r)=>a+(r.mean-my)**2,0));
+    corr = (sx && sy2) ? sxy/(sx*sy2) : null;
+  }
+  document.getElementById('espKpis').innerHTML =
+      xKpi('Negativos armados', xInt(todas.length), `${nm.length} con espejo N≥15`)
+    + xKpi('Graduación del espejo', xInt(cnt('CANDIDATA')), `${cnt('REFUTADA')} refutados · ${cnt('EN OBSERVACION')} en observación (negativos armados)`, 'pos')
     + xKpi('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
-    + xKpi('Base gana · espejo pierde', String(baseGana), 'IC90 de ambos fuera de 0', '')
-    + xKpi('Ambos pierden', String(ambos), 'base y espejo con IC90<0', 'neg');
-  // barras por familia (corte TODOS)
-  const fam = filas.filter(r=>r.corte==='TODOS' && r.n>=5 && r.mean!=null).sort((a,b)=>b.mean-a.mean);
-  const barras = fam.length>30 ? fam.slice(0,15).concat(fam.slice(-15)) : fam;
+    + xKpi('Base gana · espejo pierde', String(baseGana), 'IC90 de ambos fuera de 0')
+    + xKpi('Ambos pierden', String(ambos), 'base y espejo con IC90<0', 'neg')
+    + xKpi('Correlación base↔espejo', corr!=null ? corr.toFixed(2) : '—', corr!=null ? `${pares.length} segmentos con N≥15` : 'faltan segmentos con N≥15');
+  // barras: mean_R del espejo por segmento
+  const fuente = arm.filter(r=>r.n>=15 && r.mean!=null).sort((a,b)=>b.mean-a.mean);
+  const barras = fuente.length>30 ? fuente.slice(0,15).concat(fuente.slice(-15)) : fuente;
   document.getElementById('chartEspFamWrap').style.height = Math.max(260, barras.length*19+60)+'px';
   xChart('chartEspFam', { type:'bar',
-    data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[L] ':''}${r.familia} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
+    data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[L] ':''}${r.familia} · ${r.corte} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n} · ${r.pEx.toFixed(0)}% exacto${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
+      tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n}${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
       scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
   // dispersión base vs espejo
-  const pts = filas.filter(r=>r.n>=15 && r.mean!=null && r.meanb!=null);
+  const pts = todas.filter(r=>r.n>=15 && r.mean!=null && r.meanb!=null);
   const col = { 'badge-pos':X_POS, 'badge-arm':X_IDX, 'badge-neg':X_NEG, 'badge-wait':'#8b96a8' };
   const nom = { 'badge-pos':'espejo gana', 'badge-arm':'base gana · espejo pierde', 'badge-neg':'pierden / base pierde', 'badge-wait':'sin evidencia' };
   const maxN = Math.max(1, ...pts.map(r=>r.n));
-  xChart('chartEspScatter2', { type:'scatter',
+  xChart('chartEspScatter', { type:'scatter',
     data:{ datasets: Object.keys(col).map(c=>({ label:nom[c], backgroundColor:col[c]+'88', borderColor:col[c],
         data: pts.filter(r=>r.cls===c).map(r=>({ x:r.meanb, y:r.mean, r:3+7*Math.sqrt(r.n/maxN), t:`${r.familia} ${r.dir} · ${r.corte}`, n:r.n })) }))
       .concat([{ label:'espejo perfecto (R_esp = −R_base)', type:'line', data:[{x:-4,y:4},{x:4,y:-4}], borderColor:X_MUT, borderDash:[4,3], pointRadius:0, borderWidth:1 }]) },
@@ -3116,26 +2977,32 @@ function renderEspejosTodos(){
       plugins:{ legend:X_LEG, tooltip:{ callbacks:{ label:(c)=>{ const p=c.raw; return p.t ? `${p.t}: base ${xR(p.x)} · espejo ${xR(p.y)} (N=${p.n})` : ''; } } } },
       scales:{ x:{ ...X_AX, title:{display:true,text:'mean_R de la base',color:X_MUT} }, y:{ ...X_AX, title:{display:true,text:'mean_R del espejo',color:X_MUT} } } } });
   // tabla
-  const q = (E.busca2||'').trim().toLowerCase();
+  const q = (E.busca||'').trim().toLowerCase();
   let rows = vis.filter(r=>!q || (r.familia+' '+r.corte+' '+r.dir).toLowerCase().includes(q));
-  document.getElementById('espCount2').innerHTML = `<b>${rows.length}</b> / ${todasF.length} segmentos${rows.length>600?' · se muestran 600':''}`;
+  document.getElementById('espCount').innerHTML = `<b>${rows.length}</b> / ${todas.length} segmentos${rows.length>600?' · se muestran 600':''}`;
   const th = (c,l,t)=> `<th data-col="${c}" title="${t||''}">${l}</th>`;
-  const thead = document.querySelector('#tablaEsp2 thead'), tbody = document.querySelector('#tablaEsp2 tbody');
-  thead.innerHTML = '<tr>' + th('origen','origen') + th('familia','familia') + th('dir','base') + th('edir','espejo') + th('corte','segmento') + th('n','N') + th('mean','mean_R espejo')
-    + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('meanb','mean_R base') + '<th class="nosort">IC90 base</th>'
-    + th('pEx','% exacto','proporción de espejos exactos: nativos del motor o replay con salida por SL/TP (el resto es replay con salida por tiempo, con el close de la vela)') + '<th class="nosort">lectura</th></tr>';
-  rows = E.sort2.col ? sortRows(rows, E.sort2) : rows.sort((a,b)=> b.n - a.n);
+  const thead = document.querySelector('#tablaEsp thead'), tbody = document.querySelector('#tablaEsp tbody');
+  thead.innerHTML = '<tr>' + th('origen','origen') + th('familia','familia') + th('dir','base') + th('edir','espejo','dirección del espejo (contraria)') + th('corte','segmento')
+    + th('n','N espejo','espejos cerrados desde el armado del segmento')
+    + th('mean','mean_R espejo') + '<th class="nosort">IC90 espejo</th>' + th('wr','WR espejo') + th('meanb','mean_R base') + '<th class="nosort">IC90 base</th>'
+    + '<th class="nosort" title="N del espejo con control C2; ≥50 en cada mitad temporal (solo negativos armados)">Paso 1 · N</th><th class="nosort" title="Semanas ISO distintas con ≥3 trades del espejo">Paso 1 · semanas</th>'
+    + '<th class="nosort" title="dif vs azar en la 1ª y 2ª mitad temporal del espejo. Verde: ambas > 0 · rojo: ambas < 0 · gris: signos distintos">Paso 1 · ambas mitades</th>'
+    + '<th class="nosort" title="Media del espejo menos la del resto del sistema en el mismo periodo. Verde: > 0 · rojo: < 0">Paso 1 · mejora sistema (A-02)</th>'
+    + th('estEsp','Paso 1 · estado espejo','Graduación del espejo (#S123d, camino B): mismo estándar que la base, desde su primer trade')
+    + '<th class="nosort">lectura</th></tr>';
+  rows = E.sort.col ? sortRows(rows, E.sort) : rows.sort((a,b)=> b.n - a.n);
   tbody.innerHTML = rows.slice(0, 600).map(r=>{
     const ex = r.ice && (r.ice[0]>0 || r.ice[1]<0), exb = r.icb && (r.icb[0]>0 || r.icb[1]<0), poco = r.n < 15;
     return `<tr style="${poco?'opacity:.6':''}"><td><span class="tag ${r.origen}">${r.origen}</span></td><td>${r.familia}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td><td>${r.corte}</td><td>${r.n}</td>`
-      + `<td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td><td>${r.ice ? `[${f2(r.ice[0])}, ${f2(r.ice[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr.toFixed(0)}%</td>`
+      + `<td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td><td>${r.ice ? `[${f2(r.ice[0])}, ${f2(r.ice[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr!=null ? r.wr.toFixed(0)+'%' : '—'}</td>`
       + `<td class="${r.meanb==null?'':(r.meanb>=0?'pos':'neg')}">${f2(r.meanb)}</td><td>${r.icb ? `[${f2(r.icb[0])}, ${f2(r.icb[1])}]${exb?'<span class="star">*</span>':''}` : NA}</td>`
-      + `<td>${r.pEx.toFixed(0)}%</td><td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
-  }).join('') || '<tr><td colspan="13" class="vacio">Sin segmentos con estos filtros.</td></tr>';
-  bindSort(thead, E.sort2, renderEspejosTodos);
+      + espPaso1(r.ge)
+      + `<td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="17" class="vacio">Sin segmentos negativos armados con estos filtros.</td></tr>';
+  bindSort(thead, E.sort, renderEspejos);
 }
-document.getElementById('espBusca2').addEventListener('input', (e)=>{ state.esp.busca2 = e.target.value; renderEspejosTodos(); });
-document.getElementById('espSoloN').addEventListener('change', (e)=>{ state.esp.soloN = e.target.checked; renderEspejosTodos(); });
+document.getElementById('espBusca').addEventListener('input', (e)=>{ state.esp.busca = e.target.value; renderEspejos(); });
+document.getElementById('espSoloN').addEventListener('change', (e)=>{ state.esp.soloN = e.target.checked; renderEspejos(); });
 
 // ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
 function renderExtrasSimbolo(universo){
@@ -3434,7 +3301,6 @@ fetch('data.json?_=' + Date.now())
     renderEk3();
     renderExtrasTodos();
     try { renderEspejos(); } catch(e){ console.error('espejos', e); }
-    try { renderEspejosTodos(); } catch(e){ console.error('espejos todos', e); }
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
