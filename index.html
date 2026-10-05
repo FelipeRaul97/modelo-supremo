@@ -131,7 +131,8 @@
   <div class="tabbtn" data-tab="espejos">🪞 Espejos</div>
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
-  <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
+  <div class="tabbtn" data-tab="curva">📈 Curva de acumulación - base</div>
+  <div class="tabbtn" data-tab="curvaesp">📉 Curva de acumulación - espejo</div>
   <div class="tabbtn" data-tab="ek3">🚪 E_K3 · exentas vs pasan</div>
 </div>
 
@@ -388,8 +389,8 @@
 
 <div id="tab-curva" style="display:none;">
   <div class="panel tabhead">
-    <h2>Curva de acumulación</h2>
-    <div class="sub">MFE hora a hora por familia &times; dirección &times; segmento y qué TP, tiempo de vida o SL lo habría capturado.</div>
+    <h2>Curva de acumulación - base</h2>
+    <div class="sub">MFE hora a hora por familia &times; dirección &times; segmento de los trades base (LIVE y SOMBRA), y qué TP, tiempo de vida o SL lo habría capturado.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>Se reconstruye desde klines crudas (no desde el log del motor): el MFE se acumula hora a hora solo sobre los trades que siguen vivos en esa hora (supervivientes). Se recalcula cada 3&nbsp;h.</li>
   <li>La celda se muestra desde N&ge;15; el badge <b>sugerido</b> solo aparece con N&ge;40, el mismo ganador en ambas mitades del histórico e IC90 sin solape con el valor actual.</li>
@@ -677,6 +678,7 @@ const state = {
   // 🔧 2026-09-25 · selección (única, no Set) del tab Curva de acumulación —
   // una celda familia×dirección×segmento a la vez, no un filtro multi-select.
   curva: { familia: null, direccion: null, corte: null, scope: 'dir', sl: null },
+  curvaEsp: { familia: null, direccion: null, corte: null, scope: 'dir', sl: null },
   // 🔧 2026-10-03 · E_K3 por segmento: filtro de dirección y orden del detalle.
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
   // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
@@ -2038,7 +2040,11 @@ function ic90Simple(vals, n=600){
 }
 
 let chartSimbolo;
-let chartCurva;
+// Contexto de cada tab de curvas: el mismo código dibuja la de la base y la de los espejos (ids con sufijo, datos y selección propios).
+const CX_BASE = { suf: '', ca: ()=> state.data && state.data.curva_acumulacion, st: state.curva, chart: null, unidad: 'Trades', etiqDir: 'Dirección',
+  cmd: 'python -m SUPREMO.study_curva_acumulacion_por_familia' };
+const CX_ESP = { suf: 'Esp', ca: ()=> state.data && state.data.curva_espejo, st: state.curvaEsp, chart: null, unidad: 'Espejos', etiqDir: 'Dirección del espejo',
+  cmd: 'python -m SUPREMO.study_curva_acumulacion_por_familia --espejo' };
 
 function renderSimbolo(){
   const universoTotal = universoSimbolo();
@@ -2264,18 +2270,19 @@ function renderAbiertas(){
 // 🔧 2026-09-25 · tab Curva de acumulación — lee `state.data.curva_acumulacion`
 // (JSON precomputado por `study_curva_acumulacion_por_familia.py`, NO recalculado
 // cada 15 min). Selección única familia→dirección→segmento, no filtro multi-select.
-function renderCurva(){
-  const ca = state.data && state.data.curva_acumulacion;
-  const noDisp = document.getElementById('curvaNoDisponible');
-  const controles = document.getElementById('curvaControles');
-  const panelChart = document.getElementById('curvaPanelChart');
-  const panelSweep = document.getElementById('curvaPanelSweep');
-  const panelSweepMH = document.getElementById('curvaPanelSweepMH');
-  const panelSweepSL = document.getElementById('curvaPanelSweepSL');
-  const panelJoint = document.getElementById('curvaPanelJoint');
+function renderCurva(cx){
+  cx = cx || CX_BASE;
+  const SUF = cx.suf, st = cx.st, ca = cx.ca();
+  const noDisp = document.getElementById('curvaNoDisponible'+SUF);
+  const controles = document.getElementById('curvaControles'+SUF);
+  const panelChart = document.getElementById('curvaPanelChart'+SUF);
+  const panelSweep = document.getElementById('curvaPanelSweep'+SUF);
+  const panelSweepMH = document.getElementById('curvaPanelSweepMH'+SUF);
+  const panelSweepSL = document.getElementById('curvaPanelSweepSL'+SUF);
+  const panelJoint = document.getElementById('curvaPanelJoint'+SUF);
   if (!ca || ca.disponible === false || !ca.celdas || !Object.keys(ca.celdas).length){
     noDisp.style.display = '';
-    noDisp.textContent = 'Aún no hay datos — corre "python -m SUPREMO.study_curva_acumulacion_por_familia" en Cripto.'
+    noDisp.textContent = 'Aún no hay datos — corre "' + cx.cmd + '" en Cripto.'
       + (ca && ca.motivo ? ' (' + ca.motivo + ')' : '');
     controles.style.display = 'none';
     panelChart.style.display = 'none';
@@ -2297,20 +2304,20 @@ function renderCurva(){
     meta[fam].cortes[dir].add(corte);
   });
   const familias = Object.keys(meta).sort();
-  if (!state.curva.familia || !meta[state.curva.familia]) state.curva.familia = familias[0];
-  const famSel = state.curva.familia;
+  if (!st.familia || !meta[st.familia]) st.familia = familias[0];
+  const famSel = st.familia;
   const dirsDisp = [...meta[famSel].dirs].sort();
-  if (!state.curva.direccion || !dirsDisp.includes(state.curva.direccion)) state.curva.direccion = dirsDisp[0];
-  const dirSel = state.curva.direccion;
+  if (!st.direccion || !dirsDisp.includes(st.direccion)) st.direccion = dirsDisp[0];
+  const dirSel = st.direccion;
   const cortesDisp = [...(meta[famSel].cortes[dirSel] || [])]
     .sort((a,b)=> a==='TODOS' ? -1 : b==='TODOS' ? 1 : a.localeCompare(b));
-  if (!state.curva.corte || !cortesDisp.includes(state.curva.corte)) {
-    state.curva.corte = cortesDisp.includes('TODOS') ? 'TODOS' : cortesDisp[0];
+  if (!st.corte || !cortesDisp.includes(st.corte)) {
+    st.corte = cortesDisp.includes('TODOS') ? 'TODOS' : cortesDisp[0];
   }
-  const corteSel = state.curva.corte;
-  try { renderExtrasCurva(); } catch(e){ console.error('extras curva', e); }   // el panorama sigue la selección
+  const corteSel = st.corte;
+  try { renderExtrasCurva(cx); } catch(e){ console.error('extras curva', e); }   // el panorama sigue la selección
 
-  const boxFam = document.getElementById('curvaFamiliaFilter');
+  const boxFam = document.getElementById('curvaFamiliaFilter'+SUF);
   boxFam.innerHTML = '';
   const dFam = document.createElement('div'); dFam.className = 'filtergroup';
   const fnameFam = document.createElement('div'); fnameFam.className = 'fname'; fnameFam.textContent = 'Familia';
@@ -2320,23 +2327,23 @@ function renderCurva(){
     const chip = document.createElement('div');
     chip.className = 'chip' + (f === famSel ? ' active' : '');
     chip.textContent = f;
-    chip.onclick = () => { state.curva.familia = f; state.curva.direccion = null; state.curva.corte = null; renderCurva(); };
+    chip.onclick = () => { st.familia = f; st.direccion = null; st.corte = null; renderCurva(cx); };
     chipsFam.appendChild(chip);
   });
   dFam.appendChild(chipsFam);
   boxFam.appendChild(dFam);
 
-  const boxDS = document.getElementById('curvaDirSegFilter');
+  const boxDS = document.getElementById('curvaDirSegFilter'+SUF);
   boxDS.innerHTML = '';
   const dDir = document.createElement('div'); dDir.className = 'filtergroup';
-  const fnameDir = document.createElement('div'); fnameDir.className = 'fname'; fnameDir.textContent = 'Dirección';
+  const fnameDir = document.createElement('div'); fnameDir.className = 'fname'; fnameDir.textContent = cx.etiqDir;
   dDir.appendChild(fnameDir);
   const chipsDir = document.createElement('div'); chipsDir.className = 'chips';
   dirsDisp.forEach(d=>{
     const chip = document.createElement('div');
     chip.className = 'chip' + (d === dirSel ? ' active' : '');
     chip.textContent = d;
-    chip.onclick = () => { state.curva.direccion = d; state.curva.corte = null; renderCurva(); };
+    chip.onclick = () => { st.direccion = d; st.corte = null; renderCurva(cx); };
     chipsDir.appendChild(chip);
   });
   dDir.appendChild(chipsDir);
@@ -2351,7 +2358,7 @@ function renderCurva(){
     const chip = document.createElement('div');
     chip.className = 'chip' + (c === corteSel ? ' active' : '') + (cel && cel.n < N_MIN ? ' chip-empty' : '');
     chip.textContent = c + (cel ? ` (${cel.n})` : '');
-    chip.onclick = () => { state.curva.corte = c; renderCurva(); };
+    chip.onclick = () => { st.corte = c; renderCurva(cx); };
     chipsSeg.appendChild(chip);
   });
   dSeg.appendChild(chipsSeg);
@@ -2373,8 +2380,8 @@ function renderCurva(){
   panelJoint.style.display = '';
 
   const hp = celda.hold_al_pico;
-  document.getElementById('curvaStats').innerHTML =
-      xKpi('Trades', xInt(celda.n), `${xInt(celda.n_con_ruta)} con ruta reconstruida`)
+  document.getElementById('curvaStats'+SUF).innerHTML =
+      xKpi(cx.unidad, xInt(celda.n), `${xInt(celda.n_con_ruta)} con ruta reconstruida`)
     + xKpi('Hold al pico (h)', hp ? hp.p50.toFixed(0) : '—', hp ? `p25–p75: ${hp.p25.toFixed(0)}–${hp.p75.toFixed(0)}` : '')
     + xKpi('MAE antes del pico', celda.mae_antes_pico_p50 != null ? celda.mae_antes_pico_p50.toFixed(2) + 'R' : '—', 'mediana')
     + xKpi('Mejor TP', renderMejorBadge(celda.mejor_tp, 'R'), '')
@@ -2382,8 +2389,8 @@ function renderCurva(){
     + xKpi('Mejor SL', renderMejorBadge(celda.mejor_sl, 'R'), '');
 
   const pts = celda.curva || [];
-  if (chartCurva) chartCurva.destroy();
-  chartCurva = new Chart(document.getElementById('chartCurva'), {
+  if (cx.chart) cx.chart.destroy();
+  cx.chart = new Chart(document.getElementById('chartCurva'+SUF), {
     type: 'line',
     data: { datasets: [
       { label: 'p75', data: pts.filter(p=>p.mfe_p75!=null).map(p=>({x:p.h, y:p.mfe_p75})), borderColor: '#c792ea', backgroundColor: 'rgba(199,146,234,.08)', borderWidth: 1.5, pointRadius: 0, borderDash: [5,3], yAxisID: 'y' },
@@ -2402,18 +2409,18 @@ function renderCurva(){
 
   const tpGrid = ca.tp_grid || [2,3,4,6,8,12];
   const kAct = ca.k_tp_actual != null ? ca.k_tp_actual : 4;
-  renderSweepTabla('tablaCurvaSweep', 'TP', tpGrid, kAct, celda.sweep_tp, 'R', true);
+  renderSweepTabla('tablaCurvaSweep'+SUF, 'TP', tpGrid, kAct, celda.sweep_tp, 'R', true);
 
   const mhGrid = ca.mh_grid || [24,36,48,60,72,84,96];
   const mhAct = ca.mh_actual != null ? ca.mh_actual : 96;
-  renderSweepTabla('tablaCurvaSweepMH', 'MAX_HOLD', mhGrid, mhAct, celda.sweep_mh, 'h', false);
+  renderSweepTabla('tablaCurvaSweepMH'+SUF, 'MAX_HOLD', mhGrid, mhAct, celda.sweep_mh, 'h', false);
 
   const slGrid = ca.sl_grid || [1,1.5,2,2.5,3,4];
   const slAct = ca.k_sl_actual != null ? ca.k_sl_actual : 2;
-  renderSweepTabla('tablaCurvaSweepSL', 'SL', slGrid, slAct, celda.sweep_sl, 'R', true);
+  renderSweepTabla('tablaCurvaSweepSL'+SUF, 'SL', slGrid, slAct, celda.sweep_sl, 'R', true);
 
-  renderGrid3(celda, ca);
-  document.getElementById('curvaJointLeyenda').innerHTML = '<span><i style="background:#5eb0ef"></i>actual (4R/96h)</span><span><i style="background:#ffcf5c"></i>sugerida</span><span><i style="background:#ff3b3b"></i>mejor mean_R de la grilla</span>';
+  renderGrid3(celda, ca, cx);
+  document.getElementById('curvaJointLeyenda'+SUF).innerHTML = '<span><i style="background:#5eb0ef"></i>actual (4R/96h)</span><span><i style="background:#ffcf5c"></i>sugerida</span><span><i style="background:#ff3b3b"></i>mejor mean_R de la grilla</span>';
 }
 
 // 🔧 2026-09-25 · "mejor TP"/"mejor tiempo de vida" — candado igual al que se usa
@@ -2438,13 +2445,15 @@ function heatColor(meanR, maxAbs){
 // ── Grilla conjunta TP × SL × MAX_HOLD (252 combinaciones) ─────────────────────────────────────────────────────────────
 // `celda.grid3.mean/wr` van planos con orden TP (externo) · SL · MH (interno); `celda.mejor_joint3` es la mejor combinación con su p ajustado,
 // mitades, validación temporal y vecinos (study_curva_acumulacion_por_familia._mejor_3d). El selector de SL elige qué corte TP×MH se dibuja.
-function renderGrid3(celda, ca){
-  const kEl = document.getElementById('curvaJointStats'), chips = document.getElementById('curvaSlChips');
-  const tab = document.getElementById('tablaCurvaJoint'), res = document.getElementById('tablaCurvaSlResumen');
+function renderGrid3(celda, ca, cx){
+  cx = cx || CX_BASE;
+  const SUF = cx.suf;
+  const kEl = document.getElementById('curvaJointStats'+SUF), chips = document.getElementById('curvaSlChips'+SUF);
+  const tab = document.getElementById('tablaCurvaJoint'+SUF), res = document.getElementById('tablaCurvaSlResumen'+SUF);
   const g3 = celda.grid3, mj = celda.mejor_joint3;
   if (!g3 || !(ca.tp_grid && ca.sl_grid && ca.mh_grid)){
     kEl.innerHTML = '<div class="vacio">Sin grilla conjunta para esta celda (N&lt;' + N_MIN + ' o el estudio aún no la calculó).</div>';
-    chips.innerHTML = ''; tab.innerHTML = ''; res.innerHTML = ''; document.getElementById('curvaJointLeyenda').innerHTML = '';
+    chips.innerHTML = ''; tab.innerHTML = ''; res.innerHTML = ''; document.getElementById('curvaJointLeyenda'+SUF).innerHTML = '';
     return;
   }
   const tpG = ca.tp_grid, slG = ca.sl_grid, mhG = ca.mh_grid, nS = slG.length, nM = mhG.length;
@@ -2471,10 +2480,10 @@ function renderGrid3(celda, ca){
     + xKpi('Validación temporal', oos ? `${dOos(oos.h1_a_h2)} / ${dOos(oos.h2_a_h1)}` : '—', oos ? 'elige con una mitad, mejora vs actual en la otra (1ª→2ª / 2ª→1ª)' : 'N<40')
     + xKpi('Meseta', mj && mj.disponible && mj.vecinos_mean != null ? f(mj.vecinos_mean) : '—', mj && mj.disponible && mj.vecinos_mean != null ? `media de las vecinas de la mejor (${f(mj.mean_R - mj.vecinos_mean,2)} bajo la mejor)` : 'N<40');
   // selector de SL
-  const st = state.curva;
+  const st = cx.st;
   if (st.sl == null || !slG.includes(st.sl)) st.sl = slG[ib.b];
   chips.innerHTML = slG.map(sl=>`<div class="seg-btn ${sl === st.sl ? 'active' : ''}" data-sl="${sl}" title="${sl === slA ? 'SL actual' : ''}${sl === slG[ib.b] ? (sl === slA ? ' · ' : '') + 'SL de la mejor combinación' : ''}">SL ${sl}R${sl === slA ? ' ◆' : ''}${sl === slG[ib.b] ? ' ★' : ''}</div>`).join('');
-  chips.querySelectorAll('.seg-btn').forEach(el=>{ el.onclick = ()=>{ st.sl = Number(el.dataset.sl); renderGrid3(celda, ca); }; });
+  chips.querySelectorAll('.seg-btn').forEach(el=>{ el.onclick = ()=>{ st.sl = Number(el.dataset.sl); renderGrid3(celda, ca, cx); }; });
   // heatmap del corte TP×MH con el SL elegido (escala de color común a toda la grilla)
   const b = slG.indexOf(st.sl);
   const maxAbs = Math.max(...g3.mean.map(Math.abs));
@@ -2493,7 +2502,7 @@ function renderGrid3(celda, ca){
     return `<tr><td>${tp}R</td>${tds}</tr>`;
   }).join('');
   tab.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
-  document.getElementById('curvaJointLeyenda').innerHTML =
+  document.getElementById('curvaJointLeyenda'+SUF).innerHTML =
     `<span><i style="background:#5eb0ef"></i>actual (${tpA}R / ${slA}R / ${mhA}h)</span><span><i style="background:#ff3b3b"></i>mejor mean_R de las 252 (${mj && mj.determinable ? 'sugerida' : 'orientativa'})</span><span>corte con SL ${slG[b]}R</span>`;
   // resumen: la mejor TP×MH para cada SL
   const filasSl = slG.map((sl, bb)=>{
@@ -2536,14 +2545,15 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','ek3'].forEach(t=>{
+  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','curvaesp','ek3'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
   // ancho 0 y queda pintado en blanco para siempre — pasó con chartSimbolo (el
   // tab nace oculto). Redibujar al mostrar el tab, no solo al cargar los datos.
   if (tab === 'simbolo' && chartSimbolo) chartSimbolo.resize();
-  if (tab === 'curva' && chartCurva) chartCurva.resize();
+  if (tab === 'curva' && CX_BASE.chart) CX_BASE.chart.resize();
+  if (tab === 'curvaesp' && CX_ESP.chart) CX_ESP.chart.resize();
   Object.values(Chart.instances).forEach(c=>{ try { c.resize(); } catch(e){} });
 });
 
@@ -3160,22 +3170,23 @@ function renderEk3Seg(){
 }
 
 // ── CURVA · panorama de todas las celdas ─────────────────────────────────────────────────
-function renderExtrasCurva(){
-  const ca = state.data && state.data.curva_acumulacion;
-  const box = document.getElementById('curvaPanorama');
+function renderExtrasCurva(cx){
+  cx = cx || CX_BASE;
+  const SUF = cx.suf, ca = cx.ca();
+  const box = document.getElementById('curvaPanorama'+SUF);
   if (!ca || !ca.celdas){ box.style.display = 'none'; return; }
   box.style.display = '';
   const todasCel = Object.entries(ca.celdas).map(([k,v])=>({ k, ...v }));
-  const sel = state.curva, selKey = `${sel.familia}|${sel.direccion}|${sel.corte}`;
+  const sel = cx.st, selKey = `${sel.familia}|${sel.direccion}|${sel.corte}`;
   const scope = sel.scope || 'dir';
   const cel = scope==='todas' ? todasCel
     : scope==='familia' ? todasCel.filter(c=>c.k.split('|')[0]===sel.familia)
     : todasCel.filter(c=>{ const [f,d] = c.k.split('|'); return f===sel.familia && d===sel.direccion; });
-  document.getElementById('curvaPanTitulo').textContent = scope==='todas' ? `todas las celdas (${cel.length})`
+  document.getElementById('curvaPanTitulo'+SUF).textContent = scope==='todas' ? `todas las celdas (${cel.length})`
     : scope==='familia' ? `${sel.familia} · ${cel.length} celdas` : `${sel.familia} ${sel.direccion} · ${cel.length} celdas`;
-  document.querySelectorAll('#curvaPanScope .seg-btn').forEach(b=>{
+  document.querySelectorAll('#curvaPanScope'+SUF+' .seg-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.scope === scope);
-    b.onclick = ()=>{ state.curva.scope = b.dataset.scope; renderExtrasCurva(); };
+    b.onclick = ()=>{ cx.st.scope = b.dataset.scope; renderExtrasCurva(cx); };
   });
   const grad = cel.filter(c=>c.n>=ca.n_min_graduado);
   // por qué no se sugiere nada: clasificación de motivos por barrido
@@ -3185,7 +3196,7 @@ function renderExtrasCurva(){
   const claves = ['SUGERIDO','el actual ya es el mejor','IC90 se solapa con el actual','ganador no estable entre mitades','ningún punto rentable','N<40 (aún no evaluable)','otro'];
   const colores = { 'SUGERIDO':X_POS, 'el actual ya es el mejor':'#4d9bd6', 'IC90 se solapa con el actual':'#e5c453', 'ganador no estable entre mitades':'#8e9cf5', 'ningún punto rentable':X_NEG, 'N<40 (aún no evaluable)':'#5b6678', 'otro':'#3a4352' };
   const sweeps = [['TP','mejor_tp'],['MAX_HOLD','mejor_mh'],['SL','mejor_sl'],['TP×SL×MH','mejor_joint3']];
-  xChart('chartCurvaMotivos', { type:'bar',
+  xChart('chartCurvaMotivos'+SUF, { type:'bar',
     data:{ labels: sweeps.map(s=>s[0]), datasets: claves.map(cl=>({ label:cl, backgroundColor:colores[cl],
       data: sweeps.map(s=> cel.filter(c=>clasif(c[s[1]])===cl).length) })) },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true, position:'bottom', labels:{color:X_MUT, font:{size:10}, boxWidth:10}}},
@@ -3194,7 +3205,7 @@ function renderExtrasCurva(){
   const hp = cel.filter(c=>c.hold_al_pico && c.hold_al_pico.p50!=null);
   const bins = [0,6,12,24,36,48,72,96,200], lab = ['≤6h','6-12h','12-24h','24-36h','36-48h','48-72h','72-96h','>96h'];
   const cnt = lab.map((_,i)=> hp.filter(c=>c.hold_al_pico.p50>bins[i] - (i===0?1:0) && c.hold_al_pico.p50<=bins[i+1]).length);
-  xChart('chartCurvaPico', { type:'bar', data:{ labels:lab, datasets:[{ data:cnt, backgroundColor:X_PASA+'cc' }] },
+  xChart('chartCurvaPico'+SUF, { type:'bar', data:{ labels:lab, datasets:[{ data:cnt, backgroundColor:X_PASA+'cc' }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:(c)=>`${c.raw} celdas`}}},
       scales:{ x:{ grid:{display:false}, ticks:{color:X_MUT}, title:{display:true,text:'mediana de horas hasta el pico del MFE',color:X_MUT} }, y:X_AX } } });
   // potencial vs ruido: mean_R actual vs mejor mean_R del barrido de TP (celdas N≥40)
@@ -3203,7 +3214,7 @@ function renderExtrasCurva(){
   const pts = grad.filter(c=>c.k!==selKey).map(ptDe).filter(p=>p.y!=null && p.x!=null);
   const celSel = todasCel.find(c=>c.k===selKey);
   const ptSel = celSel ? ptDe(celSel) : null;
-  xChart('chartCurvaPotencial', { type:'scatter',
+  xChart('chartCurvaPotencial'+SUF, { type:'scatter',
     data:{ datasets:[
       { label:'celda (N≥40)', data:pts, backgroundColor:X_ROSA+'aa', pointRadius:4 },
       { label:'celda elegida' + (celSel ? ` (N=${celSel.n})` : ''), data: (ptSel && ptSel.y!=null && ptSel.x!=null) ? [ptSel] : [], backgroundColor:'#ffe066', borderColor:'#ffffff', borderWidth:2, pointRadius:9, pointStyle:'rectRot' },
@@ -3216,7 +3227,7 @@ function renderExtrasCurva(){
   const neg = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[1]<0).length;
   const sug = cel.filter(c=>['mejor_tp','mejor_mh','mejor_sl','mejor_joint3'].some(k=>c[k] && c[k].determinable));
   const nJ3 = cel.filter(c=>c.mejor_joint3 && c.mejor_joint3.disponible).length, nJ3sug = cel.filter(c=>c.mejor_joint3 && c.mejor_joint3.determinable).length;
-  document.getElementById('curvaPanoramaKpis').innerHTML =
+  document.getElementById('curvaPanoramaKpis'+SUF).innerHTML =
       xKpi('Celdas del alcance', xInt(cel.length), `${grad.length} con N≥${ca.n_min_graduado}`)
     + xKpi('Rentables hoy (IC90>0)', String(rent), 'con el TP/MH/SL actuales, N≥40', 'pos')
     + xKpi('Perdedoras (IC90<0)', String(neg), 'con la salida actual, N≥40', 'neg')
@@ -3230,7 +3241,8 @@ function renderExtrasTodos(){
   try { renderExtrasAbiertas(); } catch(e){ console.error('extras abiertas', e); }
   try { renderExtrasEk3(); } catch(e){ console.error('extras ek3', e); }
   try { renderEk3Seg(); } catch(e){ console.error('ek3 seg', e); }
-  try { renderExtrasCurva(); } catch(e){ console.error('extras curva', e); }
+  try { renderExtrasCurva(CX_BASE); } catch(e){ console.error('extras curva', e); }
+  try { renderExtrasCurva(CX_ESP); } catch(e){ console.error('extras curva espejo', e); }
 }
 
 // 🏷️ Alias SOLO VISIBLE (2026-09-30, pedido de Felipe): el backend sigue llamando a la
@@ -3238,6 +3250,24 @@ function renderExtrasTodos(){
 // Se reemplaza sobre el texto crudo ANTES del parse, así claves, filtros y `armados` quedan
 // consistentes entre sí y no hay que tocar los ~28 puntos de render.
 const ALIAS_FAMILIA = { '23_cuna_alcista_bear': '23_cuna_alcista' };
+// Tab "Curva de acumulación - espejo": clon del de la base con los ids sufijados; mismo código, otros datos (CX_ESP).
+(function(){
+  const src = document.getElementById('tab-curva');
+  const cl = src.cloneNode(true);
+  cl.id = 'tab-curvaesp'; cl.style.display = 'none';
+  cl.querySelectorAll('[id]').forEach(el=>{ el.id = el.id + 'Esp'; });
+  cl.querySelector('h2').textContent = 'Curva de acumulación - espejo';
+  cl.querySelector('.sub').innerHTML = 'MFE hora a hora por familia &times; dirección del espejo &times; segmento de los <b>espejos acumulados</b> de los negativos armados, y qué TP, tiempo de vida o SL lo habría capturado.';
+  cl.querySelector('.ayuda-body').innerHTML = `<ul>
+  <li>Es la <b>misma curva que la de la base</b> (MFE hora a hora, barridos de TP, MAX_HOLD y SL y grilla conjunta de 252 combinaciones), pero de los <b>espejos acumulados</b> de los segmentos negativos armados: la misma entrada con la dirección contraria (R=3&middot;ATR; TP 4R, SL 2R, MAX_HOLD 96&nbsp;h) desde el armado de cada segmento.</li>
+  <li>Cada celda es un segmento armado (familia &middot; dirección del espejo &middot; segmento). La trayectoria sale de las velas 1h locales; el espejo vive hasta su propio SL, TP o 96&nbsp;h, sin importar cuándo cierre la base.</li>
+  <li>En el espejo, la ganancia máxima (MFE) es la pérdida máxima (MAE) de la base, y al revés: no es evidencia independiente de la base (correlación cercana a &minus;1).</li>
+  <li>La celda se muestra desde N&ge;15; <b>sugerido</b> solo con N&ge;40 y los mismos candados que en la base. La grilla conjunta trae la mejor de las 252 combinaciones con su p ajustado, mitades, validación temporal y meseta; el borde rojo es esa mejor y el azul la actual (TP 4R, SL 2R, 96&nbsp;h).</li>
+  <li>Solo una celda cuyo espejo esté graduado en el tab Espejos debería guiar una decisión: el resto es diagnóstico, y nada se cablea sin pre-registro. Operar la contraria exige el Paso 2.</li>
+</ul>`;
+  src.after(cl);
+})();
+
 fetch('data.json?_=' + Date.now())
   .then(r=>r.text())
   .then(txt=>{
@@ -3259,7 +3289,8 @@ fetch('data.json?_=' + Date.now())
     renderEmbudo();
     renderSimbolo();
     renderAbiertas();
-    renderCurva();
+    renderCurva(CX_BASE);
+    renderCurva(CX_ESP);
     renderEk3();
     renderExtrasTodos();
     try { renderEspejos(); } catch(e){ console.error('espejos', e); }
