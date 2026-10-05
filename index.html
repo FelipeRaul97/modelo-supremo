@@ -132,7 +132,6 @@
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
   <div class="tabbtn" data-tab="curva">📈 Curva de acumulación</div>
-  <div class="tabbtn" data-tab="tpcond">🕶️ TP condicional (sombra)</div>
   <div class="tabbtn" data-tab="ek3">🚪 E_K3 · exentas vs pasan</div>
 </div>
 
@@ -394,8 +393,9 @@
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>Se reconstruye desde klines crudas (no desde el log del motor): el MFE se acumula hora a hora solo sobre los trades que siguen vivos en esa hora (supervivientes). Se recalcula cada 3&nbsp;h.</li>
   <li>La celda se muestra desde N&ge;15; el badge <b>sugerido</b> solo aparece con N&ge;40, el mismo ganador en ambas mitades del histórico e IC90 sin solape con el valor actual.</li>
-  <li>Los barridos de TP, MAX_HOLD (24&ndash;96&nbsp;h) y SL (1&ndash;4R) son independientes: cada uno fija los otros dos en su valor actual, no son un óptimo conjunto.</li>
-  <li>La grilla cruza 6 TP &times; 7 MAX_HOLD (42 combinaciones): un &ldquo;mejor&rdquo; pesa más multiplicidad que en los barridos sueltos. El borde rojo es el máximo de las 42, sin garantía estadística.</li>
+  <li>Los barridos sueltos de TP, MAX_HOLD (24&ndash;96&nbsp;h) y SL (1&ndash;4R) mueven un parámetro y fijan los otros dos en su valor actual; el óptimo conjunto está en la grilla.</li>
+  <li>La <b>grilla conjunta</b> cruza 6 TP &times; 6 SL &times; 7 MAX_HOLD (252 combinaciones) y mueve los tres parámetros a la vez; el selector de SL muestra el corte TP&times;MAX_HOLD de cada stop. El <b>borde rojo</b> es la mejor combinación de las 252 (la de mayor mean_R) y el <b>azul</b> la actual (TP 4R, SL 2R, 96&nbsp;h). Es el máximo de 252 comparaciones: sesgado al alza.</li>
+  <li>Para juzgarla, la mejor trae un <b>p ajustado</b> por haber elegido entre 252 (prueba de permutación por símbolo del máximo de las mejoras sobre la actual), el signo de la mejora en cada mitad temporal, la <b>validación temporal</b> (elegir con una mitad y medir en la otra) y la media de sus vecinas (meseta o pico aislado). Es <b>sugerida</b> solo con N&ge;40, p&lt;0,05 y mejora en ambas mitades; si no, es orientativa.</li>
   <li>El panorama resume las celdas del alcance elegido; en la dispersión, el punto amarillo es la celda seleccionada y lo que se aleja de la diagonal es en parte selección del mejor de 6.</li>
   <li>La población es el corpus LIVE de cualquier familia más SOMBRA, con ruta de velas reconstruible: el N puede diferir del Resumen en familias con historia LIVE previa o sin ruta completa.</li>
   <li>Es diagnóstico: nada se cablea hasta que una celda concreta se pre-registre y confirme aparte.</li>
@@ -442,10 +442,14 @@
     <div class="tablewrap"><table id="tablaCurvaSweepSL"><thead></thead><tbody></tbody></table></div>
   </div>
   <div class="panel" id="curvaPanelJoint" style="display:none;">
-    <h2>Grilla TP &times; MAX_HOLD (mean_R)</h2>
+    <h2>Grilla TP &times; MAX_HOLD &times; SL (mean_R)</h2>
     <div class="kpis" id="curvaJointStats"></div>
+    <div class="toolbar"><div class="segmented" id="curvaSlChips"></div></div>
     <div class="tablewrap"><table id="tablaCurvaJoint" style="font-size:0.76rem;"><thead></thead><tbody></tbody></table></div>
     <div class="leyenda" id="curvaJointLeyenda"></div>
+    <h2 style="margin-top:16px">Mejor TP &times; MAX_HOLD para cada SL</h2>
+    <div class="tablewrap"><table id="tablaCurvaSlResumen" style="font-size:0.78rem;"><thead></thead><tbody></tbody></table></div>
+  </div>
   </div>
 </div>
 
@@ -529,21 +533,6 @@
     <h2>Detalle por segmento</h2>
     <div class="tablewrap"><table id="tablaEsp"><thead></thead><tbody></tbody></table></div>
   </div>
-</div>
-
-<div id="tab-tpcond" style="display:none;">
-  <div class="panel tabhead">
-    <h2>TP condicional</h2>
-    <div class="sub">Candidatas que condicionan el TP a una feature observable al entrar, validadas forward en sombra.</div>
-    <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li>Un TP fijo (K_TP=4R) puede no ser lo mejor para una familia concreta: dentro de una familia con edge confirmado, condicionar el TP a una feature observable al entrar puede mejorar el resultado (#S102).</li>
-  <li>Antes de cablearlo, cada candidata se arma (el corte queda congelado) y acumula trades nuevos, sin tocar la ejecución: la misma disciplina de dos etapas que Graduación. Corre solo, enganchado a la tarea de 15 min.</li>
-  <li>Se gradúa con N forward &ge; la meta y el IC90 de &Delta; forward sin 0 por el lado positivo; si no repite la señal forward, se archiva y no se cablea.</li>
-</ul></div></details>
-  </div>
-  <div class="vacio" id="tpcondVacio" style="display:none;"></div>
-  <div id="tpcondAvance" style="margin-bottom:12px"></div>
-  <div id="tpcondCards"></div>
 </div>
 
 <script>
@@ -687,7 +676,7 @@ const state = {
   filtroGraduacionFamilia: new Set(),
   // 🔧 2026-09-25 · selección (única, no Set) del tab Curva de acumulación —
   // una celda familia×dirección×segmento a la vez, no un filtro multi-select.
-  curva: { familia: null, direccion: null, corte: null, scope: 'dir' },
+  curva: { familia: null, direccion: null, corte: null, scope: 'dir', sl: null },
   // 🔧 2026-10-03 · E_K3 por segmento: filtro de dirección y orden del detalle.
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
   // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
@@ -1733,44 +1722,6 @@ function renderEk3(){
   }).join('');
 }
 
-function renderTpCondicional(){
-  const items = (state.data && state.data.sombra_tp_condicional) || [];
-  const vacio = document.getElementById('tpcondVacio');
-  const cont = document.getElementById('tpcondCards');
-  if (!items.length){
-    vacio.style.display = '';
-    vacio.textContent = 'Ninguna candidata armada todavía.';
-    cont.innerHTML = '';
-    return;
-  }
-  vacio.style.display = 'none';
-  cont.innerHTML = items.map(it=>{
-    const pct = Math.min(100, Math.round(it.n_forward / it.n_min_graduado * 100));
-    const fecha = (it.armado_ts || '').slice(0, 10);
-    const sg = (x) => (x >= 0 ? '+' : '') + x.toFixed(3);
-    let delta = '—', deltaSub = 'N forward < 10', deltaCls = '', excluye0 = false;
-    if (it.delta_mean !== null && it.delta_ic90){
-      const [lo, hi] = it.delta_ic90;
-      excluye0 = !(lo <= 0 && hi >= 0);
-      delta = `${sg(it.delta_mean)}R`; deltaSub = `IC90 [${sg(lo)}, ${sg(hi)}]${excluye0 ? ' · excluye 0' : ' · cruza 0'}`;
-      deltaCls = excluye0 ? (it.delta_mean > 0 ? 'pos' : 'neg') : '';
-    }
-    const listo = it.n_forward >= it.n_min_graduado;
-    const badge = !listo ? '<span class="badge-wait">⏳ en observación</span>'
-      : (excluye0 && it.delta_mean > 0 ? '<span class="badge-pos">✅ pasa el candado forward</span>' : '<span class="badge-neg">no repite la señal forward</span>');
-    return `<div class="panel">
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap"><h2 style="margin:0">${it.familia} ${it.direction}</h2>${badge}</div>
-      <div class="kpis" style="margin-top:12px">
-        ${xKpi('Feature', `<span title="${String(it.fuente_caso || '').replace(/"/g, '')}"><code>${it.feature}</code></span>`, `corte ${it.cut.toFixed(3)}`)}
-        ${xKpi('TP condicional', `${it.k_lo}R / ${it.k_hi}R`, `fijo hoy: ${it.k_fijo}R`)}
-        ${xKpi('Armado', fecha, `${it.n_al_armar} trades históricos`)}
-        ${xKpi('N forward', `${it.n_forward} / ${it.n_min_graduado}`, `${pct}%`)}
-        ${xKpi('Δ forward', delta, deltaSub, deltaCls)}
-      </div>
-    </div>`;
-  }).join('');
-}
-
 // 🔧 2026-10-02 · tab Embudo rediseñado (pedido de Felipe: explotar toda la info del tab).
 // Los contadores de `sombra_familias.procesar` son una PARTICIÓN exacta (verificado en backend):
 //   disparos = bloqueados (R1/no-opuesto/STRIDE) + crudos ; crudos = causal + E_K3 + ATR/X1 + abiertos.
@@ -2461,8 +2412,7 @@ function renderCurva(){
   const slAct = ca.k_sl_actual != null ? ca.k_sl_actual : 2;
   renderSweepTabla('tablaCurvaSweepSL', 'SL', slGrid, slAct, celda.sweep_sl, 'R', true);
 
-  document.getElementById('curvaJointStats').innerHTML = xKpi('Mejor combinación TP×MAX_HOLD', renderMejorJointBadge(celda.mejor_joint), '');
-  renderJointHeatmap(celda.sweep_joint || {}, tpGrid, mhGrid, kAct, mhAct, celda.mejor_joint);
+  renderGrid3(celda, ca);
   document.getElementById('curvaJointLeyenda').innerHTML = '<span><i style="background:#5eb0ef"></i>actual (4R/96h)</span><span><i style="background:#ffcf5c"></i>sugerida</span><span><i style="background:#ff3b3b"></i>mejor mean_R de la grilla</span>';
 }
 
@@ -2477,15 +2427,7 @@ function renderMejorBadge(mejor, unidad){
   return `<span class="badge-wait" title="${String(mejor.motivo||'').replace(/"/g,'')}">sin sugerencia</span>`;
 }
 
-function renderMejorJointBadge(mejor){
-  if (!mejor) return '<span class="badge-wait">—</span>';
-  const f = (x)=> (x>=0?'+':'') + x.toFixed(3);
-  if (mejor.determinable) return `<span class="badge-pos" title="N=${mejor.n}">TP ${mejor.tp}R / MH ${mejor.mh}h · ${f(mejor.mean_R)}R vs ${f(mejor.actual.mean_R)}R</span>`;
-  return `<span class="badge-wait" title="${String(mejor.motivo||'').replace(/"/g,'')}">sin sugerencia</span>`;
-}
-
-// Heatmap HTML plano (tabla con background-color por celda) — sin librería de
-// matrix-chart aparte, reusa la misma table CSS del resto del dashboard.
+// Heatmap HTML plano (tabla con background-color por celda) — sin librería de matrix-chart aparte.
 function heatColor(meanR, maxAbs){
   if (meanR == null || !maxAbs) return 'transparent';
   const t = Math.min(1, Math.abs(meanR) / maxAbs);
@@ -2493,45 +2435,75 @@ function heatColor(meanR, maxAbs){
   return `rgba(${rgb},${(0.10 + t * 0.55).toFixed(2)})`;
 }
 
-function renderJointHeatmap(sweepJoint, tpGrid, mhGrid, tpAct, mhAct, mejor){
-  let maxAbs = 0;
-  tpGrid.forEach(tp=>{
-    const fila = sweepJoint[Number(tp).toFixed(1)] || {};
-    mhGrid.forEach(mh=>{ const s = fila[String(mh)]; if (s) maxAbs = Math.max(maxAbs, Math.abs(s.mean_R)); });
-  });
-  // 🔧 2026-10-03 · borde ROJO = la mejor combinación PARCIAL: la de mayor mean_R de la grilla, aunque no pase los
-  // candados de "sugerida" (IC90 sin solape, N≥40, estable entre mitades). Es el máximo de 42 comparaciones: léase como
-  // "dónde apunta la grilla", no como recomendación.
-  let mejorParcial = -Infinity;
-  tpGrid.forEach(tp=>{ const fila = sweepJoint[Number(tp).toFixed(1)] || {};
-    mhGrid.forEach(mh=>{ const x = fila[String(mh)]; if (x && x.mean_R > mejorParcial) mejorParcial = x.mean_R; }); });
-  const head = '<tr><th class="nosort"></th>' + mhGrid.map(mh=>`<th class="nosort">${mh}h</th>`).join('') + '</tr>';
-  const rows = tpGrid.map(tp=>{
-    const fila = sweepJoint[Number(tp).toFixed(1)] || {};
-    const celdas = mhGrid.map(mh=>{
-      const s = fila[String(mh)];
-      const esActual = Math.abs(tp - tpAct) < 1e-9 && mh === mhAct;
-      const esMejor = mejor && mejor.determinable && Math.abs(mejor.tp - tp) < 1e-9 && mejor.mh === mh;
-      let style = 'text-align:center;';
-      let txt = `N&lt;${N_MIN}`;
-      if (s){
-        style += `background:${heatColor(s.mean_R, maxAbs)};`;
-        txt = `${s.mean_R>=0?'+':''}${s.mean_R.toFixed(2)}`;
-      }
-      const esMejorParcial = !!s && Math.abs(s.mean_R - mejorParcial) < 1e-9;
-      // bordes apilados (de afuera hacia adentro) para que una celda que sea actual Y mejor parcial muestre ambos
+// ── Grilla conjunta TP × SL × MAX_HOLD (252 combinaciones) ─────────────────────────────────────────────────────────────
+// `celda.grid3.mean/wr` van planos con orden TP (externo) · SL · MH (interno); `celda.mejor_joint3` es la mejor combinación con su p ajustado,
+// mitades, validación temporal y vecinos (study_curva_acumulacion_por_familia._mejor_3d). El selector de SL elige qué corte TP×MH se dibuja.
+function renderGrid3(celda, ca){
+  const kEl = document.getElementById('curvaJointStats'), chips = document.getElementById('curvaSlChips');
+  const tab = document.getElementById('tablaCurvaJoint'), res = document.getElementById('tablaCurvaSlResumen');
+  const g3 = celda.grid3, mj = celda.mejor_joint3;
+  if (!g3 || !(ca.tp_grid && ca.sl_grid && ca.mh_grid)){
+    kEl.innerHTML = '<div class="vacio">Sin grilla conjunta para esta celda (N&lt;' + N_MIN + ' o el estudio aún no la calculó).</div>';
+    chips.innerHTML = ''; tab.innerHTML = ''; res.innerHTML = ''; document.getElementById('curvaJointLeyenda').innerHTML = '';
+    return;
+  }
+  const tpG = ca.tp_grid, slG = ca.sl_grid, mhG = ca.mh_grid, nS = slG.length, nM = mhG.length;
+  const tpA = ca.k_tp_actual != null ? ca.k_tp_actual : 4, slA = ca.k_sl_actual != null ? ca.k_sl_actual : 2, mhA = ca.mh_actual != null ? ca.mh_actual : 96;
+  const at = (a, b, c)=> (a * nS + b) * nM + c;
+  const f = (x, d=3)=> (x>=0?'+':'') + x.toFixed(d);
+  const iBest = mj && mj.disponible ? { a: tpG.indexOf(mj.tp), b: slG.indexOf(mj.sl), c: mhG.indexOf(mj.mh) } : null;
+  // mejor combinación de toda la grilla (con N≥15): coincide con mj cuando hay N≥40; si no, es la orientativa
+  let ib = iBest;
+  if (!ib){ let best = -Infinity; tpG.forEach((_, a)=> slG.forEach((_, b)=> mhG.forEach((_, c)=>{ const v = g3.mean[at(a,b,c)]; if (v > best){ best = v; ib = { a, b, c }; } }))); }
+  const ia = { a: tpG.indexOf(tpA), b: slG.indexOf(slA), c: mhG.indexOf(mhA) };
+  const meanA = g3.mean[at(ia.a, ia.b, ia.c)], meanB = g3.mean[at(ib.a, ib.b, ib.c)];
+  // KPIs
+  const estado = !mj || !mj.disponible ? '<span class="badge-wait" title="' + String((mj && mj.motivo) || '').replace(/"/g,'') + '">orientativa · N&lt;40</span>'
+    : mj.determinable ? '<span class="badge-pos" title="N≥40, p ajustado &lt; 0,05 y mejora en ambas mitades">sugerida</span>'
+    : '<span class="badge-wait" title="' + String(mj.motivo || '').replace(/"/g,'') + '">orientativa</span>';
+  const oos = mj && mj.disponible ? mj.oos : null;
+  const dOos = (o)=> o ? f(o.mean - o.actual, 2) : '—';
+  kEl.innerHTML =
+      xKpi('Mejor combinación', `TP ${tpG[ib.a]}R · SL ${slG[ib.b]}R · MH ${mhG[ib.c]}h`, `mean_R ${f(meanB)} · N=${g3.n} ${estado}`)
+    + xKpi('Actual (TP ' + tpA + 'R · SL ' + slA + 'R · MH ' + mhA + 'h)', f(meanA), mj && mj.disponible ? `IC90 [${f(mj.actual.ic90[0],2)}, ${f(mj.actual.ic90[1],2)}]` : 'sin IC (N<40)')
+    + xKpi('Mejora vs actual', f(meanB - meanA), mj && mj.disponible ? `IC90 de la mejora [${f(mj.delta_ic90[0],2)}, ${f(mj.delta_ic90[1],2)}] (sin ajustar por elegir entre 252)` : 'N<40: no se evalúa', meanB - meanA > 0 ? 'pos' : '')
+    + xKpi('p ajustado (252 comb.)', mj && mj.disponible ? (mj.p_familia < 0.001 ? '<0,001' : mj.p_familia.toFixed(3)) : '—', mj && mj.disponible ? `mitades ${f(mj.mitades[0],2)} / ${f(mj.mitades[1],2)}` : 'N<40')
+    + xKpi('Validación temporal', oos ? `${dOos(oos.h1_a_h2)} / ${dOos(oos.h2_a_h1)}` : '—', oos ? 'elige con una mitad, mejora vs actual en la otra (1ª→2ª / 2ª→1ª)' : 'N<40')
+    + xKpi('Meseta', mj && mj.disponible && mj.vecinos_mean != null ? f(mj.vecinos_mean) : '—', mj && mj.disponible && mj.vecinos_mean != null ? `media de las vecinas de la mejor (${f(mj.mean_R - mj.vecinos_mean,2)} bajo la mejor)` : 'N<40');
+  // selector de SL
+  const st = state.curva;
+  if (st.sl == null || !slG.includes(st.sl)) st.sl = slG[ib.b];
+  chips.innerHTML = slG.map(sl=>`<div class="seg-btn ${sl === st.sl ? 'active' : ''}" data-sl="${sl}" title="${sl === slA ? 'SL actual' : ''}${sl === slG[ib.b] ? (sl === slA ? ' · ' : '') + 'SL de la mejor combinación' : ''}">SL ${sl}R${sl === slA ? ' ◆' : ''}${sl === slG[ib.b] ? ' ★' : ''}</div>`).join('');
+  chips.querySelectorAll('.seg-btn').forEach(el=>{ el.onclick = ()=>{ st.sl = Number(el.dataset.sl); renderGrid3(celda, ca); }; });
+  // heatmap del corte TP×MH con el SL elegido (escala de color común a toda la grilla)
+  const b = slG.indexOf(st.sl);
+  const maxAbs = Math.max(...g3.mean.map(Math.abs));
+  const head = '<tr><th class="nosort"></th>' + mhG.map(mh=>`<th class="nosort">${mh}h</th>`).join('') + '</tr>';
+  const rows = tpG.map((tp, a)=>{
+    const tds = mhG.map((mh, c)=>{
+      const v = g3.mean[at(a, b, c)], w = g3.wr[at(a, b, c)];
+      const esAct = a === ia.a && b === ia.b && c === ia.c, esMejor = a === ib.a && b === ib.b && c === ib.c;
       const sombras = [];
-      if (esMejorParcial) sombras.push('inset 0 0 0 3px #ff3b3b');
-      if (esMejor) sombras.push(`inset 0 0 0 ${sombras.length ? 6 : 3}px #ffcf5c`);
-      if (esActual) sombras.push(`inset 0 0 0 ${sombras.length ? 6 : 3}px #5eb0ef`);
-      if (sombras.length) style += `box-shadow:${sombras.join(',')};`;
-      const titulo = `TP=${tp}R MH=${mh}h${esActual ? ' (actual)' : ''}${esMejor ? ' (sugerido)' : ''}${esMejorParcial ? ' (mejor mean_R de la grilla)' : ''}`
-        + (s ? ` · N=${s.n} · mean_R=${s.mean_R.toFixed(3)}` : '');
-      return `<td style="${style}" title="${titulo}">${txt}</td>`;
+      if (esMejor) sombras.push('inset 0 0 0 3px #ff3b3b');
+      if (esAct) sombras.push(`inset 0 0 0 ${sombras.length ? 6 : 3}px #5eb0ef`);
+      const style = `text-align:center;background:${heatColor(v, maxAbs)};${sombras.length ? 'box-shadow:' + sombras.join(',') + ';' : ''}`;
+      const tit = `TP=${tp}R SL=${slG[b]}R MH=${mh}h · mean_R=${v.toFixed(3)} · WR=${w}% · N=${g3.n}${esAct ? ' (actual)' : ''}${esMejor ? ' (mejor de las 252)' : ''}`;
+      return `<td style="${style}" title="${tit}">${f(v, 2)}</td>`;
     }).join('');
-    return `<tr><td>${tp}R</td>${celdas}</tr>`;
+    return `<tr><td>${tp}R</td>${tds}</tr>`;
   }).join('');
-  document.getElementById('tablaCurvaJoint').innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+  tab.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+  document.getElementById('curvaJointLeyenda').innerHTML =
+    `<span><i style="background:#5eb0ef"></i>actual (${tpA}R / ${slA}R / ${mhA}h)</span><span><i style="background:#ff3b3b"></i>mejor mean_R de las 252 (${mj && mj.determinable ? 'sugerida' : 'orientativa'})</span><span>corte con SL ${slG[b]}R</span>`;
+  // resumen: la mejor TP×MH para cada SL
+  const filasSl = slG.map((sl, bb)=>{
+    let best = -Infinity, ba = 0, bc = 0;
+    tpG.forEach((_, a)=> mhG.forEach((__, c)=>{ const v = g3.mean[at(a, bb, c)]; if (v > best){ best = v; ba = a; bc = c; } }));
+    const vAct = g3.mean[at(tpG.indexOf(tpA), bb, mhG.indexOf(mhA))];
+    const esMej = bb === ib.b;
+    return `<tr${esMej ? ' style="font-weight:600;"' : ''}><td>${sl}R${sl === slA ? ' (actual)' : ''}${esMej ? ' ★' : ''}</td><td>TP ${tpG[ba]}R · MH ${mhG[bc]}h</td><td class="${best >= 0 ? 'pos' : 'neg'}">${f(best)}</td><td class="${vAct >= 0 ? 'pos' : 'neg'}">${f(vAct)}</td></tr>`;
+  }).join('');
+  res.innerHTML = `<thead><tr><th class="nosort">SL</th><th class="nosort">mejor TP · MAX_HOLD con ese SL</th><th class="nosort">mean_R</th><th class="nosort">con TP ${tpA}R · MH ${mhA}h</th></tr></thead><tbody>${filasSl}</tbody>`;
 }
 
 // Tabla de barrido genérica (TP o MAX_HOLD) — mismo esquema de columnas, la única
@@ -2564,7 +2536,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','tpcond','ek3'].forEach(t=>{
+  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','ek3'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -3207,12 +3179,12 @@ function renderExtrasCurva(){
   });
   const grad = cel.filter(c=>c.n>=ca.n_min_graduado);
   // por qué no se sugiere nada: clasificación de motivos por barrido
-  const clasif = (m)=> !m ? 'sin dato' : m.determinable ? 'SUGERIDO' : /N<40/.test(m.motivo) ? 'N<40 (aún no evaluable)'
-    : /ning[uú]n/.test(m.motivo) ? 'ningún punto rentable' : /NO es estable/.test(m.motivo) ? 'ganador no estable entre mitades'
-    : /solapa/.test(m.motivo) ? 'IC90 se solapa con el actual' : /ya es el mejor/.test(m.motivo) ? 'el actual ya es el mejor' : 'otro';
+  const clasif = (m)=> !m ? 'sin dato' : m.determinable ? 'SUGERIDO' : /N<40/.test(m.motivo || '') ? 'N<40 (aún no evaluable)'
+    : /ning[uú]n/.test(m.motivo) ? 'ningún punto rentable' : /NO es estable|mitades/.test(m.motivo) ? 'ganador no estable entre mitades'
+    : /solapa|ajustado por elegir/.test(m.motivo) ? 'IC90 se solapa con el actual' : /ya es el mejor|no mejora al actual/.test(m.motivo) ? 'el actual ya es el mejor' : 'otro';
   const claves = ['SUGERIDO','el actual ya es el mejor','IC90 se solapa con el actual','ganador no estable entre mitades','ningún punto rentable','N<40 (aún no evaluable)','otro'];
   const colores = { 'SUGERIDO':X_POS, 'el actual ya es el mejor':'#4d9bd6', 'IC90 se solapa con el actual':'#e5c453', 'ganador no estable entre mitades':'#8e9cf5', 'ningún punto rentable':X_NEG, 'N<40 (aún no evaluable)':'#5b6678', 'otro':'#3a4352' };
-  const sweeps = [['TP','mejor_tp'],['MAX_HOLD','mejor_mh'],['SL','mejor_sl'],['TP×MH','mejor_joint']];
+  const sweeps = [['TP','mejor_tp'],['MAX_HOLD','mejor_mh'],['SL','mejor_sl'],['TP×SL×MH','mejor_joint3']];
   xChart('chartCurvaMotivos', { type:'bar',
     data:{ labels: sweeps.map(s=>s[0]), datasets: claves.map(cl=>({ label:cl, backgroundColor:colores[cl],
       data: sweeps.map(s=> cel.filter(c=>clasif(c[s[1]])===cl).length) })) },
@@ -3242,7 +3214,8 @@ function renderExtrasCurva(){
   // resumen
   const rent = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[0]>0).length;
   const neg = grad.filter(c=>c.tp_actual && c.tp_actual.ic90 && c.tp_actual.ic90[1]<0).length;
-  const sug = cel.filter(c=>['mejor_tp','mejor_mh','mejor_sl','mejor_joint'].some(k=>c[k] && c[k].determinable));
+  const sug = cel.filter(c=>['mejor_tp','mejor_mh','mejor_sl','mejor_joint3'].some(k=>c[k] && c[k].determinable));
+  const nJ3 = cel.filter(c=>c.mejor_joint3 && c.mejor_joint3.disponible).length, nJ3sug = cel.filter(c=>c.mejor_joint3 && c.mejor_joint3.determinable).length;
   document.getElementById('curvaPanoramaKpis').innerHTML =
       xKpi('Celdas del alcance', xInt(cel.length), `${grad.length} con N≥${ca.n_min_graduado}`)
     + xKpi('Rentables hoy (IC90>0)', String(rent), 'con el TP/MH/SL actuales, N≥40', 'pos')
@@ -3250,16 +3223,7 @@ function renderExtrasCurva(){
     + xKpi('Con sugerencia', String(sug.length), sug.slice(0,3).map(c=>c.k.replace(/\|/g,' · ')).join(' / ') || 'ninguna supera los candados')
     + xKpi('Celda elegida', celSel ? `${sel.corte} · N=${celSel.n}` : '—', celSel && ptSel && ptSel.x!=null
         ? `TP actual ${xR(ptSel.x,2)} R · mejor TP del barrido ${xR(ptSel.y,2)} R · pico mediana ${celSel.hold_al_pico ? celSel.hold_al_pico.p50.toFixed(0)+' h' : '—'}` : 'sin datos')
-    + xKpi('Grilla evaluada', `${(ca.tp_grid||[]).length}×${(ca.mh_grid||[]).length}`, `TP×MH · SL ${(ca.sl_grid||[]).join('/')}R`);
-}
-
-// ── TP condicional · barra de avance por candidata ──────────────────────────────────────
-function renderExtrasTpcond(){
-  const items = (state.data && state.data.sombra_tp_condicional) || [];
-  const box = document.getElementById('tpcondAvance');
-  if (!items.length){ box.innerHTML = ''; return; }
-  box.innerHTML = items.map(it=> xBarRow(`${it.familia} ${it.direction} · N forward`, it.n_forward, it.n_min_graduado, X_SOM,
-      `${Math.min(100, Math.round(100*it.n_forward/it.n_min_graduado))}% de la meta (${it.n_min_graduado})`)).join('');
+    + xKpi('Grilla conjunta', `${(ca.tp_grid||[]).length}×${(ca.sl_grid||[]).length}×${(ca.mh_grid||[]).length}`, `${nJ3sug} de ${nJ3} celdas con N≥40 tienen mejor combinación sugerida (por azar se esperan ≈${(0.05*nJ3).toFixed(0)})`);
 }
 
 function renderExtrasTodos(){
@@ -3267,7 +3231,6 @@ function renderExtrasTodos(){
   try { renderExtrasEk3(); } catch(e){ console.error('extras ek3', e); }
   try { renderEk3Seg(); } catch(e){ console.error('ek3 seg', e); }
   try { renderExtrasCurva(); } catch(e){ console.error('extras curva', e); }
-  try { renderExtrasTpcond(); } catch(e){ console.error('extras tpcond', e); }
 }
 
 // 🏷️ Alias SOLO VISIBLE (2026-09-30, pedido de Felipe): el backend sigue llamando a la
@@ -3297,7 +3260,6 @@ fetch('data.json?_=' + Date.now())
     renderSimbolo();
     renderAbiertas();
     renderCurva();
-    renderTpCondicional();
     renderEk3();
     renderExtrasTodos();
     try { renderEspejos(); } catch(e){ console.error('espejos', e); }
