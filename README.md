@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-05 02:44:59
+Ultima actualizacion: 2026-10-05 03:00:16
 
 ```
 ========================================================================================================
@@ -200,7 +200,7 @@ Ultima actualizacion: 2026-10-05 02:44:59
 │ SOMBRA·54_ext_dn_1h     LONG  BEAR       23    +3.500  +80.50  100% [+3.22,+3.76]*                   │
 │ SOMBRA·54_ext_dn_4h     LONG  RANGE      15    +0.679  +10.19   80% [+0.26,+1.16]*                   │
 │ SOMBRA·54_ext_dn_4h     LONG  BEAR       26    +3.265  +84.90   96% [+2.88,+3.60]*                   │
-│ SOMBRA·54_x_sma20x50_dn SHORT RANGE      55    -0.632  -34.78   36% [-0.96,-0.30]*                   │
+│ SOMBRA·54_x_sma20x50_dn SHORT RANGE      53    -0.699  -37.06   34% [-1.00,-0.38]*                   │
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        4    -1.620   -6.48    0% [-2.05,-1.19]*                   │
 │ SOMBRA·s100_macd_cruce_aLONG  RANGE     104    -0.221  -22.94   41% [-0.48,+0.04]                    │
 │ SOMBRA·s100_macd_cruce_aLONG  BULL       19    +0.952  +18.08   63% [+0.18,+1.74]*                   │
@@ -350,15 +350,15 @@ Ultima actualizacion: 2026-10-05 02:44:59
 │                               btc_range       15   100%  +0.679  +10.19   80%      [+0.26,+1.16]*  R15 B0 Be0   [pos] │
 │                               btc_trend       27   100%  +3.169  +85.57   96%      [+2.76,+3.55]*  R0 B1 Be26   [ARMADA] │
 │                               celda_bear_bear  20   100%  +3.336  +66.71   95%      [+2.88,+3.73]*  R0 B0 Be20   [ARMADA] │
-│ SOMBRA·54_x_sma20x50_dn SHORT (TOTAL)         60   100%  -0.673  -40.37   35%      [-0.99,-0.36]*  R55 B1 Be4       │
-│                               alt1d_range     33   100%  -0.397  -13.12   42%       [-0.81,+0.01]  R30 B1 Be2   [ARMADA] │
-│                               alt1d_trend     27   100%  -1.009  -27.25   26%      [-1.42,-0.58]*  R25 B0 Be2   [ARMADA] │
-│                               age4h_alto      21   100%  -0.702  -14.74   43%      [-1.15,-0.25]*  R19 B1 Be1   [neg] │
-│                               age4h_bajo      20   100%  -0.864  -17.28   25%      [-1.40,-0.35]*  R18 B0 Be2   [neg] │
-│                               vol_rel_alto    21   100%  -0.338   -7.10   48%       [-0.78,+0.05]  R20 B1 Be0       │
-│                               vol_rel_bajo    20   100%  -0.692  -13.84   35%      [-1.30,-0.10]*  R20 B0 Be0   [neg] │
-│                               btc_range       55   100%  -0.632  -34.78   36%      [-0.96,-0.30]*  R55 B0 Be0   [ARMADA] │
-│                               celda_bear_range  21   100%  -0.713  -14.98   38%      [-1.26,-0.18]*  R18 B0 Be3   [ARMADA] │
+│ SOMBRA·54_x_sma20x50_dn SHORT (TOTAL)         58   100%  -0.735  -42.65   33%      [-1.04,-0.44]*  R53 B1 Be4       │
+│                               alt1d_range     32   100%  -0.438  -14.02   41%      [-0.84,-0.03]*  R29 B1 Be2   [ARMADA] │
+│                               alt1d_trend     26   100%  -1.101  -28.63   23%      [-1.45,-0.72]*  R24 B0 Be2   [ARMADA] │
+│                               age4h_alto      20   100%  -0.636  -12.72   45%      [-1.10,-0.16]*  R18 B1 Be1   [neg] │
+│                               age4h_bajo      19   100%  -0.982  -18.65   21%      [-1.42,-0.54]*  R17 B0 Be2   [neg] │
+│                               vol_rel_alto    20   100%  -0.253   -5.07   50%       [-0.66,+0.13]  R19 B1 Be0       │
+│                               vol_rel_bajo    19   100%  -0.776  -14.74   32%      [-1.34,-0.19]*  R19 B0 Be0   [neg] │
+│                               btc_range       53   100%  -0.699  -37.06   34%      [-1.00,-0.38]*  R53 B0 Be0   [ARMADA] │
+│                               celda_bear_range  19   100%  -0.909  -17.26   32%      [-1.35,-0.44]*  R16 B0 Be3   [ARMADA] │
 │                               celda_range_range  34   100%  -0.534  -18.17   35%      [-0.89,-0.17]*  R34 B0 Be0   [neg] │
 │ SOMBRA·s100_macd_cruce_aLONG  (TOTAL)        123   100%  -0.040   -4.86   45%       [-0.28,+0.19]  R104 B19 Be0     │
 │                               alt1d_range     81   100%  -0.070   -5.71   43%       [-0.37,+0.22]  R65 B16 Be0  [ARMADA] │
