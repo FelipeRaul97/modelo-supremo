@@ -131,6 +131,7 @@
   <div class="tabbtn active" data-tab="resumen">📊 Resumen histórico</div>
   <div class="tabbtn" data-tab="abiertas">🟢 Posiciones abiertas ahora</div>
   <div class="tabbtn" data-tab="graduacion">🎓 Graduación</div>
+  <div class="tabbtn" data-tab="salida">🎯 Salida por segmento</div>
   <div class="tabbtn" data-tab="espejos">🪞 Espejos</div>
   <div class="tabbtn" data-tab="embudo">🔻 Embudo de señales</div>
   <div class="tabbtn" data-tab="simbolo">💠 Por símbolo</div>
@@ -504,6 +505,30 @@
   </div>
 </div>
 
+<div id="tab-salida" style="display:none;">
+  <div class="panel tabhead">
+    <h2>Salida por segmento</h2>
+    <div class="sub">Cruza cada segmento (estado de Graduaci&oacute;n) con la mejor combinaci&oacute;n TP &times; SL &times; MAX_HOLD de la Curva de acumulaci&oacute;n. Informativo: no cambia ninguna salida del motor.</div>
+    <details class="ayuda"><summary>C&oacute;mo leer este tab</summary><div class="ayuda-body"><ul>
+  <li><b>Salida actual</b> = TP 4R &middot; SL 2R &middot; MAX_HOLD 96 h. <b>Mejor</b> = el m&aacute;ximo de la grilla 6&times;6&times;7 (252 combinaciones) de ese segmento, con coste 0,2 % ida y vuelta, simulado sobre las rutas de precio.</li>
+  <li><b>R es una unidad fija (la distancia de 1 ATR-proxy), no riesgo constante.</b> Con SL 4R cada p&eacute;rdida pesa el doble que con SL 2R; el mean_R es comparable porque el motor opera con nocional fijo, pero el peor trade y el drawdown por trade se duplican. Un TP lejano (12R) casi nunca se toca: la posici&oacute;n suele cerrar por MAX_HOLD y ocupa slot m&aacute;s horas.</li>
+  <li><b>p familia</b> = prob. de que el mejor de 252 supere a la salida actual solo por haber elegido el mayor (permutaci&oacute;n). <b>OOS</b> = elegir en una mitad del tiempo y evaluar en la otra, en ambos sentidos: &check; si la elecci&oacute;n bate a la actual en las dos.</li>
+  <li><b>Afinable</b> = determinable, &Delta; con IC90 &gt; 0, p &lt; 0,05 y OOS &check; en un segmento que NO es negativo. Un negativo armado (candidato a vetar) no se afina: si hoy pierde, mejorar la salida solo lo lleva a ~0; si hoy ya es positivo, su armado hist&oacute;rico est&aacute; contradicho y se revisa en Graduaci&oacute;n.</li>
+  <li>Es la misma muestra sobre la que se eligi&oacute; la salida: es una pista para pre-registrar, no un cambio de spec. Los cortes que cubren el 100 % de la familia son id&eacute;nticos a TODOS.</li>
+</ul></div></details>
+  </div>
+  <div class="kpis" id="salKpis"></div>
+  <div class="panel">
+    <div class="filtergroup" style="display:flex; gap:14px; flex-wrap:wrap; align-items:center">
+      <input id="salBusca" placeholder="buscar familia / corte" style="background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:5px 9px; font-size:0.82rem">
+      <label class="hint" style="margin:0"><input type="checkbox" id="salSoloDet" checked> solo con mejor determinable</label>
+      <label class="hint" style="margin:0"><input type="checkbox" id="salSoloArm"> solo armados</label>
+      <span id="salCount" class="hint" style="margin:0"></span>
+    </div>
+    <div class="tablewrap" style="max-height:640px"><table id="tablaSalida"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
 <div id="tab-espejos" style="display:none;">
   <div class="panel tabhead">
     <h2>Espejos</h2>
@@ -686,6 +711,7 @@ const state = {
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
   // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
   esp: { sort: { col: null, dir: -1 }, busca: '', origen: 'todos', soloN: true },
+  sal: { sort: { col: 'delta', dir: -1 }, busca: '', soloDet: true, soloArm: false },
 };
 
 // Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
@@ -2548,7 +2574,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','espejos','embudo','simbolo','curva','curvaesp','ek3'].forEach(t=>{
+  ['resumen','abiertas','graduacion','salida','espejos','embudo','simbolo','curva','curvaesp','ek3'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -2989,6 +3015,64 @@ function renderEspejos(){
 document.getElementById('espBusca').addEventListener('input', (e)=>{ state.esp.busca = e.target.value; renderEspejos(); });
 document.getElementById('espSoloN').addEventListener('change', (e)=>{ state.esp.soloN = e.target.checked; renderEspejos(); });
 
+// ── SALIDA POR SEGMENTO ──────────────────────────────────────────────────────────────────
+// Cruza la grilla TP×SL×MAX_HOLD de la Curva de acumulación (celdas familia|dir|corte) con el estado de Graduación de ese
+// segmento. Solo LEE `state.data`; nada de esto cambia la salida del motor.
+function renderSalida(){
+  const ca = state.data.curva_acumulacion; if (!ca || !ca.celdas) return;
+  const S = state.sal;
+  const seg = {};
+  computeTodosSegmentos().forEach(r=>{ seg[r.familia+'|'+r.dir+'|'+r.corte] = r; });
+  const f2 = (x)=> (x===null||x===undefined) ? '\u2014' : ((x>=0?'+':'') + x.toFixed(2));
+  const rows = Object.entries(ca.celdas).map(([k, v])=>{
+    const [familia, dir, corte] = k.split('|');
+    const sg = seg[k], m = v.mejor_joint3 || {}, det = !!m.determinable;
+    const estado = corte==='TODOS' ? 'familia' : (!sg || !sg.armado) ? 'sin armar'
+      : (sg.gate && sg.gate.estado==='CANDIDATA') ? 'CANDIDATA' : (sg.signo==='negativo' ? 'armado \u2193' : 'armado \u2191');
+    const neg = !!(sg && sg.armado && sg.signo==='negativo');
+    const oos = det && m.oos ? Object.values(m.oos).every(o=>o.mean>o.actual) : null;
+    let lectura, cls;
+    if (!det){ lectura = (v.n < 40 ? 'N<40' : (m.motivo || 'sin mejora determinable')); lectura = lectura.length>46 ? lectura.slice(0,44)+'\u2026' : lectura; cls = 'badge-wait'; }
+    else if (neg){ const a0 = m.actual ? m.actual.mean_R : null; lectura = (a0!==null && a0>0) ? 'armado ↓ pero hoy positivo: revisar' : 'negativo: solo deja de perder'; cls = (a0!==null && a0>0) ? 'badge-arm' : 'badge-neg'; }
+    else if (m.delta_ic90[0]>0 && m.p_familia<0.05 && oos){ lectura = 'afinable'; cls = 'badge-pos'; }
+    else { lectura = oos ? 'p/IC no alcanza' : 'no pasa OOS'; cls = 'badge-wait'; }
+    return { familia, dir, corte, estado, n:v.n, det, neg, lectura, cls, oos: oos===null ? null : (oos ? 1 : 0),
+      actual: det ? m.actual.mean_R : (v.tp_actual ? v.tp_actual.mean_R : null),
+      salida: det ? 'TP '+m.tp+' \u00b7 SL '+m.sl+' \u00b7 '+m.mh+'h' : '\u2014',
+      mejor: det ? m.mean_R : null, delta: det ? m.delta : null, dlo: det ? m.delta_ic90[0] : null,
+      p: det ? m.p_familia : null, vec: det ? m.vecinos_mean : null };
+  });
+  const det = rows.filter(r=>r.det), afin = det.filter(r=>r.cls==='badge-pos');
+  document.getElementById('salKpis').innerHTML =
+      xKpi('Celdas medidas', xInt(rows.length), `${rows.filter(r=>r.n>=40).length} con N\u226540`)
+    + xKpi('Mejor determinable', xInt(det.length), 'IC90 y p corregidos por selecci\u00f3n')
+    + xKpi('Afinables', xInt(afin.length), 'p<0,05 \u00b7 IC90>0 \u00b7 OOS \u2714 \u00b7 no negativos', afin.length ? 'pos' : '')
+    + xKpi('Negativos armados', xInt(det.filter(r=>r.neg).length), 'candidatos a vetar: no se afinan')
+    + xKpi('Afinables armados \u2191 / CANDIDATA', xInt(afin.filter(r=>r.estado!=='sin armar' && r.estado!=='familia').length), 'las que importan para graduar');
+  const q = (S.busca||'').trim().toLowerCase();
+  let vis = rows.filter(r=> (!S.soloDet || r.det) && (!S.soloArm || !['sin armar','familia'].includes(r.estado)) && (!q || (r.familia+' '+r.corte).toLowerCase().includes(q)));
+  document.getElementById('salCount').innerHTML = `<b>${vis.length}</b> / ${rows.length} celdas`;
+  const th = (c,l,t)=> `<th data-col="${c}" title="${t||''}">${l}</th>`;
+  const thead = document.querySelector('#tablaSalida thead'), tbody = document.querySelector('#tablaSalida tbody');
+  thead.innerHTML = '<tr>' + th('familia','familia') + th('dir','dir') + th('corte','segmento') + th('estado','estado Graduaci\u00f3n') + th('n','N')
+    + th('actual','mean_R actual','TP 4R \u00b7 SL 2R \u00b7 MAX_HOLD 96 h, con coste 0,2 %') + th('salida','mejor salida')
+    + th('mejor','mean_R mejor') + th('delta','\u0394','mejor \u2212 actual') + th('dlo','\u0394 IC90 inf.','l\u00edmite inferior del IC90 de la mejora')
+    + th('p','p familia','p corregido por elegir el mejor de 252') + th('vec','vecinos','media de las combinaciones vecinas: si es mucho menor, el pico es fr\u00e1gil')
+    + th('oos','OOS') + th('lectura','lectura') + '</tr>';
+  vis = S.sort.col ? sortRows(vis, S.sort) : vis;
+  tbody.innerHTML = vis.slice(0,500).map(r=>{
+    const c = (x)=> x==null ? '' : (x>=0?'pos':'neg');
+    return `<tr><td>${r.familia}</td><td>${r.dir}</td><td>${r.corte}</td><td>${r.estado}</td><td>${r.n}</td>`
+      + `<td class="${c(r.actual)}">${f2(r.actual)}</td><td>${r.salida}</td><td class="${c(r.mejor)}">${f2(r.mejor)}</td>`
+      + `<td class="${c(r.delta)}">${f2(r.delta)}</td><td>${f2(r.dlo)}</td><td>${r.p==null?'\u2014':r.p.toFixed(3)}</td><td>${f2(r.vec)}</td>`
+      + `<td>${r.oos==null?'\u2014':(r.oos?'\u2714':'\u2716')}</td><td><span class="${r.cls}">${r.lectura}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="14" class="vacio">Sin celdas con estos filtros.</td></tr>';
+  bindSort(thead, S.sort, renderSalida);
+}
+document.getElementById('salBusca').addEventListener('input', (e)=>{ state.sal.busca = e.target.value; renderSalida(); });
+document.getElementById('salSoloDet').addEventListener('change', (e)=>{ state.sal.soloDet = e.target.checked; renderSalida(); });
+document.getElementById('salSoloArm').addEventListener('change', (e)=>{ state.sal.soloArm = e.target.checked; renderSalida(); });
+
 // ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
 function renderExtrasSimbolo(universo){
   // LIVE+SOMBRA (familias, dirección real) y ESPEJO (dirección contraria) son poblaciones distintas: se agregan,
@@ -3297,6 +3381,7 @@ fetch('data.json?_=' + Date.now())
     renderEk3();
     renderExtrasTodos();
     try { renderEspejos(); } catch(e){ console.error('espejos', e); }
+    try { renderSalida(); } catch(e){ console.error('salida', e); }
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
