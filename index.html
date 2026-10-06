@@ -38,6 +38,9 @@
   th:first-child,td:first-child{text-align:left;}
   th{color:var(--muted); font-weight:500; cursor:pointer; position:sticky; top:0; background:var(--panel);}
   th.nosort{cursor:default;}
+  th.dsort{cursor:pointer;}
+  th.dsort[data-dir="desc"]::after{content:" \25BC"; font-size:.65em;}
+  th.dsort[data-dir="asc"]::after{content:" \25B2"; font-size:.65em;}
   tbody tr:hover{background:var(--panel2);}
   .tag{font-size:0.68rem; padding:1px 6px; border-radius:5px; font-weight:600;}
   .tag.LIVE{background:rgba(94,176,239,.18); color:var(--live);}
@@ -3299,6 +3302,46 @@ fetch('data.json?_=' + Date.now())
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
     console.error(e);
   });
+
+// ── ORDEN GENÉRICO ───────────────────────────────────────────────────────────────────────
+// Toda columna cuyo <th> no tenga ya su propio sort (th[data-col]) se ordena clickeando el encabezado, sobre el DOM
+// ya renderizado (numérico si la columna lo es —primer número de la celda—, texto si no). Se re-aplica solo cuando
+// una tabla re-dibuja su encabezado. Las tablas con sort propio no se tocan.
+(function(){
+  const num = (t)=>{ t = t.replace(/−/g,'-').replace(/,/g,''); if (!/^[\s\[(~<>≥≤$+-]*\d/.test(t)) return null; const m = t.match(/[-+]?\d+(?:\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+  function sortCol(table, idx, dir){
+    const tb = table.tBodies[0]; if (!tb) return;
+    const ths = table.tHead ? table.tHead.rows[table.tHead.rows.length-1].cells.length : 0;
+    const rows = [...tb.rows].filter(r=>r.cells.length===ths);
+    const keyed = rows.map(r=>{ const t = (r.cells[idx].textContent||'').trim(); return { r, t, n: num(t) }; });
+    const numeric = keyed.filter(k=>k.n!==null).length >= 0.6*keyed.length;
+    keyed.sort((a,b)=>{
+      if (numeric){ if (a.n===null && b.n===null) return 0; if (a.n===null) return 1; if (b.n===null) return -1; return dir*(a.n-b.n); }
+      return dir*a.t.localeCompare(b.t, 'es', {numeric:true});
+    });
+    keyed.forEach(k=>tb.appendChild(k.r));
+  }
+  function enhance(){
+    document.querySelectorAll('table').forEach(table=>{
+      if (!table.tHead || !table.tHead.rows.length) return;
+      const hr = table.tHead.rows[table.tHead.rows.length-1];
+      [...hr.cells].forEach((th, idx)=>{
+        if (th.hasAttribute('data-col') || th._ds || !th.textContent.trim()) return;
+        th._ds = true; th.classList.add('dsort'); th.title = th.title || 'ordenar';
+        th.addEventListener('click', ()=>{
+          const dir = th._dir === -1 ? 1 : -1; th._dir = dir;
+          hr.querySelectorAll('th.dsort').forEach(o=>{ if (o!==th){ o._dir = 0; o.removeAttribute('data-dir'); } });
+          th.setAttribute('data-dir', dir===-1 ? 'desc' : 'asc');
+          sortCol(table, idx, dir);
+        });
+      });
+    });
+  }
+  let pend = null;
+  new MutationObserver(()=>{ if (!pend) pend = setTimeout(()=>{ pend = null; enhance(); }, 50); })
+    .observe(document.body, { childList:true, subtree:true });
+  enhance();
+})();
 </script>
 </body>
 </html>
