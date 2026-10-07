@@ -514,6 +514,7 @@
   <li>La etapa sale de dos cosas, al cierre del <b>día UTC anterior</b> a la entrada: si el precio está sobre o bajo su <b>media de 210 días (SMA210)</b> y si esa media <b>sube o baja</b> frente a hace 30 días. Es causal: no usa nada posterior a la entrada.</li>
   <li><b>No son las etiquetas BULL/RANGE/BEAR del resto del dashboard</b>: esas miran 8&ndash;33 días y cambian varias veces al mes; las E miran la tendencia de fondo (meses).</li>
   <li>Cada celda muestra arriba el <b>mean_R</b> (R medio por trade, en múltiplos del riesgo) y debajo el <b>N</b>, el <b>WR</b> y la <b>&Sigma;R</b> (suma de R de todos los trades de la celda). La cuarta línea mide la <b>robustez</b>: los días distintos y la &Sigma;R que queda quitando los 3 mejores días (o los 3 peores si la celda pierde); <b>&#9888;</b> = quitando esos 3 días el resultado cambia de signo o se reduce a menos de la mitad, es decir, depende de pocos días. <b>Haz clic en una celda</b> para ver su &Sigma;R día a día. <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
+  <li><b>Quitar efecto del día</b>: sustituye el R de cada trade por su diferencia con el R medio de todos los trades de ese día y dirección. Los LONG y los SHORT se mueven en espejo con el mercado de cada día (correlación diaria ≈ −0.65), y parte de lo que parece efecto de la etapa es solo «en qué días ocurrieron los trades». Con el ajuste, la suma de todo el universo por día y dirección es 0: solo se ve lo que cada celda hace mejor o peor que el promedio de su día. Es conservador (el promedio del día incluye a los propios trades de la celda).</li>
   <li><b>Límites medidos</b>: la etapa tarda en cambiar (mediana ~19 días tras un giro de 20&nbsp;%, y en cerca de la mitad de esas patas nunca cambia) y puede alternar E2/E3 cuando el precio anda pegado a la media. Las familias que disparan sobre los mismos trades no son observaciones independientes. La etapa de BTC cambia lento: en la práctica es casi una variable de <i>periodo</i>.</li>
 </ul></div></details>
   </div>
@@ -3402,17 +3403,29 @@ const ALIAS_FAMILIA = { '23_cuna_alcista_bear': '23_cuna_alcista' };
 // ════════════════════════════════════════════════════════════════════════════
 const ET_COL = { E1:'#b4a7f5', E2:'#4dd0c8', E3:'#ff9f68', E4:'#f78fb3', TR:'#8b96a8' };
 const ET_NOM = { E1:'Base', E2:'Avance', E3:'Techo', E4:'Declive', TR:'Transición (E1+E3)' };
-const etSt = { origen:new Set(), dir:new Set(), modo:'4', fam:'', nmin:15 };
+const etSt = { origen:new Set(), dir:new Set(), modo:'4', fam:'', nmin:15, adj:false };
 const etBadge = (id)=> `<span style="display:inline-block;min-width:2.1em;text-align:center;padding:1px 7px;border-radius:999px;background:${ET_COL[id]};color:#08131c;font-weight:700;font-size:0.78rem">${id==='TR'?'E1+E3':id}</span>`;
 const etCols = ()=> etSt.modo==='4' ? ['E1','E2','E3','E4'] : ['E2','E4','TR'];
 const etKey = (e)=> etSt.modo==='4' ? e : (e==='E1'||e==='E3' ? 'TR' : e);
 
+// R ajustado por día: R del trade − R medio de TODOS los trades con etapa de ese día UTC y esa dirección (todas las familias y etapas).
+// Quita el efecto-mercado del día (en espejo LONG/SHORT). Es conservador: el promedio del día incluye a los propios trades de la celda.
+let etAdjListo = false;
+function etPrepAdj(){
+  if (etAdjListo) return;
+  const g = {}, kf = t => new Date(t.ts).toISOString().slice(0,10) + '|' + t.dir;
+  (state.data.trades||[]).forEach(t=>{ if (t.e && t.pnl_R!=null){ const k = kf(t); (g[k] = g[k] || {s:0,n:0}); g[k].s += t.pnl_R; g[k].n += 1; } });
+  (state.data.trades||[]).forEach(t=>{ if (t.e && t.pnl_R!=null){ const q = g[kf(t)]; t.pnl_adj = t.pnl_R - q.s/q.n; } });
+  etAdjListo = true;
+}
 function etTrades(){
   const d = state.data;
+  etPrepAdj();
   return (d.trades||[]).filter(t=> t.e && t.pnl_R!=null
     && (!etSt.origen.size || etSt.origen.has(t.origen))
     && (!etSt.dir.size || etSt.dir.has(t.dir))
-    && (!etSt.fam || t.familia===etSt.fam));
+    && (!etSt.fam || t.familia===etSt.fam))
+    .map(t=> etSt.adj ? Object.assign({}, t, { pnl_R: t.pnl_adj }) : t);
 }
 const etRowsByKey = {};
 let etSel = null;
@@ -3480,6 +3493,7 @@ function renderEtFilters(){
     const vals = k==='origen' ? ['LIVE','SOMBRA'] : ['LONG','SHORT'];
     mk(k==='origen'?'Origen':'Dirección', vals.map(v=>chip(`${v} (${base.filter(t=>t[k]===v).length})`, etSt[k].has(v), ()=>{ if (etSt[k].has(v)) etSt[k].delete(v); else etSt[k].add(v); renderEtapas(); })));
   });
+  mk('R', [chip('Quitar efecto del día', etSt.adj, ()=>{ etSt.adj = !etSt.adj; renderEtapas(); })]);
   mk('Etapas', [chip('4 etapas', etSt.modo==='4', ()=>{ etSt.modo='4'; renderEtapas(); }), chip('E2 · E4 · Transición', etSt.modo==='3', ()=>{ etSt.modo='3'; renderEtapas(); })]);
   const fams = [...new Set(base.map(t=>t.familia))].sort();
   const sel = document.createElement('select'); sel.style.cssText='background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:0.8rem;max-width:230px';
@@ -3496,7 +3510,7 @@ function renderEtFam(rows){
   const grupos = {};
   rows.forEach(t=>{ const k = t.familia+'|'+t.dir; (grupos[k] = grupos[k] || []).push(t); });
   const lista = Object.entries(grupos).map(([k,g])=>({k,g,n:g.length})).sort((a,b)=>b.n-a.n);
-  document.getElementById('etFamSub').textContent = `${lista.length} familia·dirección con datos · ${rows.length} trades. Columna Δ = media(E4) − media(E2) cuando ambas tienen N ≥ ${etSt.nmin}.`;
+  document.getElementById('etFamSub').textContent = `${etSt.adj ? 'R AJUSTADO POR DÍA (cada trade menos el R medio de su día y dirección) · ' : ''}${lista.length} familia·dirección con datos · ${rows.length} trades. Columna Δ = media(E4) − media(E2) cuando ambas tienen N ≥ ${etSt.nmin}.`;
   const body = lista.map(({k,g})=>{
     const [fam, dir] = k.split('|');
     const por = {}; g.forEach(t=>{ (por[etKey(t.e)] = por[etKey(t.e)] || []).push(t); });
