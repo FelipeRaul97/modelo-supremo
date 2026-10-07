@@ -515,7 +515,7 @@
   <li><b>No son las etiquetas BULL/RANGE/BEAR del resto del dashboard</b>: esas miran 8&ndash;33 días y cambian varias veces al mes; las E miran la tendencia de fondo (meses).</li>
   <li>Cada celda muestra arriba el <b>mean_R</b> (R medio por trade, en múltiplos del riesgo) y debajo el <b>N</b>, el <b>WR</b> y la <b>&Sigma;R</b> (suma de R de todos los trades de la celda). La cuarta línea mide la <b>robustez</b>: los días distintos y la &Sigma;R que queda quitando los 3 mejores días (o los 3 peores si la celda pierde); <b>&#9888;</b> = quitando esos 3 días el resultado cambia de signo o se reduce a menos de la mitad, es decir, depende de pocos días. <b>Haz clic en una celda</b> para ver su &Sigma;R día a día. <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
   <li><b>Quitar efecto del día</b>: sustituye el R de cada trade por su diferencia con el R medio de todos los trades de ese día y dirección. Los LONG y los SHORT se mueven en espejo con el mercado de cada día (correlación diaria ≈ −0.65), y parte de lo que parece efecto de la etapa es solo «en qué días ocurrieron los trades». Con el ajuste, la suma de todo el universo por día y dirección es 0: solo se ve lo que cada celda hace mejor o peor que el promedio de su día. Es conservador (el promedio del día incluye a los propios trades de la celda).</li>
-<li><b>Mejor salida de la curva</b>: en vez del R realizado, cada cuadro muestra la mejor combinación TP×SL×MAX_HOLD que calcula la curva de acumulación para esa familia·dirección y etapa (los cortes <code>etapa_*</code>), con su mean_R, N, WR, ΣR (mean×N) y, como referencia, el R real. <b>&#10003; determinable</b> = la mejora supera el p ajustado por elegir entre 252 combinaciones y se repite en ambas mitades; <b>&#10007; no determinable</b> = es un ajuste que no se sostiene (el motivo aparece debajo). Hacen falta N&ge;40 por celda; con menos sale «n/d». Pasa el ratón por encima para ver p, mitades y validación fuera de muestra.</li>
+<li><b>Mejor salida de la curva</b>: en vez del R realizado, cada cuadro muestra la mejor combinación TP×SL×MAX_HOLD que calcula la curva de acumulación para esa familia·dirección y etapa (los cortes <code>etapa_*</code>), con su mean_R, N, WR, ΣR (mean×N) y, como referencia, el R real. <b>&#10003; determinable</b> = la mejora supera el p ajustado por elegir entre 252 combinaciones y se repite en ambas mitades; <b>&#10007; no determinable</b> = es un ajuste que no se sostiene (el motivo aparece debajo). Hacen falta N&ge;40 por celda; con menos sale «n/d». Pasa el ratón por encima para ver p, mitades y validación fuera de muestra. <b>Combinado con «Quitar efecto del día»</b>: el R de la mejor combinación se ajusta restando el R medio de todos los trades de ese día y dirección bajo esa misma combinación (&Sigma;R aj.), y al lado aparece el «real aj.» (la salida actual, también ajustada) para comparar; el veredicto determinable sigue siendo el de la curva sin ajustar.</li>
   <li><b>Límites medidos</b>: la etapa tarda en cambiar (mediana ~19 días tras un giro de 20&nbsp;%, y en cerca de la mitad de esas patas nunca cambia) y puede alternar E2/E3 cuando el precio anda pegado a la media. Las familias que disparan sobre los mismos trades no son observaciones independientes. La etapa de BTC cambia lento: en la práctica es casi una variable de <i>periodo</i>.</li>
 </ul></div></details>
   </div>
@@ -3437,7 +3437,43 @@ function etCurva(fam, dir, etapa){
   const cx = state.data.curva_acumulacion && state.data.curva_acumulacion.celdas;
   return cx ? cx[`${fam}|${dir}|${ET_SEG[etapa]}`] : null;
 }
+// ── Combinado «Mejor salida» + «Quitar efecto del día»: R de cada trade con la mejor combinación de SU celda menos el R medio de todos los
+// trades de ese día UTC y dirección bajo esa MISMA combinación (los calcula la curva: `curva_r_trade`). Solo si corresponde a la misma
+// versión de la curva y a la misma N de la celda; si no, la celda sale sin ajustar.
+let etMapaPnlAdj = null;
+function etPnlAdjDe(fam, dir, sym, ts){
+  if (!etMapaPnlAdj){
+    etPrepAdj(); etMapaPnlAdj = {};
+    (state.data.trades||[]).forEach(t=>{ if (t.pnl_adj !== undefined) etMapaPnlAdj[`${t.familia}|${t.dir}|${t.sym}|${t.ts}`] = t.pnl_adj; });
+  }
+  return etMapaPnlAdj[`${fam}|${dir}|${sym}|${ts}`];
+}
+function etBestAdj(fam, dir, etapa){
+  const c = etCurva(fam, dir, etapa), j = c && c.mejor_joint3;
+  const R = state.data.curva_r_trade, ca = state.data.curva_acumulacion;
+  if (!j || !j.disponible || !R || !R.celdas || !ca || R.fecha_curva !== ca.fecha) return null;
+  const x = R.celdas[`${fam}|${dir}|${ET_SEG[etapa]}`];
+  if (!x || x.r.length < j.n || x.r.length > j.n + Math.max(3, Math.ceil(0.03*j.n))) return null;   // la curva puede tener 1-2 trades menos (registrados después)
+  const base = (R.base && R.base[x.cfg]) || {};
+  const rows = x.r.map(([sym, ts, r])=>{ const d = new Date(ts).toISOString().slice(0,10); const b = base[d+'|'+dir]; return { sym, ts, pnl_R: r - (b === undefined ? 0 : b) }; });
+  const s = statsOf(rows), rb = etRobustez(rows);
+  const reales = x.r.map(([sym, ts])=>etPnlAdjDe(fam, dir, sym, ts)).filter(v=>v !== undefined);
+  return { j, s, rb, n: x.r.length, wr: 100*x.r.filter(v=>v[2] > 0).length/x.r.length,
+           realAdj: reales.length ? reales.reduce((a,b)=>a+b,0)/reales.length : null };
+}
+function etCellBestAdj(a){
+  const { j, s, rb } = a;
+  const sig = (s.ic && (s.ic[0] > 0 || s.ic[1] < 0)) ? '*' : '';
+  const det = j.determinable;
+  const marca = det ? `<span class="pos">&#10003; determinable</span>` : `<span style="color:var(--warn,#ffcf5c)">&#10007; no determinable</span>`;
+  const rob = rb.corto ? `${rb.dias} d &middot; muy pocos días`
+    : `${rb.dias} d &middot; sin los 3 ${rb.pos?'mejores':'peores'}: <span class="${rb.restoR>=0?'pos':'neg'}">${xR(rb.restoR,1)} R</span> (${rb.restoN} tr)${rb.fragil?' <span style="color:var(--warn,#ffcf5c)" title="depende de pocos días">&#9888;</span>':''}`;
+  const tip = `R ajustado = R con TP${j.tp}/SL${j.sl}/MH${j.mh} menos el R medio de todos los trades de ese día y dirección con esa misma combinación. El veredicto «determinable» es el de la curva SIN ajustar. ` +
+    `p ajustado por 252 combinaciones: ${j.p_familia!=null?j.p_familia.toFixed(4):'—'} · mitades: ${(j.mitades||[]).map(x=>xR(x,2)).join(' / ')}` + (j.motivo ? ` · ${j.motivo}` : '');
+  return `<td class="${s.mean>=0?'pos':'neg'}" title="${tip.replace(/"/g,'&quot;')}" style="white-space:nowrap;${det?'':'opacity:0.7'}">${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${a.n} &middot; WR ${a.wr.toFixed(0)}% (bruto)</div><div class="hint" style="margin:0;color:var(--muted)">&Sigma;R aj. <span class="${s.sum>=0?'pos':'neg'}">${xR(s.sum,1)}</span>${a.realAdj!==null?` &middot; real aj. ${xR(a.realAdj,2)}`:''}</div><div class="hint" style="margin:0;color:var(--muted);font-size:0.68rem">TP${j.tp} &middot; SL${j.sl} &middot; MH${j.mh} &middot; ${marca} <span title="veredicto de la curva sin ajustar por día">(s/aj.)</span></div><div class="hint" style="margin:0;color:var(--muted);font-size:0.68rem;white-space:normal;max-width:210px;margin-left:auto">${rob}</div></td>`;
+}
 function etCellBest(fam, dir, etapa){
+  if (etSt.adj){ const a = etBestAdj(fam, dir, etapa); if (a) return etCellBestAdj(a); }
   const c = etCurva(fam, dir, etapa), j = c && c.mejor_joint3;
   if (!c) return `<td class="nosort" style="color:var(--muted)">&mdash;</td>`;
   if (!j || !j.disponible) return `<td class="nosort" style="color:var(--muted);opacity:0.6">n/d<div class="hint" style="margin:0;color:var(--muted)">N=${c.n} &middot; ${(j && j.motivo) || 'sin dato'}</div></td>`;
@@ -3531,13 +3567,15 @@ function renderEtFam(rows){
   const grupos = {};
   rows.forEach(t=>{ const k = t.familia+'|'+t.dir; (grupos[k] = grupos[k] || []).push(t); });
   const lista = Object.entries(grupos).map(([k,g])=>({k,g,n:g.length})).sort((a,b)=>b.n-a.n);
-  document.getElementById('etFamSub').textContent = `${etSt.mejor ? 'MEJOR SALIDA DE LA CURVA (TP×SL×MAX_HOLD, valores precalculados sobre LIVE+SOMBRA de cada familia·dirección y etapa: NO respetan el filtro de origen ni «Quitar efecto del día»; la mejor de 252 combinaciones sesga al alza, solo vale lo marcado ✓ determinable) · ' : (etSt.adj ? 'R AJUSTADO POR DÍA (cada trade menos el R medio de su día y dirección) · ' : '')}${lista.length} familia·dirección con datos · ${rows.length} trades. Columna Δ = media(E4) − media(E2) cuando ambas tienen N ≥ ${etSt.nmin}.`;
+  document.getElementById('etFamSub').textContent = `${etSt.mejor && etSt.adj ? 'MEJOR SALIDA + EFECTO DEL DÍA QUITADO: R de cada trade con la mejor combinación de su celda menos el R medio de todos los trades de ese día y dirección bajo esa misma combinación (ΣR aj.); el veredicto determinable es el de la curva sin ajustar, no respeta el filtro de origen y, si la curva se recalculó y el ajuste aún no está disponible, la celda sale sin ajustar · ' : etSt.mejor ? 'MEJOR SALIDA DE LA CURVA (TP×SL×MAX_HOLD, valores precalculados sobre LIVE+SOMBRA de cada familia·dirección y etapa: NO respetan el filtro de origen ni «Quitar efecto del día»; la mejor de 252 combinaciones sesga al alza, solo vale lo marcado ✓ determinable) · ' : (etSt.adj ? 'R AJUSTADO POR DÍA (cada trade menos el R medio de su día y dirección) · ' : '')}${lista.length} familia·dirección con datos · ${rows.length} trades. Columna Δ = media(E4) − media(E2) cuando ambas tienen N ≥ ${etSt.nmin}.`;
   const body = lista.map(({k,g})=>{
     const [fam, dir] = k.split('|');
     const por = {}; g.forEach(t=>{ (por[etKey(t.e)] = por[etKey(t.e)] || []).push(t); });
     let e2 = por.E2 && por.E2.length>=etSt.nmin ? statsOf(por.E2).mean : null, e4 = por.E4 && por.E4.length>=etSt.nmin ? statsOf(por.E4).mean : null;
     if (etSt.mejor){
-      const bm = (et)=>{ const c = etCurva(fam, dir, et), j = c && c.mejor_joint3; return (j && j.disponible && j.n >= etSt.nmin) ? j.mean_R : null; };
+      const bm = (et)=>{
+        if (etSt.adj){ const a = etBestAdj(fam, dir, et); if (a) return a.n >= etSt.nmin ? a.s.mean : null; }
+        const c = etCurva(fam, dir, et), j = c && c.mejor_joint3; return (j && j.disponible && j.n >= etSt.nmin) ? j.mean_R : null; };
       e2 = bm('E2'); e4 = bm('E4');
     }
     const dl = (e2!==null && e4!==null) ? e4-e2 : null;
