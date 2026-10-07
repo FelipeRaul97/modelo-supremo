@@ -513,7 +513,7 @@
     <details class="ayuda" open><summary>Qué son las E y cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>La etapa sale de dos cosas, al cierre del <b>día UTC anterior</b> a la entrada: si el precio está sobre o bajo su <b>media de 210 días (SMA210)</b> y si esa media <b>sube o baja</b> frente a hace 30 días. Es causal: no usa nada posterior a la entrada.</li>
   <li><b>No son las etiquetas BULL/RANGE/BEAR del resto del dashboard</b>: esas miran 8&ndash;33 días y cambian varias veces al mes; las E miran la tendencia de fondo (meses).</li>
-  <li>Cada celda muestra arriba el <b>mean_R</b> (R medio por trade, en múltiplos del riesgo) y debajo el <b>N</b>, el <b>WR</b> y la <b>&Sigma;R</b> (suma de R de todos los trades de la celda). <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
+  <li>Cada celda muestra arriba el <b>mean_R</b> (R medio por trade, en múltiplos del riesgo) y debajo el <b>N</b>, el <b>WR</b> y la <b>&Sigma;R</b> (suma de R de todos los trades de la celda). La cuarta línea mide la <b>robustez</b>: los días distintos y la &Sigma;R que queda quitando los 3 mejores días (o los 3 peores si la celda pierde); <b>&#9888;</b> = quitando esos 3 días el resultado cambia de signo o se reduce a menos de la mitad, es decir, depende de pocos días. <b>Haz clic en una celda</b> para ver su &Sigma;R día a día. <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
   <li><b>Límites medidos</b>: la etapa tarda en cambiar (mediana ~19 días tras un giro de 20&nbsp;%, y en cerca de la mitad de esas patas nunca cambia) y puede alternar E2/E3 cuando el precio anda pegado a la media. Las familias que disparan sobre los mismos trades no son observaciones independientes. La etapa de BTC cambia lento: en la práctica es casi una variable de <i>periodo</i>.</li>
 </ul></div></details>
   </div>
@@ -524,6 +524,11 @@
     <h2>Familia &times; etapa del alt</h2>
     <div class="sub" id="etFamSub"></div>
     <div class="tablewrap" style="max-height:640px"><table id="tablaEtFam"><thead></thead><tbody></tbody></table></div>
+  </div>
+  <div class="panel" id="etDetalle" style="display:none">
+    <h2 id="etDetTitulo">Detalle de la celda</h2>
+    <div class="sub" id="etDetSub"></div>
+    <div class="chart-wrap"><canvas id="chartEtDet"></canvas></div>
   </div>
   <div class="panel">
     <h2>Segmento: etapa de BTC &times; etapa del alt</h2>
@@ -3409,12 +3414,33 @@ function etTrades(){
     && (!etSt.dir.size || etSt.dir.has(t.dir))
     && (!etSt.fam || t.familia===etSt.fam));
 }
-function etCell(rows){
+const etRowsByKey = {};
+let etSel = null;
+function etRobustez(rows){
+  const porDia = {};
+  rows.forEach(t=>{ const d = new Date(t.ts).toISOString().slice(0,10); (porDia[d] = porDia[d] || {r:0,n:0}); porDia[d].r += t.pnl_R; porDia[d].n += 1; });
+  const dias = Object.entries(porDia).map(([d,v])=>({d, r:v.r, n:v.n}));
+  const sum = dias.reduce((a,x)=>a+x.r,0), n = rows.length;
+  if (dias.length <= 3) return { dias:dias.length, sum, n, corto:true, lista:dias };
+  const pos = sum >= 0;
+  const orden = [...dias].sort((a,b)=> pos ? b.r-a.r : a.r-b.r);
+  const top = orden.slice(0,3);
+  const restoR = sum - top.reduce((a,x)=>a+x.r,0), restoN = n - top.reduce((a,x)=>a+x.n,0);
+  const fragil = pos ? (restoR <= 0 || restoR < 0.5*sum) : (restoR >= 0 || restoR > 0.5*sum);
+  return { dias:dias.length, sum, n, pos, top, restoR, restoN, restoMean: restoN ? restoR/restoN : 0, fragil, lista:dias };
+}
+function etCell(rows, key){
   if (!rows || !rows.length) return `<td class="nosort" style="color:var(--muted)">&mdash;</td>`;
   const s = statsOf(rows);
   const dim = s.n < etSt.nmin ? 'opacity:0.45;' : '';
   const sig = (s.n >= etSt.nmin && s.ic && (s.ic[0]>0 || s.ic[1]<0)) ? '*' : '';
-  return `<td class="${s.mean>=0?'pos':'neg'}" style="${dim}white-space:nowrap">${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${s.n} &middot; WR ${s.wr.toFixed(0)}%</div><div class="hint" style="margin:0;color:var(--muted)">&Sigma;R <span class="${s.sum>=0?'pos':'neg'}">${xR(s.sum,1)}</span></div></td>`;
+  const rb = etRobustez(rows);
+  let l4;
+  if (rb.corto) l4 = `${rb.dias} d &middot; muy pocos días`;
+  else l4 = `${rb.dias} d &middot; sin los 3 ${rb.pos?'mejores':'peores'}: <span class="${rb.restoR>=0?'pos':'neg'}">${xR(rb.restoR,1)} R</span> (${rb.restoN} tr &middot; ${xR(rb.restoMean,2)}/tr)${rb.fragil?' <span title="Quitando 3 días el resultado cambia de signo o se reduce a menos de la mitad: depende de pocos días" style="color:var(--warn,#ffcf5c)">&#9888;</span>':''}`;
+  if (key){ etRowsByKey[key] = rows; }
+  const click = key ? ` data-etk="${key}" title="clic: ΣR por día de esta celda" style="cursor:pointer;${dim}white-space:nowrap"` : ` style="${dim}white-space:nowrap"`;
+  return `<td class="${s.mean>=0?'pos':'neg'}"${click}>${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${s.n} &middot; WR ${s.wr.toFixed(0)}%</div><div class="hint" style="margin:0;color:var(--muted)">&Sigma;R <span class="${s.sum>=0?'pos':'neg'}">${xR(s.sum,1)}</span></div><div class="hint" style="margin:0;color:var(--muted);font-size:0.68rem;white-space:normal;max-width:210px;margin-left:auto">${l4}</div></td>`;
 }
 
 function renderEtapas(){
@@ -3441,7 +3467,8 @@ function renderEtapas(){
     xKpi('Ventana de datos', `${dias} días`, `${Math.round(dias/7)} semanas &middot; crece con cada actualización`);
   renderEtFilters();
   const rows = etTrades();
-  renderEtFam(rows); renderEtSeg(rows); renderEtCharts(rows); renderEtBtc(E);
+  Object.keys(etRowsByKey).forEach(k=>delete etRowsByKey[k]);
+  renderEtFam(rows); renderEtSeg(rows); renderEtCharts(rows); renderEtBtc(E); renderEtDetalle();
 }
 
 function renderEtFilters(){
@@ -3475,7 +3502,7 @@ function renderEtFam(rows){
     const por = {}; g.forEach(t=>{ (por[etKey(t.e)] = por[etKey(t.e)] || []).push(t); });
     const e2 = por.E2 && por.E2.length>=etSt.nmin ? statsOf(por.E2).mean : null, e4 = por.E4 && por.E4.length>=etSt.nmin ? statsOf(por.E4).mean : null;
     const dl = (e2!==null && e4!==null) ? e4-e2 : null;
-    return `<tr><td class="nosort"><b>${fam}</b> <span class="hint" style="margin:0">${dir}</span></td><td>${g.length}</td>${etCell(g)}${cols.map(c=>etCell(por[c])).join('')}<td class="${xCls(dl)}">${dl===null?'&mdash;':xR(dl,2)}</td></tr>`;
+    return `<tr><td class="nosort"><b>${fam}</b> <span class="hint" style="margin:0">${dir}</span></td><td>${g.length}</td>${etCell(g, fam+'|'+dir+'|ALL')}${cols.map(c=>etCell(por[c], fam+'|'+dir+'|'+c)).join('')}<td class="${xCls(dl)}">${dl===null?'&mdash;':xR(dl,2)}</td></tr>`;
   }).join('');
   document.getElementById('tablaEtFam').innerHTML = `<thead><tr><th>Familia · dirección</th><th>N</th><th>Todas</th>${cols.map(c=>`<th title="${ET_NOM[c]}">${etBadge(c)}</th>`).join('')}<th>Δ E4−E2</th></tr></thead><tbody>${body||'<tr><td colspan="9">sin datos con estos filtros</td></tr>'}</tbody>`;
 }
@@ -3486,7 +3513,7 @@ function renderEtSeg(rows){
   const orden = Object.keys(grp).sort();
   const body = orden.map(k=>{
     const [eb, ea] = k.split('|'); const v = grp[k];
-    return `<tr><td class="nosort">BTC ${etBadge(eb)} &times; alt ${etBadge(ea)}</td><td>${v.L.length+v.S.length}</td>${etCell(v.L)}${etCell(v.S)}</tr>`;
+    return `<tr><td class="nosort">BTC ${etBadge(eb)} &times; alt ${etBadge(ea)}</td><td>${v.L.length+v.S.length}</td>${etCell(v.L, 'seg|'+eb+'|'+ea+'|LONG')}${etCell(v.S, 'seg|'+eb+'|'+ea+'|SHORT')}</tr>`;
   }).join('');
   document.getElementById('tablaEtSeg').innerHTML = `<thead><tr><th>Segmento</th><th>N</th><th>LONG</th><th>SHORT</th></tr></thead><tbody>${body||'<tr><td colspan="4">sin datos con estos filtros</td></tr>'}</tbody>`;
 }
@@ -3507,6 +3534,34 @@ function renderEtCharts(rows){
   xChart('chartEtR', { type:'line', data:{ labels:dias, datasets:dsR },
     options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, plugins:{ legend:X_LEG }, scales:{ x:{ ...X_AXN, ticks:{ color:'#8b96a8', maxTicksLimit:10 } }, y:{ ...X_AX } } } });
 }
+
+function renderEtDetalle(){
+  const box = document.getElementById('etDetalle');
+  const rows = etSel && etRowsByKey[etSel];
+  if (!rows){ box.style.display = 'none'; if (_xc['chartEtDet']){ _xc['chartEtDet'].destroy(); delete _xc['chartEtDet']; } return; }
+  box.style.display = '';
+  const rb = etRobustez(rows), s = statsOf(rows);
+  const [a,b,c,d] = etSel.split('|');
+  const nombre = a==='seg' ? `BTC ${b} × alt ${c} · ${d}` : `${a} · ${b} · ${c==='ALL'?'todas las etapas':c}`;
+  document.getElementById('etDetTitulo').innerHTML = `Detalle · ${nombre} <span class="hint" style="margin:0;cursor:pointer;margin-left:10px" onclick="etSel=null;renderEtDetalle()">[cerrar]</span>`;
+  const top = rb.corto ? '' : ` Los 3 ${rb.pos?'mejores':'peores'} días: ` + rb.top.map(x=>`${x.d} (${xR(x.r,1)} R, ${x.n} tr)`).join(' · ') + `. Sin ellos: <b class="${rb.restoR>=0?'pos':'neg'}">${xR(rb.restoR,1)} R</b> en ${rb.restoN} trades (${xR(rb.restoMean,2)} R/trade)${rb.fragil?' &#9888; depende de pocos días':''}.`;
+  document.getElementById('etDetSub').innerHTML = `${s.n} trades en ${rb.dias} días · mean_R ${xR(s.mean)} · &Sigma;R ${xR(s.sum,1)}.${top} Barras = &Sigma;R de cada día (fecha de entrada); línea = acumulada.`;
+  const dias = [...rb.lista].sort((x,y)=>x.d.localeCompare(y.d));
+  let acc = 0;
+  xChart('chartEtDet', { data:{ labels: dias.map(x=>x.d), datasets:[
+      { type:'bar', label:'ΣR del día', data: dias.map(x=>+x.r.toFixed(2)), backgroundColor: dias.map(x=>x.r>=0?X_POS:X_NEG), yAxisID:'y' },
+      { type:'line', label:'ΣR acumulada', data: dias.map(x=>{ acc += x.r; return +acc.toFixed(2); }), borderColor:X_IDX, backgroundColor:X_IDX, pointRadius:2, borderWidth:2, tension:0.1, yAxisID:'y1' } ] },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, plugins:{ legend:X_LEG },
+      scales:{ x:{ ...X_AXN, ticks:{ color:'#8b96a8', maxTicksLimit:14 } }, y:{ ...X_AX, position:'left', title:{ display:true, text:'ΣR del día', color:'#8b96a8' } },
+               y1:{ ...X_AX, position:'right', grid:{ display:false }, title:{ display:true, text:'acumulada', color:'#8b96a8' } } } } });
+}
+document.getElementById('tab-etapas').addEventListener('click', (ev)=>{
+  const td = ev.target.closest('td[data-etk]');
+  if (!td) return;
+  etSel = (etSel === td.dataset.etk) ? null : td.dataset.etk;
+  renderEtDetalle();
+  if (etSel) document.getElementById('etDetalle').scrollIntoView({ behavior:'smooth', block:'nearest' });
+});
 
 function renderEtBtc(E){
   const r = (E.btc_rachas||[]).slice().reverse();
