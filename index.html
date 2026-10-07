@@ -138,6 +138,7 @@
   <div class="tabbtn" data-tab="curva">📈 Curva de acumulación - base</div>
   <div class="tabbtn" data-tab="curvaesp">📉 Curva de acumulación - espejo</div>
   <div class="tabbtn" data-tab="ek3">🚪 E_K3 · exentas vs pasan</div>
+  <div class="tabbtn" data-tab="etapas">🧭 Etapas (E)</div>
 </div>
 
 <details class="ayuda" id="convenciones"><summary>Convenciones del dashboard</summary><div class="ayuda-body"><ul>
@@ -502,6 +503,40 @@
   <div class="panel">
     <h2>Gradiente por <code>bars_since_swing</code></h2>
     <div class="tablewrap"><table id="tablaEk3Grad"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+<div id="tab-etapas" style="display:none;">
+  <div class="panel tabhead">
+    <h2>Etapas de tendencia (E1&ndash;E4)</h2>
+    <div class="sub">La etapa de fondo de cada alt (y de BTC) en el momento de entrar, cruzada con el rendimiento de cada familia. Descriptivo: acumula datos para ver qué familias y segmentos reaccionan a la etapa. <b>No decide ni veta nada.</b></div>
+    <details class="ayuda" open><summary>Qué son las E y cómo leer este tab</summary><div class="ayuda-body"><ul>
+  <li>La etapa sale de dos cosas, al cierre del <b>día UTC anterior</b> a la entrada: si el precio está sobre o bajo su <b>media de 210 días (SMA210)</b> y si esa media <b>sube o baja</b> frente a hace 30 días. Es causal: no usa nada posterior a la entrada.</li>
+  <li><b>No son las etiquetas BULL/RANGE/BEAR del resto del dashboard</b>: esas miran 8&ndash;33 días y cambian varias veces al mes; las E miran la tendencia de fondo (meses).</li>
+  <li>Cada celda muestra <b>mean_R</b> y debajo N y WR. <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
+  <li><b>Límites medidos</b>: la etapa tarda en cambiar (mediana ~19 días tras un giro de 20&nbsp;%, y en cerca de la mitad de esas patas nunca cambia) y puede alternar E2/E3 cuando el precio anda pegado a la media. Las familias que disparan sobre los mismos trades no son observaciones independientes. La etapa de BTC cambia lento: en la práctica es casi una variable de <i>periodo</i>.</li>
+</ul></div></details>
+  </div>
+  <div class="panel" id="etDef"></div>
+  <div class="kpis" id="etKpis"></div>
+  <div class="panel"><div class="filters" id="etFilters"></div></div>
+  <div class="panel">
+    <h2>Familia &times; etapa del alt</h2>
+    <div class="sub" id="etFamSub"></div>
+    <div class="tablewrap" style="max-height:640px"><table id="tablaEtFam"><thead></thead><tbody></tbody></table></div>
+  </div>
+  <div class="panel">
+    <h2>Segmento: etapa de BTC &times; etapa del alt</h2>
+    <div class="sub">Por dirección. Respeta los filtros de arriba (incluida la familia). La etapa de BTC cambia lento: un segmento puede reflejar el <i>periodo</i> y no la etapa.</div>
+    <div class="tablewrap" style="max-height:520px"><table id="tablaEtSeg"><thead></thead><tbody></tbody></table></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Trades por semana y etapa del alt</h2><div class="chart-wrap"><canvas id="chartEtN"></canvas></div></div>
+    <div class="panel"><h2>&Sigma;R acumulada por etapa del alt (fecha de entrada)</h2><div class="chart-wrap"><canvas id="chartEtR"></canvas></div></div>
+  </div>
+  <div class="panel">
+    <h2>BTC &middot; rachas de etapa</h2>
+    <div class="tablewrap" style="max-height:340px"><table id="tablaEtBtc"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
@@ -2574,7 +2609,7 @@ document.getElementById('tabbar').addEventListener('click', (e)=>{
   document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tab = btn.dataset.tab;
-  ['resumen','abiertas','graduacion','salida','espejos','embudo','simbolo','curva','curvaesp','ek3'].forEach(t=>{
+  ['resumen','abiertas','graduacion','salida','espejos','embudo','simbolo','curva','curvaesp','ek3','etapas'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = (t===tab) ? '' : 'none';
   });
   // 🔧 2026-09-23 · Chart.js creado sobre un canvas oculto (display:none) mide
@@ -3355,6 +3390,130 @@ const ALIAS_FAMILIA = { '23_cuna_alcista_bear': '23_cuna_alcista' };
   src.after(cl);
 })();
 
+// ════════════════════════════════════════════════════════════════════════════
+// 2026-10-07 · TAB «Etapas (E)» (#S126f). Descriptivo: lee `state.data.trades[].{e,eb,ex,ea}` y `state.data.etapas`
+// (los calcula SUPREMO/etapas_trades.py, causal, sin tocar el motor). Colores propios de las etapas (no los de signo ni origen):
+// E1 lavanda · E2 turquesa · E3 naranja · E4 rosa.
+// ════════════════════════════════════════════════════════════════════════════
+const ET_COL = { E1:'#b4a7f5', E2:'#4dd0c8', E3:'#ff9f68', E4:'#f78fb3', TR:'#8b96a8' };
+const ET_NOM = { E1:'Base', E2:'Avance', E3:'Techo', E4:'Declive', TR:'Transición (E1+E3)' };
+const etSt = { origen:new Set(), dir:new Set(), modo:'4', fam:'', nmin:15 };
+const etBadge = (id)=> `<span style="display:inline-block;min-width:2.1em;text-align:center;padding:1px 7px;border-radius:999px;background:${ET_COL[id]};color:#08131c;font-weight:700;font-size:0.78rem">${id==='TR'?'E1+E3':id}</span>`;
+const etCols = ()=> etSt.modo==='4' ? ['E1','E2','E3','E4'] : ['E2','E4','TR'];
+const etKey = (e)=> etSt.modo==='4' ? e : (e==='E1'||e==='E3' ? 'TR' : e);
+
+function etTrades(){
+  const d = state.data;
+  return (d.trades||[]).filter(t=> t.e && t.pnl_R!=null
+    && (!etSt.origen.size || etSt.origen.has(t.origen))
+    && (!etSt.dir.size || etSt.dir.has(t.dir))
+    && (!etSt.fam || t.familia===etSt.fam));
+}
+function etCell(rows){
+  if (!rows || !rows.length) return `<td class="nosort" style="color:var(--muted)">&mdash;</td>`;
+  const s = statsOf(rows);
+  const dim = s.n < etSt.nmin ? 'opacity:0.45;' : '';
+  const sig = (s.n >= etSt.nmin && s.ic && (s.ic[0]>0 || s.ic[1]<0)) ? '*' : '';
+  return `<td class="${s.mean>=0?'pos':'neg'}" style="${dim}white-space:nowrap">${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${s.n} &middot; WR ${s.wr.toFixed(0)}%</div></td>`;
+}
+
+function renderEtapas(){
+  const d = state.data, E = d.etapas || {};
+  const defEl = document.getElementById('etDef');
+  if (!E.definicion){
+    defEl.innerHTML = `<h2>Etapas</h2><div class="sub">Sin datos de etapa todavía${E.error?` (${E.error})`:''}. Se calculan en cada actualización.</div>`;
+    return;
+  }
+  const filas = E.definicion.etapas.map(x=>`<tr><td class="nosort">${etBadge(x.id)}</td><td class="nosort"><b>${x.nombre}</b></td><td class="nosort">${x.regla}</td><td class="nosort" style="color:var(--muted)">${x.lectura}</td></tr>`).join('');
+  defEl.innerHTML = `<h2>Las cuatro etapas</h2>
+    <div class="sub">Media de ${E.definicion.sma_dias} días y pendiente a ${E.definicion.pendiente_dias} días, sobre velas diarias cerradas. E1 y E3 son el mismo estado intermedio (ni claro avance ni claro declive); se distinguen solo por de dónde vienen.</div>
+    <div class="tablewrap" style="max-height:none"><table><thead><tr><th class="nosort">Etapa</th><th class="nosort">Nombre</th><th class="nosort">Regla</th><th class="nosort">Lectura</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+  const tr = (d.trades||[]).filter(t=>t.e);
+  const ts = tr.map(t=>t.ts).filter(x=>x);
+  const dias = ts.length ? Math.max(1, Math.round((Math.max(...ts)-Math.min(...ts))/86400000)) : 0;
+  const b = E.btc;
+  const uh = E.universo_hoy || {};
+  const uhTxt = ['E1','E2','E3','E4'].map(k=>`${k} ${uh[k]||0}`).join(' &middot; ');
+  document.getElementById('etKpis').innerHTML =
+    xKpi('BTC hoy', b ? `${etBadge(b.etapa)} &nbsp;${b.edad_dias} d` : '&mdash;', b ? `${b.ext210>=0?'+':''}${b.ext210}% vs SMA210 &middot; cierre ${b.fecha}` : 'sin dato') +
+    xKpi('Alts hoy por etapa', `<span style="font-size:0.9rem">${uhTxt}</span>`, 'solo símbolos con trades') +
+    xKpi('Trades con etapa', xInt(tr.length), `de ${xInt((d.trades||[]).length)} totales`) +
+    xKpi('Ventana de datos', `${dias} días`, `${Math.round(dias/7)} semanas &middot; crece con cada actualización`);
+  renderEtFilters();
+  const rows = etTrades();
+  renderEtFam(rows); renderEtSeg(rows); renderEtCharts(rows); renderEtBtc(E);
+}
+
+function renderEtFilters(){
+  const box = document.getElementById('etFilters'); box.innerHTML = '';
+  const mk = (label, nodes)=>{ const g=document.createElement('div'); g.className='filtergroup'; const f=document.createElement('div'); f.className='fname'; f.textContent=label; g.appendChild(f); const c=document.createElement('div'); c.className='chips'; nodes.forEach(n=>c.appendChild(n)); g.appendChild(c); box.appendChild(g); };
+  const chip = (txt, active, fn)=>{ const c=document.createElement('div'); c.className='chip'+(active?' active':''); c.textContent=txt; c.onclick=fn; return c; };
+  const base = (state.data.trades||[]).filter(t=>t.e);
+  ['origen','dir'].forEach(k=>{
+    const vals = k==='origen' ? ['LIVE','SOMBRA'] : ['LONG','SHORT'];
+    mk(k==='origen'?'Origen':'Dirección', vals.map(v=>chip(`${v} (${base.filter(t=>t[k]===v).length})`, etSt[k].has(v), ()=>{ if (etSt[k].has(v)) etSt[k].delete(v); else etSt[k].add(v); renderEtapas(); })));
+  });
+  mk('Etapas', [chip('4 etapas', etSt.modo==='4', ()=>{ etSt.modo='4'; renderEtapas(); }), chip('E2 · E4 · Transición', etSt.modo==='3', ()=>{ etSt.modo='3'; renderEtapas(); })]);
+  const fams = [...new Set(base.map(t=>t.familia))].sort();
+  const sel = document.createElement('select'); sel.style.cssText='background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:0.8rem;max-width:230px';
+  sel.innerHTML = `<option value="">Todas las familias</option>` + fams.map(f=>`<option value="${f}"${f===etSt.fam?' selected':''}>${f}</option>`).join('');
+  sel.onchange = ()=>{ etSt.fam = sel.value; renderEtapas(); };
+  const g = document.createElement('div'); g.className='filtergroup'; g.innerHTML='<div class="fname">Familia</div>'; g.appendChild(sel); box.appendChild(g);
+  const n = document.createElement('input'); n.type='number'; n.min=1; n.value=etSt.nmin; n.style.cssText='width:64px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:0.8rem';
+  n.onchange = ()=>{ etSt.nmin = Math.max(1, +n.value||15); renderEtapas(); };
+  const g2 = document.createElement('div'); g2.className='filtergroup'; g2.innerHTML='<div class="fname">N mínimo (atenuar / *)</div>'; g2.appendChild(n); box.appendChild(g2);
+}
+
+function renderEtFam(rows){
+  const cols = etCols();
+  const grupos = {};
+  rows.forEach(t=>{ const k = t.familia+'|'+t.dir; (grupos[k] = grupos[k] || []).push(t); });
+  const lista = Object.entries(grupos).map(([k,g])=>({k,g,n:g.length})).sort((a,b)=>b.n-a.n);
+  document.getElementById('etFamSub').textContent = `${lista.length} familia·dirección con datos · ${rows.length} trades. Columna Δ = media(E4) − media(E2) cuando ambas tienen N ≥ ${etSt.nmin}.`;
+  const body = lista.map(({k,g})=>{
+    const [fam, dir] = k.split('|');
+    const por = {}; g.forEach(t=>{ (por[etKey(t.e)] = por[etKey(t.e)] || []).push(t); });
+    const e2 = por.E2 && por.E2.length>=etSt.nmin ? statsOf(por.E2).mean : null, e4 = por.E4 && por.E4.length>=etSt.nmin ? statsOf(por.E4).mean : null;
+    const dl = (e2!==null && e4!==null) ? e4-e2 : null;
+    return `<tr><td class="nosort"><b>${fam}</b> <span class="hint" style="margin:0">${dir}</span></td><td>${g.length}</td>${etCell(g)}${cols.map(c=>etCell(por[c])).join('')}<td class="${xCls(dl)}">${dl===null?'&mdash;':xR(dl,2)}</td></tr>`;
+  }).join('');
+  document.getElementById('tablaEtFam').innerHTML = `<thead><tr><th>Familia · dirección</th><th>N</th><th>Todas</th>${cols.map(c=>`<th title="${ET_NOM[c]}">${etBadge(c)}</th>`).join('')}<th>Δ E4−E2</th></tr></thead><tbody>${body||'<tr><td colspan="9">sin datos con estos filtros</td></tr>'}</tbody>`;
+}
+
+function renderEtSeg(rows){
+  const grp = {};
+  rows.forEach(t=>{ if (!t.eb) return; const k = t.eb+'|'+etKey(t.e); (grp[k] = grp[k] || { L:[], S:[] })[t.dir==='LONG'?'L':'S'].push(t); });
+  const orden = Object.keys(grp).sort();
+  const body = orden.map(k=>{
+    const [eb, ea] = k.split('|'); const v = grp[k];
+    return `<tr><td class="nosort">BTC ${etBadge(eb)} &times; alt ${etBadge(ea)}</td><td>${v.L.length+v.S.length}</td>${etCell(v.L)}${etCell(v.S)}</tr>`;
+  }).join('');
+  document.getElementById('tablaEtSeg').innerHTML = `<thead><tr><th>Segmento</th><th>N</th><th>LONG</th><th>SHORT</th></tr></thead><tbody>${body||'<tr><td colspan="4">sin datos con estos filtros</td></tr>'}</tbody>`;
+}
+
+function renderEtCharts(rows){
+  const cols = etCols();
+  const wk = (ms)=>{ const dt = new Date(ms); const day = (dt.getUTCDay()+6)%7; return new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()-day)).toISOString().slice(0,10); };
+  const semanas = [...new Set(rows.map(t=>wk(t.ts)))].sort();
+  const dsN = cols.map(c=>({ label: c==='TR'?'E1+E3':c+' '+ET_NOM[c], backgroundColor: ET_COL[c],
+    data: semanas.map(w=>rows.filter(t=>wk(t.ts)===w && etKey(t.e)===c).length) }));
+  xChart('chartEtN', { type:'bar', data:{ labels:semanas, datasets:dsN },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:X_LEG }, scales:{ x:{ ...X_AXN, stacked:true }, y:{ ...X_AX, stacked:true } } } });
+  const ord = [...rows].sort((a,b)=>a.ts-b.ts);
+  const dias = [...new Set(ord.map(t=>new Date(t.ts).toISOString().slice(0,10)))];
+  const dsR = cols.map(c=>{ let acc=0; const porDia = {}; ord.filter(t=>etKey(t.e)===c).forEach(t=>{ const k=new Date(t.ts).toISOString().slice(0,10); porDia[k]=(porDia[k]||0)+t.pnl_R; });
+    return { label: c==='TR'?'E1+E3':c, borderColor: ET_COL[c], backgroundColor: ET_COL[c], pointRadius:0, borderWidth:2, tension:0.15,
+             data: dias.map(k=>{ acc += (porDia[k]||0); return +acc.toFixed(2); }) }; });
+  xChart('chartEtR', { type:'line', data:{ labels:dias, datasets:dsR },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, plugins:{ legend:X_LEG }, scales:{ x:{ ...X_AXN, ticks:{ color:'#8b96a8', maxTicksLimit:10 } }, y:{ ...X_AX } } } });
+}
+
+function renderEtBtc(E){
+  const r = (E.btc_rachas||[]).slice().reverse();
+  const body = r.map(x=>`<tr><td class="nosort">${etBadge(x[0])} ${ET_NOM[x[0]]}</td><td class="nosort">${x[1]}</td><td>${x[2]}</td><td>${xInt(x[3])}</td></tr>`).join('');
+  document.getElementById('tablaEtBtc').innerHTML = `<thead><tr><th>Etapa</th><th>Desde</th><th>Días</th><th>BTC al inicio</th></tr></thead><tbody>${body||'<tr><td colspan="4">sin dato</td></tr>'}</tbody>`;
+}
+
 fetch('data.json?_=' + Date.now())
   .then(r=>r.text())
   .then(txt=>{
@@ -3382,6 +3541,7 @@ fetch('data.json?_=' + Date.now())
     renderExtrasTodos();
     try { renderEspejos(); } catch(e){ console.error('espejos', e); }
     try { renderSalida(); } catch(e){ console.error('salida', e); }
+    try { renderEtapas(); } catch(e){ console.error('etapas', e); }
   })
   .catch(e=>{
     document.getElementById('kpis').innerHTML = `<div class="kpi"><div class="label">Error</div><div class="value neg">No se pudo cargar data.json</div></div>`;
