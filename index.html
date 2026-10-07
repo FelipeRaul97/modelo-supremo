@@ -513,7 +513,7 @@
     <details class="ayuda" open><summary>Qué son las E y cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>La etapa sale de dos cosas, al cierre del <b>día UTC anterior</b> a la entrada: si el precio está sobre o bajo su <b>media de 210 días (SMA210)</b> y si esa media <b>sube o baja</b> frente a hace 30 días. Es causal: no usa nada posterior a la entrada.</li>
   <li><b>No son las etiquetas BULL/RANGE/BEAR del resto del dashboard</b>: esas miran 8&ndash;33 días y cambian varias veces al mes; las E miran la tendencia de fondo (meses).</li>
-  <li>Cada celda muestra <b>mean_R</b> y debajo N y WR. <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
+  <li>Cada celda muestra arriba el <b>mean_R</b> (R medio por trade, en múltiplos del riesgo) y debajo el <b>N</b>, el <b>WR</b> y la <b>&Sigma;R</b> (suma de R de todos los trades de la celda). <b>*</b> = el IC90 (clúster por símbolo) excluye 0. <b>Atenuado</b>: N&lt;15. Con muchas celdas parte de los * es azar: esto solo orienta qué pre-registrar.</li>
   <li><b>Límites medidos</b>: la etapa tarda en cambiar (mediana ~19 días tras un giro de 20&nbsp;%, y en cerca de la mitad de esas patas nunca cambia) y puede alternar E2/E3 cuando el precio anda pegado a la media. Las familias que disparan sobre los mismos trades no son observaciones independientes. La etapa de BTC cambia lento: en la práctica es casi una variable de <i>periodo</i>.</li>
 </ul></div></details>
   </div>
@@ -3414,7 +3414,7 @@ function etCell(rows){
   const s = statsOf(rows);
   const dim = s.n < etSt.nmin ? 'opacity:0.45;' : '';
   const sig = (s.n >= etSt.nmin && s.ic && (s.ic[0]>0 || s.ic[1]<0)) ? '*' : '';
-  return `<td class="${s.mean>=0?'pos':'neg'}" style="${dim}white-space:nowrap">${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${s.n} &middot; WR ${s.wr.toFixed(0)}%</div></td>`;
+  return `<td class="${s.mean>=0?'pos':'neg'}" style="${dim}white-space:nowrap">${xR(s.mean)}${sig}<div class="hint" style="margin:0;color:var(--muted)">N=${s.n} &middot; WR ${s.wr.toFixed(0)}%</div><div class="hint" style="margin:0;color:var(--muted)">&Sigma;R <span class="${s.sum>=0?'pos':'neg'}">${xR(s.sum,1)}</span></div></td>`;
 }
 
 function renderEtapas(){
