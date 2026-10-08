@@ -4,14 +4,14 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-09 01:20:22
+Ultima actualizacion: 2026-10-09 01:32:48
 
 ```
 ========================================================================================================
   ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
-   🟢 ARMADAS hoy: s95_rebote_ma_bajista::celda_range_bull, s98_climax_swing_high::age4h_bajo, s98_climax_swing_low::age4h_bajo
+   (ninguna [familia,corte] nueva cruza el gate barato de armado)
    total armadas históricamente: 207 (en 32 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
