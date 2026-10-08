@@ -298,6 +298,7 @@
   <li><b>Dirección</b>: la fija el dato, no el histórico. Si la base gana con a&ndash;e completos es candidata a <b>graduar</b>; si pierde, a <b>vetar</b>. El histórico (&uarr;/&darr; al armar) queda como dato y marca &#9888; cuando el resultado sale al revés.</li>
   <li><b>Estados</b>: CANDIDATA (a&ndash;e completos) &middot; EN OBSERVACIÓN &middot; REFUTADA (evidencia madura contra el histórico sin completar d/e). Test de dos colas con IC90 por cola (&asymp;10&nbsp;% de falsos positivos por segmento); &alpha; fijo, sin ajuste de multiplicidad.</li>
   <li><b>Paso 2 · validación real</b> (tamaño ~25&ndash;30&nbsp;%, N&ge;15) solo se habilita desde CANDIDATA y no está construido. El espejo (dirección contraria) no decide el Paso 1: se analiza en el tab Espejos.</li>
+  <li><b>Mejor salida de la curva</b> (botón sobre la tabla): las columnas N, mean_R, PnL e IC90 muestran la mejor combinación TP&times;SL&times;MAX_HOLD de la curva de acumulación para ese familia&middot;dirección&middot;segmento, con su configuración, el R real como referencia y si es <b>determinable</b>. Es histórico (no es forward) y no cambia el estado ni el Paso 0/1.</li>
   <li>Un único evaluador (<code>SUPREMO/graduacion.py</code>) aplica las mismas condiciones y umbrales a todos los segmentos. La tabla muestra todos los segmentos del menú, también los de N&lt;15.</li>
 </ul></div></details>
   </div>
@@ -318,6 +319,7 @@
   <div class="panel">
     <h2>Segmentos</h2>
     <div class="filters" id="graduacionFilters" style="margin-top:10px;"></div>
+    <div class="sub" id="gradMejorNota" style="display:none;margin:8px 0"></div>
     <div class="tablewrap"><table id="tablaGraduacion"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
@@ -1486,6 +1488,15 @@ function renderGraduacionFamFilter(rowsTodas){
   const familias = [...new Set(rowsTodas.map(r=>r.familia))].sort();
   const sel = state.filtroGraduacionFamilia;
   box.innerHTML = '';
+  // 2026-10-08 · botón «Mejor salida de la curva»: N, mean_R, PnL e IC90 pasan a ser los de la mejor combinación TP×SL×MAX_HOLD de la curva
+  // de acumulación para ese mismo familia·dirección·segmento (mismo criterio que el tab Etapas). Solo cambia lo que se MUESTRA en esas
+  // columnas: el estado, el Paso 0/1 y los KPIs siguen calculándose con el histórico real.
+  const gSal = document.createElement('div'); gSal.className = 'filtergroup';
+  const fSal = document.createElement('div'); fSal.className = 'fname'; fSal.textContent = 'Salida';
+  const cSal = document.createElement('div'); cSal.className = 'chips';
+  const chSal = document.createElement('div'); chSal.className = 'chip' + (state.gradMejor ? ' active' : ''); chSal.textContent = 'Mejor salida de la curva';
+  chSal.onclick = () => { state.gradMejor = !state.gradMejor; renderGraduacion(); };
+  cSal.appendChild(chSal); gSal.appendChild(fSal); gSal.appendChild(cSal); box.appendChild(gSal);
   const div = document.createElement('div'); div.className = 'filtergroup';
   const fname = document.createElement('div'); fname.className = 'fname'; fname.textContent = 'Familia';
   div.appendChild(fname);
@@ -1510,6 +1521,21 @@ function renderGraduacionFamFilter(rowsTodas){
     clear.onclick = () => { sel.clear(); renderGraduacion(); };
     box.appendChild(clear);
   }
+}
+
+// Celdas N / mean_R / PnL / IC90 de la fila en modo «Mejor salida de la curva» (4 <td>).
+function gradCeldasMejor(r){
+  const { c, j } = r.best;
+  if (!c) return `<td>&mdash;</td><td colspan="3" class="checkcell wait" style="text-align:center">sin celda en la curva (N&lt;15)</td>`;
+  if (!j || !j.disponible) return `<td>${c.n}</td><td colspan="3" class="checkcell wait" style="text-align:center" title="${(j && j.motivo) || ''}">n/d &middot; ${(j && j.motivo) || 'sin dato'}</td>`;
+  const det = j.determinable, sg = j.mean_R >= 0 ? 'pos' : 'neg';
+  const sig = (j.ic90 && (j.ic90[0] > 0 || j.ic90[1] < 0)) ? '<span class="star">*</span>' : '';
+  const marca = det ? '<span class="pos">&#10003; determinable</span>' : '<span style="color:var(--warn,#ffcf5c)">&#10007; no determinable</span>';
+  const tip = `p ajustado por elegir entre 252 combinaciones: ${j.p_familia!=null?j.p_familia.toFixed(4):'—'} · mitades: ${(j.mitades||[]).map(x=>(x>=0?'+':'')+x.toFixed(2)).join(' / ')}${j.motivo ? ' · ' + j.motivo : ''}`;
+  return `<td>${j.n}</td>
+      <td class="${sg}" title="${tip.replace(/"/g,'&quot;')}" style="${det?'':'opacity:0.75'}">${fmtR(j.mean_R)}<div class="hint" style="margin:0;color:var(--muted);font-size:0.68rem">TP${j.tp} &middot; SL${j.sl} &middot; MH${j.mh} &middot; ${marca}</div><div class="hint" style="margin:0;color:var(--muted);font-size:0.68rem">real ${j.actual ? fmtR(j.actual.mean_R) : '—'}</div></td>
+      <td class="${sg}">${fmtR(j.mean_R * j.n)}R</td>
+      <td>${j.ic90 ? `[${j.ic90[0].toFixed(2)},${j.ic90[1].toFixed(2)}]` : 'n/a'}${sig}</td>`;
 }
 
 function renderGraduacion(){
@@ -1589,6 +1615,12 @@ function renderGraduacion(){
     {k:'paso2', label:'Paso2 · validación real', sortable:false, espejo:true},
     {k:'g_wr', label:'WR fwd (base)', espejo:true},
   ];
+  const notaMejor = document.getElementById('gradMejorNota');
+  if (state.gradMejor){
+    const k = rows.filter(r=>r.best && r.best.j && r.best.j.disponible).length;
+    notaMejor.style.display = '';
+    notaMejor.innerHTML = `<b>MEJOR SALIDA DE LA CURVA</b>: las columnas N, mean_R, PnL e IC90 de cada segmento muestran la mejor combinación TP × SL × MAX_HOLD de la curva de acumulación (valores históricos sobre LIVE+SOMBRA de esa familia·dirección·segmento; su N puede no coincidir con el N hist. al armar). Disponible en ${k} de ${rows.length} segmentos (hace falta N&ge;40); el resto sale «n/d». La mejor de 252 combinaciones sesga al alza: solo vale lo marcado <span class="pos">&#10003; determinable</span> (p ajustado, ambas mitades). El estado, Paso 0/1 y los KPIs de arriba no cambian.`;
+  } else { notaMejor.style.display = 'none'; notaMejor.innerHTML = ''; }
   thead.innerHTML = '<tr>' + cols.map(c=>{
     const cls = [c.sortable===false ? 'nosort' : '', c.espejo ? 'col-espejo' : ''].filter(Boolean).join(' ');
     const clsAttr = cls ? ` class="${cls}"` : '';
@@ -1615,6 +1647,14 @@ function renderGraduacion(){
   const RANK_G = { CANDIDATA:3, 'EN OBSERVACION':2, REFUTADA:1 };
   rows.forEach(r=>{
     r.icLoHist = r.ic_hist ? r.ic_hist[0] : null; r.estadoRow = estadoDeFila(r);
+    r.best = null; r.n_v = r.mean_v = r.sum_v = null;
+    if (state.gradMejor){
+      const cx = state.data.curva_acumulacion && state.data.curva_acumulacion.celdas;
+      const c = cx ? cx[`${r.familia}|${r.dir}|${r.corte}`] : null, j = c && c.mejor_joint3;
+      r.best = { c, j };
+      if (j && j.disponible){ r.n_v = j.n; r.mean_v = j.mean_R; r.sum_v = j.mean_R * j.n; }
+      else if (c){ r.n_v = c.n; }
+    }
     const g = r.gate;
     r.g_n = g ? g.n_c2 : null; r.g_sem = g ? g.semanas : null; r.g_dif = g ? g.dif_mean : null;
     r.g_estado = g ? RANK_G[g.estado] : null; r.g_wr = g ? g.wr : null;
@@ -1631,10 +1671,11 @@ function renderGraduacion(){
       return (a.mean_hist||0) - (b.mean_hist||0);   // más negativo primero
     }
     const PRIORIDAD_CHECK2 = { ok:2, bad:1, wait:0 };
+    const ck = (state.gradMejor && ({ n_hist:'n_v', mean_hist:'mean_v', sum_hist:'sum_v' })[c]) || c;
     const av = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(a).cls]
-             : c==='estado' ? PRIORIDAD_ESTADO[a.estadoRow] : a[c];
+             : c==='estado' ? PRIORIDAD_ESTADO[a.estadoRow] : a[ck];
     const bv = c==='check2' ? PRIORIDAD_CHECK2[estadoCheck2(b).cls]
-             : c==='estado' ? PRIORIDAD_ESTADO[b.estadoRow] : b[c];
+             : c==='estado' ? PRIORIDAD_ESTADO[b.estadoRow] : b[ck];
     if (av === null || av === undefined) return 1;
     if (bv === null || bv === undefined) return -1;
     if (typeof av === 'string') return state.sortEspejos.dir * av.localeCompare(bv);
@@ -1705,12 +1746,12 @@ function renderGraduacion(){
       <td>${r.corte}</td>
       <td>${r.dir}</td>
       <td>${origenTag}</td>
-      <td>${r.n_hist}</td>
+      ${r.best ? gradCeldasMejor(r) : `<td>${r.n_hist}</td>
       <td class="${r.n_hist?(r.mean_hist>=0?'pos':'neg'):''}">${r.n_hist?fmtR(r.mean_hist):'—'}</td>
       <td class="${r.n_hist?(r.sum_hist>=0?'pos':'neg'):''}">${r.n_hist?fmtR(r.sum_hist)+'R':'—'}</td>
       <td>${icH?`[${icH[0].toFixed(2)},${icH[1].toFixed(2)}]${r.excl_hist?'<span class="star">*</span>':''}`:'n/a'}${
         r.diluido ? ` <span class="checkcell wait" title="Al armar (N=${r.n_al_armar}) el IC90 era [${r.ic90_al_armar[0].toFixed(2)},${r.ic90_al_armar[1].toFixed(2)}] y excluía 0. Con más N el histórico se diluyó y hoy vuelve a cruzar 0 — no se desarma nada por esto (el Paso1, con data fresca, es la prueba real), es solo un aviso.">⚠️ diluido</span>` : ''
-      }</td>
+      }</td>`}
       <td class="nosort">${paso0}</td>
       <td>${ESTADO_BADGE[r.estadoRow]}</td>
       <td>${G ? ((G.n_c2||0) < 5 ? '<span class="hint" style="margin:0">—</span>'
