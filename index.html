@@ -296,8 +296,9 @@
   <li><b>Colores de Paso 1</b>: dif vs azar, ambas mitades y A-02 se colorean por el signo del dato de la base: verde a favor (R &gt; 0), rojo en contra (R &lt; 0), gris sin evidencia (IC que cruza 0, sin IC o mitades con signo distinto). El sentido graduar/vetar lo fija el dato y se lee en la columna estado, no en el color.</li>
   <li><b>Paso 1 · candidata</b>: se mide la <b>base</b> (su propio log, misma dirección de la familia) desde el armado original, sin abrir posiciones. Condiciones: N&ge;100 (&ge;50 por mitad) &middot; &ge;8 semanas &middot; dif vs azar del mismo símbolo y semana (C2) con IC90 fuera de 0 &middot; misma dirección en ambas mitades &middot; A-02 (el segmento supera al resto del sistema; si pierde, vetarlo lo mejora).</li>
   <li><b>Dirección</b>: la fija el dato, no el histórico. Si la base gana con a&ndash;e completos es candidata a <b>graduar</b>; si pierde, a <b>vetar</b>. El histórico (&uarr;/&darr; al armar) queda como dato y marca &#9888; cuando el resultado sale al revés.</li>
-  <li><b>Estados</b>: CANDIDATA (a&ndash;e completos) &middot; EN OBSERVACIÓN &middot; REFUTADA (evidencia madura contra el histórico sin completar d/e). Test de dos colas con IC90 por cola (&asymp;10&nbsp;% de falsos positivos por segmento); &alpha; fijo, sin ajuste de multiplicidad.</li>
-  <li><b>Paso 2 · validación real</b> (tamaño ~25&ndash;30&nbsp;%, N&ge;15) solo se habilita desde CANDIDATA y no está construido. El espejo (dirección contraria) no decide el Paso 1: se analiza en el tab Espejos.</li>
+  <li><b>Ciclo de vida</b> (un solo vocabulario, base y espejo): <b>OBSERVANDO</b> (armado, acumulando evidencia) &rarr; <b>CANDIDATO</b> (pasó la mirada única) &rarr; <b>CONFIRMADO</b> (pasó la confirmación en datos nuevos) &middot; <b>DESCARTADO</b> con su motivo (sin señal en la mirada, no confirmado, refutado, el espejo pierde). Cada segmento tiene <b>una sola mirada</b>: en la primera evaluación con N&ge;100 y &ge;8 semanas se evalúan c, d y e una vez y el veredicto se congela.</li>
+  <li><b>Confirmación en datos nuevos</b>: un candidato se confirma con los trades posteriores a la mirada + 96&nbsp;h (N&ge;100, &ge;8 semanas, mismo signo, p de una cola con t por semana). Las candidatas se agrupan por mes de la mirada (un solo corte por familia&middot;dirección) y al cerrar la cohorte se aplica Benjamini&ndash;Hochberg con q&nbsp;=&nbsp;10&nbsp;%. Así el cribado puede ser laxo y la multiplicidad se controla donde importa (enmienda del 2026-10-09).</li>
+  <li><b>Paso 2 · validación real</b> (tamaño ~25&ndash;30&nbsp;%, N&ge;15) solo se habilita desde <b>CONFIRMADO</b> y no está construido. El espejo (dirección contraria) no decide el Paso 1: se analiza en el tab Espejos.</li>
   <li><b>Mejor salida de la curva</b> (botón sobre la tabla): las columnas N, mean_R, PnL e IC90 muestran la mejor combinación TP&times;SL&times;MAX_HOLD de la curva de acumulación para ese familia&middot;dirección&middot;segmento, con su configuración, el R real como referencia y si es <b>determinable</b>. Es histórico (no es forward) y no cambia el estado ni el Paso 0/1.</li>
   <li>Un único evaluador (<code>SUPREMO/graduacion.py</code>) aplica las mismas condiciones y umbrales a todos los segmentos. La tabla muestra todos los segmentos del menú, también los de N&lt;15.</li>
 </ul></div></details>
@@ -581,7 +582,7 @@
   <li><b>Espejo</b> = la misma entrada en dirección contraria (R=3&middot;ATR, TP 4R, SL 2R, MAX_HOLD 96, sin coste). Corre hasta su propio SL, TP o MAX_HOLD sin importar cuándo cierre la base. Es una pregunta distinta a la de Graduación: <b>vetar</b> solo necesita que la base pierda; <b>invertir</b> necesita que el espejo gane.</li>
   <li><b>Qué espejos hay</b>: cuando un segmento llega al Paso 0 con histórico <b>negativo</b>, queda armado y se acumula su espejo, trade a trade, desde ese momento. Los segmentos armados con histórico positivo no llevan espejo (ya son la dirección que se quiere validar). <b>N</b> cuenta los espejos ya cerrados desde el armado, y la base se mide sobre esos mismos trades.</li>
   <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes.</li>
-  <li><b>Graduación del espejo</b> (#S123d, camino B; columnas Paso 1, solo para los negativos armados): se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidata</b> = cumple todo ganando (candidata a invertir; operar la contraria sigue exigiendo el Paso 2); <b>refutada</b> = el espejo pierde con evidencia; si no, en observación. No gradúa si la base ya es candidata a graduar.</li>
+  <li><b>Graduación del espejo</b> (#S123d, camino B; columnas Paso 1, solo para los negativos armados): se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidato</b> = cumple todo ganando (candidato a invertir; operar la contraria exige confirmación y Paso 2); <b>descartado</b> = el espejo pierde con evidencia; si no, observando. No gradúa si la base ya es candidata a graduar.</li>
   <li>Colores de Paso 1: verde a favor del espejo (R &gt; 0), rojo en contra, gris sin evidencia (IC90 que cruza 0, mitades de signo distinto).</li>
   <li>Espejos nativos (#S123e): el motor registra además el espejo de cada trade LIVE y SOMBRA desde su fecha de activación; sirve de fuente para los segmentos cuando se arman (no se muestra aparte).</li>
   <li>En LIVE la base es el R real (con costes) y el espejo es bruto (&asymp;0,03&nbsp;R de diferencia).</li>
@@ -1548,15 +1549,17 @@ function renderGraduacion(){
   const nTotal = rows.length;
   const nArmadosNeg = rows.filter(r=>r.armado && r.signo==='negativo').length;
   const nArmadosPos = rows.filter(r=>r.armado && r.signo==='positivo').length;
-  const nCand = rows.filter(r=>r.gate && r.gate.estado==='CANDIDATA').length;
-  const nRefut = rows.filter(r=>r.gate && r.gate.estado==='REFUTADA').length;
+  const nCand = rows.filter(r=>r.gate && cicloG(r.gate)==='CANDIDATO').length;
+  const nConf = rows.filter(r=>r.gate && cicloG(r.gate)==='CONFIRMADO').length;
+  const nRefut = rows.filter(r=>r.gate && cicloG(r.gate)==='DESCARTADO').length;
   const nArch = rows.filter(r=>r.gate && r.gate.archivado).length;
-  const nObs = rows.filter(r=>r.armado && r.gate && r.gate.estado==='EN OBSERVACION').length;
+  const nObs = rows.filter(r=>r.armado && r.gate && cicloG(r.gate)==='OBSERVANDO').length;
   const nN40 = rows.filter(r=>r.gate && r.gate.n_c2>=40).length;
   const nN100 = rows.filter(r=>r.gate && r.gate.n_c2>=100).length;
   const nSem8 = rows.filter(r=>r.gate && r.gate.semanas>=8).length;
   const GG = state.data.graduacion_gate || {};
-  const fe = GG.resumen ? GG.resumen.falsos_esperados : null;
+  const ne = GG.resumen && GG.resumen.n_efectivo_pruebas ? GG.resumen.n_efectivo_pruebas : null;
+  const fe = ne ? ne.falsos_esperados_cribado : (GG.resumen ? GG.resumen.falsos_esperados : null);
   const nCandidatosSinArmar = rows.filter(r=>!r.armado && r.excl_hist && r.mean_hist<0 && r.watch_v2).length;
   const nPocaMuestra = rows.filter(r=>r.n_hist < N_WATCH).length;
   const nInestables = rows.filter(r=>!r.armado && r.n_hist >= N_WATCH && r.excl_hist && !r.watch_v2).length;
@@ -1566,11 +1569,11 @@ function renderGraduacion(){
       xKpi('Segmentos', xInt(nTotal), `${nPocaMuestra} con poca muestra`)
     + xKpi('Armados', xInt(nArmadosNeg + nArmadosPos), `hist. ↑ ${nArmadosPos} · hist. ↓ ${nArmadosNeg}`)
     + xKpi('Sin armar', xInt(nCandidatosSinArmar), 'negativos significativos')
-    + xKpi('Paso 1 · CANDIDATA', xInt(nCand), `${nObs} en observación`, nCand ? 'pos' : '')
-    + xKpi('REFUTADAS', xInt(nRefut), `${nArch} archivadas`, nRefut ? 'neg' : '')
+    + xKpi('Candidatos', xInt(nCand), `${nConf} confirmados · ${nObs} observando`, (nCand + nConf) ? 'pos' : '')
+    + xKpi('Descartados', xInt(nRefut), `${nArch} archivados`, nRefut ? 'neg' : '')
     + xKpi('N forward ≥ 40', xInt(nN40), `≥100: ${nN100}`)
     + xKpi('≥ 8 semanas', xInt(nSem8), 'forward')
-    + xKpi('Falsos esperados', fe != null ? String(fe) : '—', 'por azar, dos colas');
+    + xKpi('Falsos esperados', fe != null ? String(fe) : '—', ne ? `en el cribado (nº efectivo de pruebas ≈ ${ne.n_efectivo}); la confirmación los filtra` : 'por azar, dos colas');
 
   const thead = document.querySelector('#tablaGraduacion thead');
   const tbody = document.querySelector('#tablaGraduacion tbody');
@@ -1711,11 +1714,11 @@ function renderGraduacion(){
     const clsSgn = (x)=> (x==null||x===0) ? 'wait' : (x>0 ? 'ok' : 'bad');
     const gN = G ? cel(G.cond.a, `${G.n_c2}/100 <span class="hint" style="margin:0">(${G.n_h1}+${G.n_h2})</span>`, 'N forward con control C2; ≥50 en cada mitad temporal') : '<td class="checkcell wait">—</td>';
     const gSem = G ? cel(G.cond.b, `${G.semanas}/8`, 'Semanas ISO distintas con ≥3 trades forward') : '<td class="checkcell wait">—</td>';
-    const gDif = G ? celS(clsIC(G.dif_ic), G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, vetoTip + 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 de doble clúster (símbolo, semana); sin IC si hay menos de 3 semanas o 3 símbolos. Verde: IC90 por encima de 0 · rojo: por debajo de 0 · gris: cruza 0 o sin IC.') : '<td class="checkcell wait">—</td>';
+    const gDif = G ? celS(clsIC(G.dif_ic), G.dif_ic ? `${sg(G.dif_mean)} <span class="hint" style="margin:0">[${sg(G.dif_ic[0])},${sg(G.dif_ic[1])}]</span>` : `${sg(G.dif_mean)} <span class="hint" style="margin:0">sin IC</span>`, vetoTip + 'pnl_R menos el azar del mismo símbolo y semana (C2). IC90 con t por semana (G&minus;1 g.l.); sin IC si hay menos de 3 semanas con trades. Verde: IC90 por encima de 0 · rojo: por debajo de 0 · gris: cruza 0 o sin IC.') : '<td class="checkcell wait">—</td>';
     const gMit = G ? celS(clsMit(G.dif_h1,G.dif_h2), `${sg(G.dif_h1)} / ${sg(G.dif_h2)}`, vetoTip + 'dif vs azar en la 1ª y 2ª mitad temporal. Verde: ambas > 0 · rojo: ambas < 0 · gris: signos distintos') : '<td class="checkcell wait">—</td>';
     const gA02 = G ? celS(G.a02 ? clsSgn(G.a02.diff) : 'wait', G.a02 ? `${sg(G.a02.diff)}` : 'n/a', vetoTip + 'Media forward del segmento menos la del resto del sistema en el mismo periodo. Verde: > 0 · rojo: < 0') : '<td class="checkcell wait">—</td>';
-    const ESTG = { 'CANDIDATA':'<span class="badge-pos">✅ CANDIDATA</span>', 'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>', 'REFUTADA':'<span class="badge-neg">🔴 refutada</span>' };
-    const gEst = G ? `<td title="${(G.falta||[]).join(' · ').replace(/"/g,'')}">${ESTG[G.estado]||G.estado}${G.archivado ? ' <span class="hint" style="margin:0" title="Archivado por evidencia madura (REFUTADA): no abre espejos nuevos; historial conservado.">🗄️ archivada</span>' : ''}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}</td>` : '<td class="checkcell wait">—</td>';
+    const ESTG = CICLO_BADGE;
+    const gEst = G ? `<td title="${[G.fase, ...(G.falta||[])].filter(Boolean).join(' · ').replace(/"/g,'')}">${ESTG[cicloG(G)]||G.estado}${G.motivo ? ` <span class="hint" style="margin:0">${MOTIVO_TXT[G.motivo]||G.motivo}</span>` : ''}${G.archivado ? ' <span class="hint" style="margin:0" title="Archivado por evidencia madura (REFUTADA): no abre espejos nuevos; historial conservado.">🗄️ archivada</span>' : ''}${(G.falta&&G.falta.length&&G.estado!=='CANDIDATA')?` <span class="hint" style="margin:0">falta: ${G.falta.length}</span>`:''}${(cicloG(G)==='CANDIDATO' && G.confirmacion && G.confirmacion.n_c2!=null) ? ` <span class="hint" style="margin:0" title="Confirmación en datos nuevos: trades con control C2 y semanas con ≥3 trades">conf. ${G.confirmacion.n_c2}/100 · ${G.confirmacion.semanas}/8 sem</span>` : ''}</td>` : '<td class="checkcell wait">—</td>';
     const c1 = { cls: (G && G.estado==='CANDIDATA') ? 'ok' : 'wait' };
     const c2 = c1;
     // 🔧 2026-09-23 · "manual" sugería que existe un script para correr a mano.
@@ -2692,6 +2695,15 @@ const X_PASA = '#4dd0c8', X_NOPASA = '#ff9f68', X_IDX = '#8e9cf5', X_ROSA = '#f7
 function xInt(x){ return (x===null||x===undefined) ? '—' : Number(x).toLocaleString('es'); }
 function xR(x, d){ return (x===null||x===undefined||isNaN(x)) ? '—' : ((x>=0?'+':'') + x.toFixed(d===undefined?3:d)); }
 function xCls(x){ return (x===null||x===undefined||isNaN(x)) ? '' : (x>=0 ? 'pos' : 'neg'); }
+// Vocabulario ÚNICO del ciclo de vida de un segmento (backend: graduacion_dos_etapas.ciclo_de). El fallback cubre datos publicados antes del cambio.
+const CICLO_LEGACY = { 'CANDIDATA':'CANDIDATO', 'EN OBSERVACION':'OBSERVANDO', 'REFUTADA':'DESCARTADO' };
+const cicloG = g => (g && (g.ciclo || CICLO_LEGACY[g.estado] || g.estado));
+const MOTIVO_TXT = { 'sin_señal_en_mirada':'sin señal en la mirada', 'no_confirmado':'no confirmado', 'refutado':'refutado', 'pierde':'el espejo pierde' };
+const CICLO_BADGE = {
+  OBSERVANDO:'<span class="badge-wait" title="Armado y acumulando evidencia; aún no llega a su mirada única">⏳ observando</span>',
+  CANDIDATO:'<span class="badge-pos" title="Pasó la mirada única; falta la confirmación en datos nuevos">✅ candidato</span>',
+  CONFIRMADO:'<span class="badge-pos" title="Pasó la confirmación: única puerta al Paso 2">✅✅ confirmado</span>',
+  DESCARTADO:'<span class="badge-neg" title="Fuera del proceso (ver motivo)">🔴 descartado</span>' };
 function xKpi(label, val, sub, cls){
   return `<div class="kpi"><div class="label">${label}</div><div class="value ${cls||''}" style="font-size:1.15rem">${val}</div>${sub?`<div class="ksub">${sub}</div>`:''}</div>`;
 }
@@ -2916,8 +2928,8 @@ function renderExtrasGraduacion(rows){
     + splitRow('N forward ≥ 40', cnt(armG,r=>r.gate.n_c2>=40), cnt(armV,r=>r.gate.n_c2>=40), mxArm, '')
     + splitRow('N forward ≥ 100', cnt(armG,r=>r.gate.n_c2>=100), cnt(armV,r=>r.gate.n_c2>=100), mxArm, '')
     + splitRow('≥ 8 semanas forward', cnt(armG,r=>r.gate.semanas>=8), cnt(armV,r=>r.gate.semanas>=8), mxArm, '')
-    + splitRow('Paso 1 · CANDIDATA (graduar o vetar, según el dato)', cnt(armG,r=>r.gate.estado==='CANDIDATA'), cnt(armV,r=>r.gate.estado==='CANDIDATA'), mxArm, '')
-    + splitRow('REFUTADA (contradice el histórico con evidencia madura)', cnt(armG,r=>r.gate.estado==='REFUTADA'), cnt(armV,r=>r.gate.estado==='REFUTADA'), mxArm, '')
+    + splitRow('Candidatos y confirmados (graduar o vetar, según el dato)', cnt(armG,r=>r.gate.estado==='CANDIDATA'), cnt(armV,r=>r.gate.estado==='CANDIDATA'), mxArm, '')
+    + splitRow('Descartados por refutación (contradicen su histórico con evidencia madura)', cnt(armG,r=>r.gate.estado==='REFUTADA'), cnt(armV,r=>r.gate.estado==='REFUTADA'), mxArm, '')
     + `<div class="leyenda"><span><i style="background:${X_POS}"></i>histórico ↑ al armar</span><span><i style="background:${X_NEG}"></i>histórico ↓ al armar</span></div>`;
 
   // qué condición falta más — apilado por sentido
@@ -2992,9 +3004,9 @@ function espPaso1(ge){
   const cOk = (ok)=> ok ? 'ok' : 'wait';
   const clsMit = (a,b)=> (a==null||b==null) ? 'wait' : ((a>0&&b>0) ? 'ok' : ((a<0&&b<0) ? 'bad' : 'wait'));
   const a02 = ge.a02 ? ge.a02.diff : null;
-  const EST = { 'CANDIDATA':'<span class="badge-pos" title="Candidata a invertir (camino B, mérito propio). Operar la contraria exige el Paso 2.">✅ CANDIDATA</span>',
-                'EN OBSERVACION':'<span class="badge-wait">⏳ en observación</span>',
-                'REFUTADA':'<span class="badge-neg" title="El espejo pierde con evidencia: no es graduable.">🔴 refutada</span>' };
+  const EST = { 'CANDIDATA':'<span class="badge-pos" title="Candidato a invertir (camino B, mérito propio). Operar la contraria exige confirmación y Paso 2.">✅ candidato</span>',
+                'EN OBSERVACION':'<span class="badge-wait">⏳ observando</span>',
+                'REFUTADA':'<span class="badge-neg" title="El espejo pierde con evidencia: descartado, no es graduable.">🔴 descartado</span>' };
   const falta = (ge.falta||[]).join(' · ').replace(/"/g,'');
   return `<td class="checkcell ${cOk(c.a)}" title="N con control C2; ≥50 en cada mitad temporal">${ge.n_c2}/100 <span class="hint" style="margin:0">(${ge.n_h1}+${ge.n_h2})</span></td>`
     + `<td class="checkcell ${cOk(c.b)}">${ge.semanas}/8</td>`
@@ -3044,7 +3056,7 @@ function renderEspejos(){
   }
   document.getElementById('espKpis').innerHTML =
       xKpi('Negativos armados', xInt(todas.length), `${nm.length} con espejo N≥15`)
-    + xKpi('Graduación del espejo', xInt(cnt('CANDIDATA')), `${cnt('REFUTADA')} refutados · ${cnt('EN OBSERVACION')} en observación (negativos armados)`, 'pos')
+    + xKpi('Graduación del espejo', xInt(cnt('CANDIDATA')), `${cnt('REFUTADA')} descartados · ${cnt('EN OBSERVACION')} observando (negativos armados)`, 'pos')
     + xKpi('Espejo gana (IC90>0)', String(gana), 'segmentos con N≥15', 'pos')
     + xKpi('Base gana · espejo pierde', String(baseGana), 'IC90 de ambos fuera de 0')
     + xKpi('Ambos pierden', String(ambos), 'base y espejo con IC90<0', 'neg')
@@ -3111,7 +3123,7 @@ function renderSalida(){
     const [familia, dir, corte] = k.split('|');
     const sg = seg[k], m = v.mejor_joint3 || {}, det = !!m.determinable;
     const estado = corte==='TODOS' ? 'familia' : (!sg || !sg.armado) ? 'sin armar'
-      : (sg.gate && sg.gate.estado==='CANDIDATA') ? 'CANDIDATA' : (sg.signo==='negativo' ? 'armado \u2193' : 'armado \u2191');
+      : (sg.gate && sg.gate.estado==='CANDIDATA') ? 'candidato' : (sg.signo==='negativo' ? 'armado \u2193' : 'armado \u2191');
     const neg = !!(sg && sg.armado && sg.signo==='negativo');
     const oos = det && m.oos ? Object.values(m.oos).every(o=>o.mean>o.actual) : null;
     let lectura, cls;
@@ -3131,7 +3143,7 @@ function renderSalida(){
     + xKpi('Mejor determinable', xInt(det.length), 'IC90 y p corregidos por selecci\u00f3n')
     + xKpi('Afinables', xInt(afin.length), 'p<0,05 \u00b7 IC90>0 \u00b7 OOS \u2714 \u00b7 no negativos', afin.length ? 'pos' : '')
     + xKpi('Negativos armados', xInt(det.filter(r=>r.neg).length), 'candidatos a vetar: no se afinan')
-    + xKpi('Afinables armados \u2191 / CANDIDATA', xInt(afin.filter(r=>r.estado!=='sin armar' && r.estado!=='familia').length), 'las que importan para graduar');
+    + xKpi('Afinables armados \u2191 / candidato', xInt(afin.filter(r=>r.estado!=='sin armar' && r.estado!=='familia').length), 'las que importan para graduar');
   const q = (S.busca||'').trim().toLowerCase();
   let vis = rows.filter(r=> (!S.soloDet || r.det) && (!S.soloArm || !['sin armar','familia'].includes(r.estado)) && (!q || (r.familia+' '+r.corte).toLowerCase().includes(q)));
   document.getElementById('salCount').innerHTML = `<b>${vis.length}</b> / ${rows.length} celdas`;
