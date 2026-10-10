@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-10 02:37:29
+Ultima actualizacion: 2026-10-10 02:53:59
 
 ```
 ========================================================================================================
@@ -12,7 +12,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
    (ninguna [familia,corte] nueva cruza el gate barato de armado)
-   total armadas históricamente: 212 (en 32 familias)
+   total armadas históricamente: 215 (en 32 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -63,6 +63,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
       12a_cvd_distribucion · celda_range_bear SHORT · umbral=None · armada 2026-09-23
       47_alcista_sweet · celda_range_range LONG · umbral=None · armada 2026-09-21
       47_alcista_sweet · btc_trend LONG · umbral=None · armada 2026-09-27
+      47_alcista_sweet · btc_range LONG · umbral=None · armada 2026-10-10
       s87_fib_cont_bajista · alt1d_range SHORT · umbral=None · armada 2026-09-23
       s87_fib_cont_bajista · btc_trend SHORT · umbral=None · armada 2026-09-23
       s87_fib_cont_bajista · celda_bull_bull SHORT · umbral=None · armada 2026-09-23
@@ -152,6 +153,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
       s95_rebote_ma_bajista · age4h_alto SHORT · umbral=83.94 · armada 2026-10-05
       s95_rebote_ma_bajista · celda_range_range SHORT · umbral=None · armada 2026-10-05
       s95_rebote_ma_bajista · celda_range_bull SHORT · umbral=None · armada 2026-10-08
+      s95_rebote_ma_bajista · vol_rel_bajo SHORT · umbral=0.6222494324711809 · armada 2026-10-10
       s99_squeeze_cono · alt1d_range LONG · umbral=None · armada 2026-09-28
       s99_squeeze_cono · btc_trend LONG · umbral=None · armada 2026-09-28
       s99_squeeze_cono · age4h_bajo LONG · umbral=38.0 · armada 2026-09-28
@@ -202,6 +204,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
       20_tl_sup_bull · celda_range_bull LONG · umbral=None · armada 2026-09-30
       s94_vela_confirmada_alcista · btc_range LONG · umbral=None · armada 2026-09-30
       s94_vela_confirmada_alcista · age4h_alto LONG · umbral=107.52000000000001 · armada 2026-10-07
+      s94_vela_confirmada_alcista · vol_rel_bajo LONG · umbral=0.5454732565550758 · armada 2026-10-10
       s94_vela_confirmada_bajista · alt1d_range SHORT · umbral=None · armada 2026-09-30
       s94_vela_confirmada_bajista · btc_trend SHORT · umbral=None · armada 2026-09-30
       s94_vela_confirmada_bajista · alt1d_trend SHORT · umbral=None · armada 2026-10-05
@@ -326,7 +329,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
 │                               age4h_bajo      30    71%  +0.243   +7.28   43%       [-0.41,+0.93]  R17 B13 Be0      │
 │                               vol_rel_alto    27    71%  -0.092   -2.48   41%       [-0.68,+0.61]  R16 B11 Be0      │
 │                               vol_rel_bajo    26    71%  -0.219   -5.70   35%       [-0.88,+0.45]  R15 B11 Be0      │
-│                               btc_range       47    71%  -0.444  -20.87   30%       [-0.96,+0.09]  R47 B0 Be0       │
+│                               btc_range       47    71%  -0.444  -20.87   30%       [-0.96,+0.09]  R47 B0 Be0   [ARMADA] │
 │                               btc_trend       31    71%  +0.668  +20.71   48%       [+0.06,+1.35]  R0 B30 Be1   [ARMADA] │
 │                               celda_bull_bull  28    71%  +0.318   +8.89   43%       [-0.27,+0.98]  R0 B28 Be0      │
 │                               celda_range_bull  26    71%  -0.048   -1.24   35%       [-0.76,+0.73]  R26 B0 Be0     │
@@ -600,7 +603,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
 │                               age4h_alto      28   100%  -1.203  -33.70    7%      [-1.49,-0.91]*  R24 B4 Be0   [ARMADA] │
 │                               age4h_bajo      28   100%  +0.356   +9.97   54%       [-0.31,+1.10]  R19 B9 Be0       │
 │                               vol_rel_alto    28   100%  -0.146   -4.08   36%       [-0.75,+0.48]  R21 B7 Be0       │
-│                               vol_rel_bajo    28   100%  -0.292   -8.17   32%       [-0.79,+0.19]  R25 B3 Be0       │
+│                               vol_rel_bajo    28   100%  -0.292   -8.17   32%       [-0.79,+0.19]  R25 B3 Be0   [ARMADA] │
 │                               btc_range       70   100%  -0.456  -31.94   33%       [-0.72,-0.16]  R70 B0 Be0   [ARMADA] │
 │                               celda_bull_bull  15   100%  +0.149   +2.24   40%       [-0.72,+1.04]  R3 B12 Be0      │
 │                               celda_range_bull  30   100%  -0.287   -8.60   33%       [-0.78,+0.25]  R30 B0 Be0     │
@@ -635,7 +638,7 @@ Ultima actualizacion: 2026-10-10 02:37:29
 │                               age4h_alto      56   100%  +0.095   +5.34   52%       [-0.41,+0.56]  R45 B11 Be0  [ARMADA] │
 │                               age4h_bajo      55   100%  -0.111   -6.08   49%       [-0.44,+0.25]  R36 B19 Be0  [ARMADA] │
 │                               vol_rel_alto    56   100%  -0.102   -5.74   50%       [-0.50,+0.32]  R49 B7 Be0   [ARMADA] │
-│                               vol_rel_bajo    55   100%  +0.253  +13.93   56%       [-0.18,+0.70]  R45 B10 Be0      │
+│                               vol_rel_bajo    55   100%  +0.253  +13.93   56%       [-0.18,+0.70]  R45 B10 Be0  [ARMADA] │
 │                               btc_range      135   100%  +0.128  +17.31   51%       [-0.10,+0.37]  R135 B0 Be0  [ARMADA] │
 │                               btc_trend       30   100%  -0.622  -18.67   43%       [-1.04,-0.13]  R0 B30 Be0   [ARMADA] │
 │                               celda_bull_bull  26   100%  -0.780  -20.28   38%       [-1.23,-0.28]  R2 B24 Be0   [ARMADA] │
