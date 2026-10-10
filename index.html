@@ -292,6 +292,7 @@
     <h2>Graduación</h2>
     <div class="sub">Paso 1 de cada segmento armado: se mide su base desde el armado y el dato fija la dirección (graduar &uarr; o vetar &darr;).</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
+  <li><b>Evidencia madura</b>: el histórico de este tab y el armado cuentan solo entradas con más de 102&nbsp;h (96&nbsp;h de MAX_HOLD + 6&nbsp;h). Un trade joven que ya cerró casi siempre cerró por SL (el TP y los cierres por tiempo llegan después), así que contarlo sesga hacia lo negativo. Es la misma regla que usa el armado automático.</li>
   <li><b>Paso 0 · watch</b>: un segmento se arma con N&ge;30 histórico, &ge;15 en cada mitad temporal con el mismo signo e IC90 que excluye 0 (cualquier signo). Los armados con el criterio anterior (N&ge;15) no se desarman y se marcan <b>v1</b>.</li>
   <li><b>Colores de Paso 1</b>: dif vs azar, ambas mitades y A-02 se colorean por el signo del dato de la base: verde a favor (R &gt; 0), rojo en contra (R &lt; 0), gris sin evidencia (IC que cruza 0, sin IC o mitades con signo distinto). El sentido graduar/vetar lo fija el dato y se lee en la columna estado, no en el color.</li>
   <li><b>Paso 1 · candidata</b>: se mide la <b>base</b> (su propio log, misma dirección de la familia) desde el armado original, sin abrir posiciones. Condiciones: N&ge;100 (&ge;50 por mitad) &middot; &ge;8 semanas &middot; dif vs azar del mismo símbolo y semana (C2) con IC90 fuera de 0 &middot; misma dirección en ambas mitades &middot; A-02 (el segmento supera al resto del sistema; si pierde, vetarlo lo mejora).</li>
@@ -696,6 +697,19 @@ function computeSegment(rows, entry, umbralFijo){
 const TERCIL_ENTRIES = ['age4h_alto', 'age4h_bajo', 'vol_rel_alto', 'vol_rel_bajo'];
 let umbralesCongelados = {};   // {origen·familia·dir: {corte_id: umbral|null}}
 
+// Evidencia MADURA (igual que el backend, `madurez_cohorte`): una entrada cuenta solo si tiene más de 96 h (MAX_HOLD) + 6 h de antigüedad. Los trades
+// jóvenes que YA cerraron son, por construcción, los que tocaron SL pronto (los h_force, el 69 % de los trades, no cierran antes de la hora 96):
+// contarlos sesga el histórico hacia lo negativo. Las estadísticas del tab Graduación y el armado usan solo trades maduros.
+const MADUREZ_H = 102;
+let umbralesMaduros = {};   // {origen·familia·dir: {corte_id: umbral|null}} ajustados SOLO con trades maduros (como el armado del backend)
+function tradesMaduros(){
+  const d = state.data; if (!d) return [];
+  if (d._maduros) return d._maduros;
+  let ahora = Date.parse(d.generado_ts); if (!isFinite(ahora)) ahora = Date.now();
+  const corte = ahora - MADUREZ_H * 3600 * 1000;
+  d._maduros = d.trades.filter(t => t.ts != null && t.ts <= corte);
+  return d._maduros;
+}
 function fitUmbralesCongelados(allTrades){
   const porGrupo = {};
   allTrades.forEach(t=>{
@@ -817,29 +831,37 @@ function _mulberry32(seed){
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-function ic90Cluster(vals, syms, n=600){
+// 🔧 2026-10-10 · MISMO algoritmo que el backend (`study_segmentos_por_familia.ic90_cluster`): se remuestrean SÍMBOLOS ENTEROS con todos sus trades y
+// se toma la media de lo remuestreado. La versión anterior sacaba UN trade al azar por símbolo remuestreado, lo que daba intervalos más estrechos que
+// los del backend y hacía aparecer segmentos «sin armar» que el armado automático (que usa este algoritmo) ve con el IC cruzando 0.
+// Resultado memorizado por firma: las tablas llaman a esta función muchas veces con el mismo conjunto.
+const _ic90Cache = new Map();
+function ic90Cluster(vals, syms, n=1000){
   if (vals.length < 3) return null;
   const bySym = {};
   syms.forEach((s,i)=>{ (bySym[s] = bySym[s]||[]).push(vals[i]); });
   const keys = Object.keys(bySym).sort();
   const sig = keys.length + '|' + vals.length + '|'
     + vals.reduce((a,b)=>a+b,0).toFixed(6) + '|' + keys.join(',');
+  if (_ic90Cache.has(sig)) return _ic90Cache.get(sig);
   const rng = _mulberry32(_hashStr(sig));
-  const means = [];
+  const K = keys.length;
+  const arrs = keys.map(k=>bySym[k]);
+  const sums = arrs.map(a=>a.reduce((x,y)=>x+y,0));
+  const cnts = arrs.map(a=>a.length);
+  const means = new Array(n);
   for (let k=0;k<n;k++){
     let sum=0, cnt=0;
-    for (let i=0;i<keys.length;i++){
-      const pick = keys[Math.floor(rng()*keys.length)];
-      const arr = bySym[pick];
-      const v = arr[Math.floor(rng()*arr.length)];
-      sum += v; cnt++;
+    for (let i=0;i<K;i++){
+      const j = Math.floor(rng()*K);
+      sum += sums[j]; cnt += cnts[j];
     }
-    means.push(sum/cnt);
+    means[k] = sum/cnt;
   }
   means.sort((a,b)=>a-b);
-  const lo = means[Math.floor(0.05*n)];
-  const hi = means[Math.floor(0.95*n)];
-  return [lo, hi];
+  const res = [means[Math.floor(0.05*n)], means[Math.floor(0.95*n)]];
+  _ic90Cache.set(sig, res);
+  return res;
 }
 
 const FILTER_KEYS = ['origen', 'familia', 'dir', 'btc_1h'];
@@ -1434,11 +1456,11 @@ function computeTodosSegmentos(){
   const espejoIndex = {};
   (state.data.espejos || []).forEach(e=>{ espejoIndex[e.familia+'|'+e.corte+'|'+e.dir] = e; });
 
-  const byGroup = completarConCatalogo(aggregate(state.data.trades), false);
+  const byGroup = completarConCatalogo(aggregate(tradesMaduros()), false);   // evidencia MADURA (igual que el armado del backend)
   const out = [];
   Object.values(byGroup).forEach(g=>{
     const claveGrupo = g.origen + '·' + g.familia + '·' + g.dir;
-    const umbralesGrupo = umbralesCongelados[claveGrupo] || {};
+    const umbralesGrupo = umbralesMaduros[claveGrupo] || {};
     MENU.forEach(entry=>{
       const umbralFijo = TERCIL_ENTRIES.includes(entry.id) ? umbralesGrupo[entry.id] : undefined;
       const sub = computeSegment(g.rows, entry, umbralFijo);
@@ -1566,7 +1588,7 @@ function renderGraduacion(){
   const filtroTxt = state.filtroGraduacionFamilia.size
     ? ` (filtrado a ${[...state.filtroGraduacionFamilia].join(', ')})` : '';
   document.getElementById('gradSummary').innerHTML =
-      xKpi('Segmentos', xInt(nTotal), `${nPocaMuestra} con poca muestra`)
+      xKpi('Segmentos', xInt(nTotal), `${nPocaMuestra} con poca muestra · ${state.data.trades.length - tradesMaduros().length} trades jóvenes fuera`)
     + xKpi('Armados', xInt(nArmadosNeg + nArmadosPos), `hist. ↑ ${nArmadosPos} · hist. ↓ ${nArmadosNeg}`)
     + xKpi('Sin armar', xInt(nCandidatosSinArmar), 'negativos significativos')
     + xKpi('Candidatos', xInt(nCand), `${nConf} confirmados · ${nObs} observando`, (nCand + nConf) ? 'pos' : '')
@@ -3709,6 +3731,7 @@ fetch('data.json?_=' + Date.now())
   .then(d=>{
     state.data = d;
     umbralesCongelados = fitUmbralesCongelados(d.trades);   // una sola vez, sobre TODO
+    umbralesMaduros = fitUmbralesCongelados(tradesMaduros());   // para el tab Graduación (evidencia madura)
     document.getElementById('ts-txt').textContent = d.generado_ts;
     const rb = d.regimen_btc;
     document.getElementById('regimen-txt').textContent = rb && rb.disponible
