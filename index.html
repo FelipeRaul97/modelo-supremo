@@ -646,7 +646,7 @@ const MENU = [
   { id:'vol_rel_alto', tipo:'tercil', field:'vol_rel', q:66, cmp:'ge' },
   { id:'vol_rel_bajo', tipo:'tercil', field:'vol_rel', q:33, cmp:'le' },
   { id:'btc_range', tipo:'categ', fn:r=>r.btc_1h==='RANGE' },
-  { id:'btc_trend', tipo:'categ', fn:r=>r.btc_1h==='BULL'||r.btc_1h==='BEAR' },
+  // btc_trend RETIRADO (2026-10-14, #S129c): mezclaba BULL y BEAR; se sustituye por btc_bull + btc_bear (abajo). El backend lo conserva solo para resolver espejos antiguos.
   // #S129c · estado de la moneda (réplica de SUPREMO/study_segmentos_por_familia.py)
   { id:'btc_bull', tipo:'categ', fn:r=>r.btc_1h==='BULL' },
   { id:'btc_bear', tipo:'categ', fn:r=>r.btc_1h==='BEAR' },
