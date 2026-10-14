@@ -4,15 +4,15 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-14 14:39:55
+Ultima actualizacion: 2026-10-14 14:57:06
 
 ```
 ========================================================================================================
   ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
-   🟢 ARMADAS hoy: 47_alcista_sweet::btc_trend, 5_posicion_rango::sqz4h_bajo, 5_posicion_rango::rs24_bajo, 12a_cvd_distribucion::sqz4h_bajo, 12a_cvd_distribucion::alt1d_bear, 12a_cvd_distribucion::rs24_alto, 12a_cvd_distribucion::rs24_bajo, 41a_a2_confirmador::btc_trend, 41a_a2_confirmador::btc_bear, 47_lower_lows_bear::btc_trend, 47_lower_lows_bear::alt1d_bear, 47_lower_lows_bear::btc_bear, 47_lower_lows_bear::rs24_alto, 47_lower_lows_bear::rs24_bajo, 54_ext_dn_4h::sqz4h_bajo, 54_ext_dn_4h::rs24_bajo, 54_x_sma20x50_dn::rs24_bajo, s100_macd_cruce_alcista::sqz4h_alto, s100_macd_cruce_alcista::rs24_alto, s100_macd_cruce_bajista::sqz4h_alto, s100_macd_cruce_bajista::sqz4h_bajo, s83_quiebre_retest_alcista::btc_trend, s83_quiebre_retest_alcista::sqz4h_alto, s83_quiebre_retest_alcista::rs24_alto, s83_quiebre_retest_bajista::rs24_bajo, s84_volumen_regimen::btc_trend, s85_vela_rev_bajista::btc_trend, s85_vela_rev_bajista::rs24_alto, s87_fib_cont_alcista::btc_trend, s87_fib_cont_alcista::alt1d_bear, s87_fib_cont_bajista::btc_trend, s92_doble_suelo::rs24_alto, s93_inside_bar::btc_trend, s93_inside_bar::sqz4h_alto, s94_vela_confirmada_alcista::sqz4h_alto, s94_vela_confirmada_bajista::sqz4h_alto, s94_vela_confirmada_bajista::sqz4h_bajo, s94_vela_confirmada_bajista::rs24_bajo, s95_rebote_ma_alcista::sqz4h_alto, s95_rebote_ma_bajista::btc_trend, s95_rebote_ma_bajista::sqz4h_bajo, s98_climax_swing_high::sqz4h_alto, s98_climax_swing_high::rs24_alto, s98_climax_swing_low::sqz4h_bajo, s99_squeeze_cono::btc_trend, s99_squeeze_cono::rs24_alto
-   total armadas históricamente: 278 (en 32 familias)
+   (ninguna [familia,corte] nueva cruza el gate barato de armado)
+   total armadas históricamente: 267 (en 32 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -39,7 +39,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       41a_a2_confirmador · celda_bull_range LONG · umbral=None · armada 2026-09-29
       41a_a2_confirmador · celda_range_range LONG · umbral=None · armada 2026-09-30
       41a_a2_confirmador · btc_bull LONG · umbral=None · armada 2026-09-23
-      41a_a2_confirmador · btc_trend LONG · umbral=None · armada 2026-10-14
       41a_a2_confirmador · btc_bear LONG · umbral=None · armada 2026-10-14
       47_lower_lows_bear · btc_range LONG · umbral=None · armada 2026-09-16
       47_lower_lows_bear · alt1d_trend LONG · umbral=None · armada 2026-09-16
@@ -50,7 +49,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       47_lower_lows_bear · celda_bear_bear LONG · umbral=None · armada 2026-09-23
       47_lower_lows_bear · celda_range_bear LONG · umbral=None · armada 2026-09-23
       47_lower_lows_bear · vol_rel_alto LONG · umbral=1.1496525629273464 · armada 2026-09-29
-      47_lower_lows_bear · btc_trend LONG · umbral=None · armada 2026-10-14
       47_lower_lows_bear · alt1d_bear LONG · umbral=None · armada 2026-10-14
       47_lower_lows_bear · btc_bear LONG · umbral=None · armada 2026-10-14
       47_lower_lows_bear · rs24_alto LONG · umbral=-1.6481898980281178 · armada 2026-10-14
@@ -78,7 +76,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       47_alcista_sweet · celda_range_range LONG · umbral=None · armada 2026-09-21
       47_alcista_sweet · btc_range LONG · umbral=None · armada 2026-10-10
       47_alcista_sweet · age4h_alto LONG · umbral=76.0 · armada 2026-10-14
-      47_alcista_sweet · btc_trend LONG · umbral=None · armada 2026-10-14
       s87_fib_cont_bajista · alt1d_range SHORT · umbral=None · armada 2026-09-23
       s87_fib_cont_bajista · celda_bull_bull SHORT · umbral=None · armada 2026-09-23
       s87_fib_cont_bajista · alt1d_trend SHORT · umbral=None · armada 2026-09-26
@@ -90,7 +87,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s87_fib_cont_bajista · celda_range_bull SHORT · umbral=None · armada 2026-09-29
       s87_fib_cont_bajista · celda_range_range SHORT · umbral=None · armada 2026-10-05
       s87_fib_cont_bajista · btc_bull SHORT · umbral=None · armada 2026-09-23
-      s87_fib_cont_bajista · btc_trend SHORT · umbral=None · armada 2026-10-14
       47_bajista_bear · alt1d_range LONG · umbral=None · armada 2026-09-23
       47_bajista_bear · alt1d_trend LONG · umbral=None · armada 2026-09-23
       47_bajista_bear · vol_rel_bajo LONG · umbral=0.7217353290510327 · armada 2026-09-23
@@ -123,7 +119,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s84_volumen_regimen · celda_range_range LONG · umbral=None · armada 2026-10-05
       s84_volumen_regimen · celda_range_bear LONG · umbral=None · armada 2026-10-12
       s84_volumen_regimen · btc_bull LONG · umbral=None · armada 2026-09-24
-      s84_volumen_regimen · btc_trend LONG · umbral=None · armada 2026-10-14
       s83_quiebre_retest_alcista · celda_bull_bull LONG · umbral=None · armada 2026-09-26
       s83_quiebre_retest_alcista · alt1d_range LONG · umbral=None · armada 2026-09-28
       s83_quiebre_retest_alcista · alt1d_trend LONG · umbral=None · armada 2026-09-28
@@ -135,7 +130,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s83_quiebre_retest_alcista · vol_rel_bajo LONG · umbral=0.6931088410275119 · armada 2026-10-05
       s83_quiebre_retest_alcista · celda_range_range LONG · umbral=None · armada 2026-10-05
       s83_quiebre_retest_alcista · btc_bull LONG · umbral=None · armada 2026-09-26
-      s83_quiebre_retest_alcista · btc_trend LONG · umbral=None · armada 2026-10-14
       s83_quiebre_retest_alcista · sqz4h_alto LONG · umbral=0.0020771002857142883 · armada 2026-10-14
       s83_quiebre_retest_alcista · rs24_alto LONG · umbral=1.578277225511203 · armada 2026-10-14
       s85_vela_rev_bajista · alt1d_range LONG · umbral=None · armada 2026-09-26
@@ -145,7 +139,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s85_vela_rev_bajista · btc_range LONG · umbral=None · armada 2026-10-07
       s85_vela_rev_bajista · alt1d_trend LONG · umbral=None · armada 2026-10-12
       s85_vela_rev_bajista · btc_bull LONG · umbral=None · armada 2026-09-26
-      s85_vela_rev_bajista · btc_trend LONG · umbral=None · armada 2026-10-14
       s85_vela_rev_bajista · rs24_alto LONG · umbral=3.460452233430622 · armada 2026-10-14
       s87_fib_cont_alcista · alt1d_range LONG · umbral=None · armada 2026-09-26
       s87_fib_cont_alcista · alt1d_trend LONG · umbral=None · armada 2026-09-26
@@ -159,7 +152,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s87_fib_cont_alcista · celda_range_bull LONG · umbral=None · armada 2026-10-07
       s87_fib_cont_alcista · celda_bear_bear LONG · umbral=None · armada 2026-10-14
       s87_fib_cont_alcista · btc_bull LONG · umbral=None · armada 2026-09-26
-      s87_fib_cont_alcista · btc_trend LONG · umbral=None · armada 2026-10-14
       s87_fib_cont_alcista · alt1d_bear LONG · umbral=None · armada 2026-10-14
       s85_vela_rev_alcista · alt1d_range SHORT · umbral=None · armada 2026-09-27
       s85_vela_rev_alcista · celda_bull_bull SHORT · umbral=None · armada 2026-09-27
@@ -188,7 +180,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s95_rebote_ma_bajista · celda_range_bull SHORT · umbral=None · armada 2026-10-08
       s95_rebote_ma_bajista · vol_rel_bajo SHORT · umbral=0.6222494324711809 · armada 2026-10-10
       s95_rebote_ma_bajista · btc_bull SHORT · umbral=None · armada 2026-09-28
-      s95_rebote_ma_bajista · btc_trend SHORT · umbral=None · armada 2026-10-14
       s95_rebote_ma_bajista · sqz4h_bajo SHORT · umbral=-0.008629255107142858 · armada 2026-10-14
       s99_squeeze_cono · alt1d_range LONG · umbral=None · armada 2026-09-28
       s99_squeeze_cono · age4h_bajo LONG · umbral=38.0 · armada 2026-09-28
@@ -202,7 +193,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s99_squeeze_cono · celda_range_range LONG · umbral=None · armada 2026-10-05
       s99_squeeze_cono · celda_bear_bear LONG · umbral=None · armada 2026-10-14
       s99_squeeze_cono · btc_bull LONG · umbral=None · armada 2026-09-28
-      s99_squeeze_cono · btc_trend LONG · umbral=None · armada 2026-10-14
       s99_squeeze_cono · rs24_alto LONG · umbral=0.7846532179325534 · armada 2026-10-14
       s92_doble_suelo · age4h_bajo LONG · umbral=41.52 · armada 2026-09-30
       s92_doble_suelo · btc_range LONG · umbral=None · armada 2026-10-05
@@ -222,7 +212,6 @@ Ultima actualizacion: 2026-10-14 14:39:55
       s93_inside_bar · celda_range_bear LONG · umbral=None · armada 2026-10-13
       s93_inside_bar · btc_range LONG · umbral=None · armada 2026-10-14
       s93_inside_bar · btc_bull LONG · umbral=None · armada 2026-09-28
-      s93_inside_bar · btc_trend LONG · umbral=None · armada 2026-10-14
       s93_inside_bar · sqz4h_alto LONG · umbral=8.19165999999998e-06 · armada 2026-10-14
       s95_rebote_ma_alcista · alt1d_range LONG · umbral=None · armada 2026-09-28
       s95_rebote_ma_alcista · celda_range_bull LONG · umbral=None · armada 2026-09-30
