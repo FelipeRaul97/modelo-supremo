@@ -1168,6 +1168,12 @@ function render(){
   const roiTxt = (roi) => roi ? (roi.roiPct>=0?'+':'') + roi.roiPct.toFixed(2) + '%' : '—';
   const roiCls = (roi) => roi && roi.roiPct < 0 ? 'neg' : 'pos';
   const notionalRefSombra = (sombraRows.find(r=>r.notional_simulado) || {}).notional || 0;
+  // Cierres LIVE reales que NO están en `trades` (familias fuera del menú: 36_fade_intradia, NA irrecuperables): se avisan para que este KPI cuadre con
+  // `python -m SUPREMO.status`. Solo con el Resumen SIN filtros (con filtro el aviso sería engañoso).
+  const lfm = state.data.live_fuera_de_menu;
+  const sinFiltros = !state.filters.origen.size && !state.filters.familia.size && !state.filters.dir.size && !state.filters.btc_1h.size;
+  const liveFueraNota = (lfm && lfm.disponible && lfm.fuera_total.n && sinFiltros)
+    ? `<div class="ksub" title="Cierres LIVE reales de familias fuera del menú de segmentos (${Object.entries(lfm.fuera_de_menu).map(([f,v])=>f+': '+v.n+' cierres, '+(v.pnl_pct>=0?'+':'')+v.pnl_pct.toFixed(1)+'%').join(' · ')}). No están en la tabla ni en los segmentos, pero SÍ en python -m SUPREMO.status.${lfm.outliers_excluidos.length ? ' Excluidos como outlier en todo el sistema: '+lfm.outliers_excluidos.map(o=>o.familia+' '+o.sym+' '+(o.pnl_pct>=0?'+':'')+o.pnl_pct.toFixed(1)+'%').join(', ')+'.' : ''}">+${lfm.fuera_total.n} cierres LIVE fuera del menú: ${lfm.fuera_total.pnl_usd>=0?'+':''}$${lfm.fuera_total.pnl_usd.toFixed(2)} &rarr; total real ${lfm.total_status.n} cierres ${lfm.total_status.pnl_usd>=0?'+':''}$${lfm.total_status.pnl_usd.toFixed(2)}</div>` : '';
   kpis.innerHTML = `
     <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div>${filtered.some(t=>t.pnl_R==null) ? `<div class="ksub">${filtered.filter(t=>t.pnl_R==null).length} sin R válido</div>` : ''}</div>
     <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
@@ -1175,7 +1181,7 @@ function render(){
     <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
       <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stSombra.n} · ${stSombra.n?fmtR(stSombra.mean):'—'} · ${stSombra.n?fmtR(stSombra.sum):'—'}</div></div>
     <div class="kpi"><div class="label">ROI LIVE (capital real desplegado)</div>
-      <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div></div>
+      <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div>${liveFueraNota}</div>
     <div class="kpi"><div class="label">ROI SOMBRA (simulado)</div>
       <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
     <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${stLive.n?stLive.wr.toFixed(0)+'%':'—'} / ${stSombra.n?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
