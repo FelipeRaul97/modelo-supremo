@@ -569,6 +569,7 @@
       <input id="salBusca" placeholder="buscar familia / corte" style="background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:5px 9px; font-size:0.82rem">
       <label class="hint" style="margin:0"><input type="checkbox" id="salSoloDet" checked> solo con mejor determinable</label>
       <label class="hint" style="margin:0"><input type="checkbox" id="salSoloArm"> solo armados</label>
+      <label class="hint" style="margin:0" title="La etapa (E1-E4, SMA210 diaria) NO es un segmento: es un filtro. Con una etapa elegida, N, mean_R y la mejor salida de cada segmento se calculan SOLO con los trades que entraron en esa etapa; el estado de Graduaci&oacute;n sigue siendo el del segmento completo.">etapa <select id="salEtapa" style="background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:0.82rem"><option value="">todas</option><option value="E1">E1 base</option><option value="E2">E2 avance</option><option value="E3">E3 techo</option><option value="E4">E4 declive</option><option value="TR">E1+E3 (transici&oacute;n)</option></select></label>
       <span id="salCount" class="hint" style="margin:0"></span>
     </div>
     <div class="tablewrap" style="max-height:640px"><table id="tablaSalida"><thead></thead><tbody></tbody></table></div>
@@ -646,16 +647,26 @@ const MENU = [
   { id:'vol_rel_bajo', tipo:'tercil', field:'vol_rel', q:33, cmp:'le' },
   { id:'btc_range', tipo:'categ', fn:r=>r.btc_1h==='RANGE' },
   { id:'btc_trend', tipo:'categ', fn:r=>r.btc_1h==='BULL'||r.btc_1h==='BEAR' },
+  // #S129c · estado de la moneda (réplica de SUPREMO/study_segmentos_por_familia.py)
+  { id:'btc_bull', tipo:'categ', fn:r=>r.btc_1h==='BULL' },
+  { id:'btc_bear', tipo:'categ', fn:r=>r.btc_1h==='BEAR' },
+  { id:'alt1d_bear', tipo:'categ', fn:r=>r.alt_1d==='BEAR' },
+  { id:'sqz4h_alto', tipo:'tercil', field:'sqz4h', q:66, cmp:'ge' },
+  { id:'sqz4h_bajo', tipo:'tercil', field:'sqz4h', q:33, cmp:'le' },
+  { id:'rs24_alto', tipo:'tercil', field:'rs24', q:66, cmp:'ge' },
+  { id:'rs24_bajo', tipo:'tercil', field:'rs24', q:33, cmp:'le' },
   ...CELDAS_L2.map(cc=>({ id:'celda_'+cc.replace('|','_').toLowerCase(), tipo:'categ', fn:r=>r.celda===cc })),
 ];
 
 // Grupos de ejes para la UI de chips (agrupan varios corte_id bajo una etiqueta legible).
 const EJE_GROUPS = {
-  btc_1h: { label:'Régimen BTC', cortes:['btc_range','btc_trend'] },
-  alt_1d: { label:'Altcoin 1d', cortes:['alt1d_range','alt1d_trend'] },
+  btc_1h: { label:'Régimen BTC', cortes:['btc_range','btc_bull','btc_bear'] },
+  alt_1d: { label:'Altcoin 1d', cortes:['alt1d_range','alt1d_trend','alt1d_bear'] },
   celda: { label:'Celda conjunta', cortes: CELDAS_L2.map(cc=>'celda_'+cc.replace('|','_').toLowerCase()) },
   age4h: { label:'Edad régimen 4h (terciles)', cortes:['age4h_alto','age4h_bajo'] },
   vol_rel: { label:'Volumen relativo (terciles)', cortes:['vol_rel_alto','vol_rel_bajo'] },
+  sqz4h: { label:'Squeeze 4h (terciles)', cortes:['sqz4h_alto','sqz4h_bajo'] },
+  rs24: { label:'Fuerza relativa vs BTC 24h (terciles)', cortes:['rs24_alto','rs24_bajo'] },
 };
 
 function percentileLinear(sortedVals, p){
@@ -694,7 +705,7 @@ function computeSegment(rows, entry, umbralFijo){
 // la población COMPLETA de ese grupo (sin filtros de Régimen BTC/Familia/etc. aplicados)
 // — misma semántica que `_fit_tercil` en study_segmentos_por_familia.py. Se recalcula
 // solo cuando cambian los datos (fetch inicial), nunca al tocar un filtro.
-const TERCIL_ENTRIES = ['age4h_alto', 'age4h_bajo', 'vol_rel_alto', 'vol_rel_bajo'];
+const TERCIL_ENTRIES = ['age4h_alto', 'age4h_bajo', 'vol_rel_alto', 'vol_rel_bajo', 'sqz4h_alto', 'sqz4h_bajo', 'rs24_alto', 'rs24_bajo'];
 let umbralesCongelados = {};   // {origen·familia·dir: {corte_id: umbral|null}}
 
 // Evidencia MADURA (igual que el backend, `madurez_cohorte`): una entrada cuenta solo si tiene más de 96 h (MAX_HOLD) + 6 h de antigüedad. Los trades
@@ -770,7 +781,7 @@ const state = {
   ek3seg: { dir: 'TODAS', sort: { col: null, dir: -1 } },
   // 🔧 2026-10-04 · tab Espejos (#S123): orden y búsqueda.
   esp: { sort: { col: null, dir: -1 }, busca: '', origen: 'todos', soloN: true },
-  sal: { sort: { col: 'delta', dir: -1 }, busca: '', soloDet: true, soloArm: false },
+  sal: { sort: { col: 'delta', dir: -1 }, busca: '', soloDet: true, soloArm: false, etapa: '' },
 };
 
 // Ordena `rows` por `sortState.col` (null = deja el orden tal cual llega, para
@@ -3141,7 +3152,13 @@ function renderSalida(){
   const seg = {};
   computeTodosSegmentos().forEach(r=>{ seg[r.familia+'|'+r.dir+'|'+r.corte] = r; });
   const f2 = (x)=> (x===null||x===undefined) ? '\u2014' : ((x>=0?'+':'') + x.toFixed(2));
-  const rows = Object.entries(ca.celdas).map(([k, v])=>{
+  // La etapa es un FILTRO, no un segmento: los cortes `etapa_*` no salen aquí (siguen alimentando el tab Etapas). Con una etapa elegida las celdas
+  // vienen de `celdas_x_etapa` (clave familia|dir|segmento|etapa): la misma celda de la curva calculada SOLO con los trades de esa etapa.
+  const et = S.etapa || '';
+  const fuente = et
+    ? Object.entries(ca.celdas_x_etapa || {}).filter(([k])=>k.endsWith('|'+et)).map(([k,v])=>[k.slice(0, k.lastIndexOf('|')), v])
+    : Object.entries(ca.celdas).filter(([k])=>!k.split('|')[2].startsWith('etapa_'));
+  const rows = fuente.map(([k, v])=>{
     const [familia, dir, corte] = k.split('|');
     const sg = seg[k], m = v.mejor_joint3 || {}, det = !!m.determinable;
     const estado = corte==='TODOS' ? 'familia' : (!sg || !sg.armado) ? 'sin armar'
@@ -3168,7 +3185,7 @@ function renderSalida(){
     + xKpi('Afinables armados \u2191 / candidato', xInt(afin.filter(r=>r.estado!=='sin armar' && r.estado!=='familia').length), 'las que importan para graduar');
   const q = (S.busca||'').trim().toLowerCase();
   let vis = rows.filter(r=> (!S.soloDet || r.det) && (!S.soloArm || !['sin armar','familia'].includes(r.estado)) && (!q || (r.familia+' '+r.corte).toLowerCase().includes(q)));
-  document.getElementById('salCount').innerHTML = `<b>${vis.length}</b> / ${rows.length} celdas`;
+  document.getElementById('salCount').innerHTML = `<b>${vis.length}</b> / ${rows.length} celdas` + (et ? ` · solo trades de la etapa <b>${et}</b>` + ((ca.celdas_x_etapa && Object.keys(ca.celdas_x_etapa).length) ? '' : ' <span class="badge-wait">aún sin datos por etapa: corre el estudio de la curva</span>') : '');
   const th = (c,l,t)=> `<th data-col="${c}" title="${t||''}">${l}</th>`;
   const thead = document.querySelector('#tablaSalida thead'), tbody = document.querySelector('#tablaSalida tbody');
   thead.innerHTML = '<tr>' + th('familia','familia') + th('dir','dir') + th('corte','segmento') + th('estado','estado Graduaci\u00f3n') + th('n','N')
@@ -3189,6 +3206,7 @@ function renderSalida(){
 document.getElementById('salBusca').addEventListener('input', (e)=>{ state.sal.busca = e.target.value; renderSalida(); });
 document.getElementById('salSoloDet').addEventListener('change', (e)=>{ state.sal.soloDet = e.target.checked; renderSalida(); });
 document.getElementById('salSoloArm').addEventListener('change', (e)=>{ state.sal.soloArm = e.target.checked; renderSalida(); });
+document.getElementById('salEtapa').addEventListener('change', (e)=>{ state.sal.etapa = e.target.value; renderSalida(); });
 
 // ── SÍMBOLO ──────────────────────────────────────────────────────────────────────────────
 function renderExtrasSimbolo(universo){
