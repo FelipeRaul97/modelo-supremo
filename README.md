@@ -4,19 +4,18 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-14 13:38:32
+Ultima actualizacion: 2026-10-14 13:54:47
 
 ```
 ========================================================================================================
   ESPEJO CONDICIONAL · evaluación de armado (gate BARATO) · Caso #S81/#S82
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
-   🟢 ARMADAS hoy: 47_alcista_sweet::age4h_alto, 47_bajista_bear::celda_bear_bear
-   total armadas históricamente: 238 (en 32 familias)
+   (ninguna [familia,corte] nueva cruza el gate barato de armado)
+   total armadas históricamente: 236 (en 32 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
-      5_posicion_rango · age4h_alto SHORT · umbral=57.76000000000005 · armada 2026-09-16
       5_posicion_rango · btc_range SHORT · umbral=None · armada 2026-09-16
       5_posicion_rango · vol_rel_bajo SHORT · umbral=0.6342811697344669 · armada 2026-09-20
       5_posicion_rango · celda_bear_range SHORT · umbral=None · armada 2026-09-21
@@ -80,12 +79,11 @@ Ultima actualizacion: 2026-10-14 13:38:32
       s87_fib_cont_bajista · celda_range_range SHORT · umbral=None · armada 2026-10-05
       47_bajista_bear · alt1d_range LONG · umbral=None · armada 2026-09-23
       47_bajista_bear · alt1d_trend LONG · umbral=None · armada 2026-09-23
-      47_bajista_bear · age4h_alto LONG · umbral=39.28 · armada 2026-09-23
-      47_bajista_bear · age4h_bajo LONG · umbral=28.680000000000007 · armada 2026-09-23
       47_bajista_bear · vol_rel_bajo LONG · umbral=0.7217353290510327 · armada 2026-09-23
       47_bajista_bear · btc_range LONG · umbral=None · armada 2026-09-23
       47_bajista_bear · celda_range_bear LONG · umbral=None · armada 2026-09-23
       47_bajista_bear · celda_bear_bear LONG · umbral=None · armada 2026-10-14
+      47_bajista_bear · age4h_alto LONG · umbral=87.84000000000003 · armada 2026-10-14
       36_fade_intradia · btc_trend LONG · umbral=None · armada 2026-09-23
       36_fade_intradia · celda_bear_bear LONG · umbral=None · armada 2026-09-23
       54_ext_dn_1h · alt1d_trend LONG · umbral=None · armada 2026-09-23
@@ -365,7 +363,7 @@ Ultima actualizacion: 2026-10-14 13:38:32
 │                               alt1d_range     44    60%  +0.493  +21.70   52%       [-0.02,+1.08]  R38 B1 Be5   [ARMADA] │
 │                               alt1d_trend     85    60%  +0.394  +33.52   48%       [+0.02,+0.77]  R75 B0 Be10  [ARMADA] │
 │                               age4h_alto      44    60%  +0.613  +26.98   50%       [+0.13,+1.09]  R39 B0 Be5   [ARMADA] │
-│                               age4h_bajo      44    60%  +0.242  +10.66   48%       [-0.32,+0.85]  R36 B1 Be7   [ARMADA] │
+│                               age4h_bajo      44    60%  +0.242  +10.66   48%       [-0.32,+0.85]  R36 B1 Be7       │
 │                               vol_rel_alto    44    60%  +0.343  +15.11   48%       [-0.21,+0.90]  R36 B0 Be8       │
 │                               vol_rel_bajo    43    60%  +0.253  +10.87   47%       [-0.27,+0.73]  R37 B1 Be5   [ARMADA] │
 │                               btc_range      113    60%  +0.138  +15.62   44%       [-0.17,+0.43]  R113 B0 Be0  [ARMADA] │
@@ -375,7 +373,7 @@ Ultima actualizacion: 2026-10-14 13:38:32
 │ LIVE·5_posicion_rango   SHORT (TOTAL)        358    64%  -0.095  -33.85   44%       [-0.27,+0.09]  R309 B39 Be10    │
 │                               alt1d_range    158    64%  -0.555  -87.70   32%       [-0.74,-0.36]  R137 B17 Be4 [ARMADA] │
 │                               alt1d_trend    197    64%  +0.273  +53.85   53%       [+0.02,+0.52]  R170 B21 Be6 [ARMADA] │
-│                               age4h_alto     122    64%  -0.040   -4.87   43%       [-0.27,+0.24]  R109 B7 Be6  [ARMADA] │
+│                               age4h_alto     122    64%  -0.040   -4.87   43%       [-0.27,+0.24]  R109 B7 Be6      │
 │                               age4h_bajo     117    64%  +0.125  +14.68   52%       [-0.23,+0.47]  R90 B25 Be2      │
 │                               vol_rel_alto   122    64%  +0.253  +30.85   51%       [-0.05,+0.59]  R103 B14 Be5     │
 │                               vol_rel_bajo   116    64%  -0.367  -42.52   39%       [-0.61,-0.11]  R102 B10 Be4 [ARMADA] │
@@ -754,7 +752,7 @@ Ultima actualizacion: 2026-10-14 13:38:32
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
-  REGISTRO COMPLETO DE ESPEJOS ARMADOS (238) — sin filtrar por si tienen trades abiertos
+  REGISTRO COMPLETO DE ESPEJOS ARMADOS (236) — sin filtrar por si tienen trades abiertos
   (la categoría existe por el IC90 negativo al armar; N=0 abiertas/cerradas es normal y válido)
 ==================================================================================================================================
 
@@ -763,7 +761,6 @@ Ultima actualizacion: 2026-10-14 13:38:32
   20_tl_res_range         btc_range       SHORT     categ.     16   -1.002   [-1.65,-0.21]        0         5       -0.033       [-1.59,+1.60]    40%              -1.04%  R5 B0 Be0  5/40
   20_tl_res_range         celda_range_rangeSHORT     categ.     19   -1.031   [-1.61,-0.30]        0         3       -0.721       [-1.41,-0.03]    33%              -7.64%  R3 B0 Be0  3/40
   5_posicion_rango        alt1d_range     SHORT     categ.     47   -0.827   [-1.12,-0.50]       13        74       +0.525       [+0.23,+0.81]    68%            +235.40%  R63 B11 Be0  ✅ ambos
-  5_posicion_rango        age4h_alto      SHORT       57.8     54   -0.547   [-0.86,-0.18]        8        95       +0.039       [-0.23,+0.32]    55%            +132.99%  R88 B7 Be0  N ok, IC90 no
   5_posicion_rango        btc_range       SHORT     categ.    133   -0.302   [-0.55,-0.05]       23       107       +0.170       [-0.09,+0.44]    57%            +194.14%  R107 B0 Be0  N ok, IC90 no
   5_posicion_rango        vol_rel_bajo    SHORT        0.6     61   -0.410   [-0.72,-0.09]        9        31       +0.269       [-0.21,+0.82]    65%             +86.69%  R26 B5 Be0  31/40
   5_posicion_rango        celda_bear_rangeSHORT     categ.     19   -0.780   [-1.29,-0.21]        4         7       -0.403       [-1.09,+0.25]    43%             -12.63%  R7 B0 Be0  7/40
@@ -827,12 +824,11 @@ Ultima actualizacion: 2026-10-14 13:38:32
   s87_fib_cont_bajista    celda_range_rangeSHORT     categ.     51   -0.718   [-0.99,-0.45]       25        40       -1.645       [-1.84,-1.43]    10%            -248.46%  R40 B0 Be0  N ok, IC90 no
   47_bajista_bear         alt1d_range     LONG      categ.     18   +1.501   [+0.60,+2.59]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         alt1d_trend     LONG      categ.     19   +1.878   [+0.95,+2.79]        0         0            —                   —      —                   —  —  0/40
-  47_bajista_bear         age4h_alto      LONG        39.3     20   +2.069   [+1.24,+2.85]        0         0            —                   —      —                   —  —  0/40
-  47_bajista_bear         age4h_bajo      LONG        28.7     20   +1.245   [+0.32,+2.12]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         vol_rel_bajo    LONG         0.7     20   +1.807   [+0.95,+2.64]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         btc_range       LONG      categ.     48   +1.142   [+0.63,+1.62]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         celda_range_bearLONG      categ.     52   +1.256   [+0.82,+1.77]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         celda_bear_bear LONG      categ.     34   +0.770   [+0.24,+1.29]        0         0            —                   —      —                   —  —  0/40
+  47_bajista_bear         age4h_alto      LONG        87.8     44   +0.613   [+0.13,+1.09]        0         0            —                   —      —                   —  —  0/40
   36_fade_intradia        btc_trend       LONG      categ.     23   +2.648   [+1.88,+3.35]        0         0            —                   —      —                   —  —  0/40
   36_fade_intradia        celda_bear_bear LONG      categ.     18   +2.283   [+1.39,+3.09]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            alt1d_trend     LONG      categ.     15   +2.755   [+1.85,+3.53]        0         0            —                   —      —                   —  —  0/40
