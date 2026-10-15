@@ -1168,12 +1168,6 @@ function render(){
   const roiTxt = (roi) => roi ? (roi.roiPct>=0?'+':'') + roi.roiPct.toFixed(2) + '%' : '—';
   const roiCls = (roi) => roi && roi.roiPct < 0 ? 'neg' : 'pos';
   const notionalRefSombra = (sombraRows.find(r=>r.notional_simulado) || {}).notional || 0;
-  // Cierres LIVE reales que NO están en `trades` (familias fuera del menú: 36_fade_intradia, NA irrecuperables): se avisan para que este KPI cuadre con
-  // `python -m SUPREMO.status`. Solo con el Resumen SIN filtros (con filtro el aviso sería engañoso).
-  const lfm = state.data.live_fuera_de_menu;
-  const sinFiltros = !state.filters.origen.size && !state.filters.familia.size && !state.filters.dir.size && !state.filters.btc_1h.size;
-  const liveFueraNota = (lfm && lfm.disponible && lfm.fuera_total.n && sinFiltros)
-    ? `<div class="ksub" title="Cierres LIVE reales de familias fuera del menú de segmentos (${Object.entries(lfm.fuera_de_menu).map(([f,v])=>f+': '+v.n+' cierres, '+(v.pnl_pct>=0?'+':'')+v.pnl_pct.toFixed(1)+'%').join(' · ')}). No están en la tabla ni en los segmentos, pero SÍ en python -m SUPREMO.status.${lfm.outliers_excluidos.length ? ' Excluidos como outlier en todo el sistema: '+lfm.outliers_excluidos.map(o=>o.familia+' '+o.sym+' '+(o.pnl_pct>=0?'+':'')+o.pnl_pct.toFixed(1)+'%').join(', ')+'.' : ''}">+${lfm.fuera_total.n} cierres LIVE fuera del menú: ${lfm.fuera_total.pnl_usd>=0?'+':'&minus;'}$${Math.abs(lfm.fuera_total.pnl_usd).toFixed(2)} &rarr; total real ${lfm.total_status.n} cierres ${lfm.total_status.pnl_usd>=0?'+':'&minus;'}$${Math.abs(lfm.total_status.pnl_usd).toFixed(2)}</div>` : '';
   kpis.innerHTML = `
     <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div>${filtered.some(t=>t.pnl_R==null) ? `<div class="ksub">${filtered.filter(t=>t.pnl_R==null).length} sin R válido</div>` : ''}</div>
     <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
@@ -1181,7 +1175,7 @@ function render(){
     <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
       <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stSombra.n} · ${stSombra.n?fmtR(stSombra.mean):'—'} · ${stSombra.n?fmtR(stSombra.sum):'—'}</div></div>
     <div class="kpi"><div class="label">ROI LIVE (capital real desplegado)</div>
-      <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div>${liveFueraNota}</div>
+      <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div></div>
     <div class="kpi"><div class="label">ROI SOMBRA (simulado)</div>
       <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
     <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${stLive.n?stLive.wr.toFixed(0)+'%':'—'} / ${stSombra.n?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
@@ -1425,20 +1419,18 @@ function renderTable(filtered){
   });
 }
 
-// 🔧 2026-09-23 · tab VETO/EXCLUSIÓN (antes "Graduación" — renombrado en el
-// código tras aclarar con Felipe que #S81 NUNCA promueve a capital, ni para
-// LIVE ni para SOMBRA: siempre es un candidato a EXCLUIR un segmento negativo,
-// validado con un espejo en dirección contraria. N_GRAD=40 es el PISO de #S81
-// §4, no la meta — lo que decide es el check 2 (IC90 forward), N≥40 solo
-// habilita mirarlo en serio. Checks 3 (bate el aleatorio) y 4 (mejora el
-// sistema, gate A-02) NO se calculan en ningún export automático hoy — se
-// marcan "—" cuando el segmento ni siquiera está armado, "manual" cuando sí.
-const N_GRAD = 40;
+// Piso de N del Paso 1 de la graduación: lo publica el backend (`graduacion_gate.criterios.n_min`, hoy 100; antes de 2026-10-15 esta constante decía 40,
+// el piso de #S81 §4, ya superado por #S121). Lee el valor del backend y solo cae a 100 si el export aún no lo trae.
+function nGrad(){
+  const c = state.data && state.data.graduacion_gate && state.data.graduacion_gate.criterios;
+  return (c && c.n_min) || 100;
+}
 
 function estadoCheckN(n){
   n = n || 0;
-  if (n >= N_GRAD) return { txt:`✅ ${n}/${N_GRAD}`, cls:'ok' };
-  return { txt:`${n}/${N_GRAD}`, cls:'wait' };
+  const ng = nGrad();
+  if (n >= ng) return { txt:`✅ ${n}/${ng}`, cls:'ok' };
+  return { txt:`${n}/${ng}`, cls:'wait' };
 }
 
 function estadoCheck2(r){
