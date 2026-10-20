@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-10-20 13:48:33
+Ultima actualizacion: 2026-10-20 13:50:04
 
 ```
 ========================================================================================================
@@ -351,7 +351,7 @@ Ultima actualizacion: 2026-10-20 13:48:33
 ```
 
 ```
-  Régimen BTC: ret30d=+1.8%  ret7d=-0.7%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=+2.1%  ret7d=-0.3%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — LIVE+SOMBRA, nunca agregado entre familias                │
@@ -373,7 +373,7 @@ Ultima actualizacion: 2026-10-20 13:48:33
 │ SOMBRA·20_tl_sup_bull   LONG  BULL       12    +1.648  +19.77   75% [+0.92,+2.37]                    │
 │ SOMBRA·23_cuna_alcista_bSHORT RANGE      16    -0.710  -11.36   12% [-1.04,-0.38]                    │
 │ SOMBRA·36_fade_intradia LONG  BEAR       25    +2.482  +62.06   80% [+1.78,+3.12]                    │
-│ SOMBRA·41a_a2_confirmadoLONG  RANGE     489    -0.437 -213.76   35% [-0.57,-0.31]                    │
+│ SOMBRA·41a_a2_confirmadoLONG  RANGE     490    -0.440 -215.79   35% [-0.57,-0.31]                    │
 │ SOMBRA·41a_a2_confirmadoLONG  BULL       62    +0.791  +49.05   63% [+0.44,+1.16]                    │
 │ SOMBRA·41a_a2_confirmadoLONG  BEAR       47    +2.305 +108.35   89% [+2.00,+2.65]                    │
 │ SOMBRA·47_bajista_sweet LONG  RANGE      20    -0.903  -18.05   20% [-1.58,-0.14]                    │
@@ -387,13 +387,13 @@ Ultima actualizacion: 2026-10-20 13:48:33
 │ SOMBRA·54_x_sma20x50_dn SHORT BEAR        7    -0.898   -6.28   43% [-1.51,-0.29]                    │
 │ SOMBRA·s100_macd_cruce_aLONG  RANGE     291    -0.711 -206.97   30% [-0.87,-0.54]                    │
 │ SOMBRA·s100_macd_cruce_aLONG  BULL       19    +0.952  +18.08   63% [+0.18,+1.74]                    │
-│ SOMBRA·s100_macd_cruce_bSHORT RANGE     231    +0.536 +123.87   61% [+0.35,+0.73]                    │
+│ SOMBRA·s100_macd_cruce_bSHORT RANGE     232    +0.538 +124.72   61% [+0.35,+0.73]                    │
 │ SOMBRA·s100_macd_cruce_bSHORT BULL       11    -0.440   -4.84   55% [-1.17,+0.34]                    │
 │ SOMBRA·s100_macd_cruce_bSHORT BEAR        3    -1.264   -3.79    0% [-1.68,-0.84]                    │
 │ SOMBRA·s111_caja_piso   LONG  RANGE       9    -0.137   -1.23   44% [-0.88,+0.59]                    │
 │ SOMBRA·s112_donchian_bajSHORT RANGE      29    -0.296   -8.57   45% [-0.65,+0.07]                    │
 │ SOMBRA·s114_hch_inv     LONG  RANGE      14    -1.215  -17.01   21% [-1.86,-0.42]                    │
-│ SOMBRA·s115_pos_rango_laSHORT RANGE     163    +0.707 +115.19   62% [+0.47,+0.96]                    │
+│ SOMBRA·s115_pos_rango_laSHORT RANGE     164    +0.703 +115.36   62% [+0.47,+0.96]                    │
 │ SOMBRA·s117_rsi2_sobreveLONG  RANGE      10    -0.382   -3.82   40% [-1.26,+0.60]                    │
 │ SOMBRA·s118_funding_bajoLONG  RANGE      65    -0.863  -56.11   25% [-1.16,-0.52]*                   │
 │ SOMBRA·s129_diamante    SHORT RANGE       8    +0.660   +5.28   75% [-0.15,+1.45]                    │
@@ -408,20 +408,20 @@ Ultima actualizacion: 2026-10-20 13:48:33
 │ SOMBRA·s84_volumen_regimLONG  BEAR        7    +0.371   +2.60   57% [-0.25,+0.99]                    │
 │ SOMBRA·s85_vela_rev_alciSHORT RANGE     111    +0.444  +49.30   60% [+0.16,+0.71]                    │
 │ SOMBRA·s85_vela_rev_alciSHORT BULL       22    -0.769  -16.92   27% [-1.17,-0.36]                    │
-│ SOMBRA·s85_vela_rev_bajiLONG  RANGE      91    -0.573  -52.15   30% [-0.82,-0.30]                    │
+│ SOMBRA·s85_vela_rev_bajiLONG  RANGE      92    -0.589  -54.18   29% [-0.83,-0.32]                    │
 │ SOMBRA·s85_vela_rev_bajiLONG  BULL       44    +0.507  +22.31   66% [+0.18,+0.85]                    │
 │ SOMBRA·s86_div_alcista  LONG  RANGE      29    -0.647  -18.77   41% [-1.11,-0.17]*                   │
 │ SOMBRA·s86_div_bajista  SHORT RANGE      35    +1.110  +38.83   80% [+0.63,+1.56]                    │
-│ SOMBRA·s87_fib_cont_alciLONG  RANGE     415    -0.671 -278.53   27% [-0.79,-0.54]*                   │
+│ SOMBRA·s87_fib_cont_alciLONG  RANGE     417    -0.675 -281.44   27% [-0.79,-0.55]*                   │
 │ SOMBRA·s87_fib_cont_alciLONG  BULL      106    +1.118 +118.49   74% [+0.87,+1.38]                    │
-│ SOMBRA·s87_fib_cont_bajiSHORT RANGE     386    +0.599 +231.04   62% [+0.47,+0.73]                    │
+│ SOMBRA·s87_fib_cont_bajiSHORT RANGE     387    +0.597 +231.22   63% [+0.47,+0.72]                    │
 │ SOMBRA·s87_fib_cont_bajiSHORT BULL       99    -0.970  -96.05   24% [-1.14,-0.80]                    │
 │ SOMBRA·s87_fib_cont_bajiSHORT BEAR        7    -0.025   -0.18   71% [-0.69,+0.44]                    │
 │ SOMBRA·s92_doble_suelo  LONG  RANGE     270    -0.639 -172.54   28% [-0.79,-0.48]                    │
 │ SOMBRA·s92_doble_suelo  LONG  BULL       30    +0.428  +12.85   47% [-0.18,+1.10]                    │
 │ SOMBRA·s92_doble_techo  SHORT RANGE     214    +0.916 +195.98   64% [+0.70,+1.15]                    │
 │ SOMBRA·s92_doble_techo  SHORT BULL       12    +0.149   +1.78   67% [-0.53,+0.79]                    │
-│ SOMBRA·s93_inside_bar   LONG  RANGE     329    -0.682 -224.24   26% [-0.82,-0.54]*                   │
+│ SOMBRA·s93_inside_bar   LONG  RANGE     330    -0.686 -226.29   26% [-0.82,-0.55]*                   │
 │ SOMBRA·s93_inside_bar   LONG  BULL       52    +0.754  +39.22   58% [+0.30,+1.23]                    │
 │ SOMBRA·s94_vela_confirmaLONG  RANGE     162    -0.532  -86.26   33% [-0.75,-0.29]*                   │
 │ SOMBRA·s94_vela_confirmaLONG  BULL       13    +0.830  +10.79   54% [-0.10,+1.88]                    │
@@ -429,7 +429,7 @@ Ultima actualizacion: 2026-10-20 13:48:33
 │ SOMBRA·s94_vela_confirmaSHORT BULL       16    -0.808  -12.93   38% [-1.32,-0.27]                    │
 │ SOMBRA·s95_rebote_ma_alcLONG  RANGE     266    -0.767 -203.89   28% [-0.91,-0.63]                    │
 │ SOMBRA·s95_rebote_ma_alcLONG  BULL       42    +0.420  +17.63   48% [-0.09,+0.93]                    │
-│ SOMBRA·s95_rebote_ma_bajSHORT RANGE     291    +0.489 +142.43   60% [+0.31,+0.66]                    │
+│ SOMBRA·s95_rebote_ma_bajSHORT RANGE     292    +0.496 +144.78   60% [+0.32,+0.67]                    │
 │ SOMBRA·s95_rebote_ma_bajSHORT BULL       30    -0.622  -18.67   43% [-1.04,-0.13]                    │
 │ SOMBRA·s96_cuna_bajista LONG  RANGE       9    +0.809   +7.28   67% [+0.18,+1.60]                    │
 │ SOMBRA·s97_rechazo_resisSHORT RANGE      19    -0.513   -9.74   37% [-0.85,-0.16]                    │
@@ -439,7 +439,7 @@ Ultima actualizacion: 2026-10-20 13:48:33
 │ SOMBRA·s98_climax_swing_SHORT RANGE     257    +0.786 +201.92   65% [+0.57,+1.00]                    │
 │ SOMBRA·s98_climax_swing_LONG  RANGE     274    -0.504 -138.15   36% [-0.63,-0.37]                    │
 │ SOMBRA·s98_climax_swing_LONG  BEAR       29    +0.403  +11.70   66% [+0.10,+0.75]                    │
-│ SOMBRA·s99_squeeze_cono LONG  RANGE     328    -0.738 -241.98   28% [-0.89,-0.57]                    │
+│ SOMBRA·s99_squeeze_cono LONG  RANGE     339    -0.776 -263.22   27% [-0.93,-0.61]                    │
 │ SOMBRA·s99_squeeze_cono LONG  BULL       54    +1.101  +59.48   70% [+0.65,+1.56]                    │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
