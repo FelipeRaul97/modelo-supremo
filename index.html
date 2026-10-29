@@ -141,9 +141,10 @@
   <div class="tabbtn" data-tab="etapas">🧭 Etapas (E)</div>
 </div>
 
+<div class="panel" id="politicaSombra" style="display:none; border-left:3px solid var(--live)"></div>
 <details class="ayuda" id="convenciones"><summary>Convenciones del dashboard</summary><div class="ayuda-body"><ul>
   <li><b>R</b>: múltiplo de riesgo (distancia entrada–SL); <b>mean_R</b>: media por trade. Todos los resultados se miden en R salvo los marcados en $.</li>
-  <li><b>Orígenes</b>: LIVE = capital real · SOMBRA = familias denegadas, sin capital (simulado) · ESPEJO = la misma entrada en dirección contraria, sin capital.</li>
+  <li><b>Orígenes</b>: desde el 28-oct-2026 <b>todo es SOMBRA</b> (política SOMBRA total: el motor ya no manda órdenes nuevas). <b>MOTOR</b> = las 4 familias que opera el motor (antes «LIVE»; su historia, incluida la ejecución en testnet, se conserva) · <b>DENEGADAS</b> = el resto de familias · ESPEJO = la misma entrada en dirección contraria, sin capital. MOTOR/DENEGADAS es solo un grupo informativo: todas se miden con el mismo estándar de graduación.</li>
   <li><b>IC90</b>: intervalo al 90&nbsp;% por bootstrap de clúster (símbolo, y semana donde se indica). <b>*</b> = el IC90 excluye 0. Las pruebas son de dos colas (5&nbsp;% por cola).</li>
   <li><b>Atenuado</b>: N&lt;15 (poca muestra). Con muchas celdas parte de los * es azar: lo exploratorio no gradúa ni decide; el veredicto se gana en su propio pre-registro.</li>
   <li><b>hist. &uarr;/&darr;</b>: signo del histórico con que se armó un segmento. <b>Dirección del dato</b>: lo que muestra el forward desde el armado.</li>
@@ -153,10 +154,10 @@
 
   <div class="panel tabhead">
     <h2>Resumen histórico</h2>
-    <div class="sub">Rendimiento de LIVE y SOMBRA por familia, dirección y régimen de BTC.</div>
+    <div class="sub">Rendimiento del grupo MOTOR y de las DENEGADAS por familia, dirección y régimen de BTC.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li><b>ROI</b> = &Sigma;PnL$ / &Sigma;nocional desplegado por trade; no es retorno de cuenta ni está anualizado. LIVE usa el nocional real de cada operación (50/70/100&nbsp;$ según la época); SOMBRA se simula con el nocional de referencia vigente.</li>
-  <li>Los filtros del tab afectan a todos los gráficos y tablas. Sin filtrar por origen, los gráficos mezclan LIVE y SOMBRA.</li>
+  <li><b>ROI</b> = &Sigma;PnL$ / &Sigma;nocional desplegado por trade; no es retorno de cuenta ni está anualizado. MOTOR usa el nocional con que se midió cada operación (50/70/100&nbsp;$ según la época: hasta el 28-oct se ejecutó en testnet, desde entonces es simulado); DENEGADAS se simula con el nocional de referencia vigente.</li>
+  <li>Los filtros del tab afectan a todos los gráficos y tablas. Sin filtrar por grupo, los gráficos mezclan MOTOR y DENEGADAS.</li>
   <li>Las curvas en $ no incluyen trades sin notional o PnL%. La ventana de las curvas (7/14/21 d) recorta el eje pero el acumulado es el mismo.</li>
   <li>La tabla segmenta cada familia por los cortes del menú #S82. <b>ARMADA</b> = segmento en watch (tab Graduación).</li>
   <li>Un resultado agrupado puede esconder signos opuestos por dirección, familia o régimen: revisar siempre sus segmentos.</li>
@@ -252,9 +253,9 @@
     <h2>Posiciones abiertas</h2>
     <div class="sub">Lo que el motor y las sombras tienen abierto ahora, con su uPnL.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li><b>LIVE</b>: posiciones del motor con capital real (<code>testnet_open=false</code> = el executor la rechazó). <b>SOMBRA</b>: familias denegadas acumulando sin capital (incluye el brazo sin E_K3 de las familias exentas, marcado en la tabla). <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados, visibles mientras vive su base; el espejo independiente completo se mide al madurar (tab Espejos).</li>
+  <li><b>Testnet</b>: posiciones que el motor abrió en Binance Testnet <b>antes del 28-oct</b> y que se siguen gestionando hasta su salida normal (no se abren nuevas). <b>MOTOR (sombra)</b>: aperturas nuevas del motor, simuladas, sin orden. <b>DENEGADAS</b>: familias sin capital (incluye el brazo sin E_K3 de las familias exentas, marcado en la tabla). <b>ESPEJO</b>: sub-posiciones en dirección contraria de segmentos negativos armados, visibles mientras vive su base; el espejo independiente completo se mide al madurar (tab Espejos).</li>
   <li>El uPnL se estima con el último close en caché (se refresca cada hora): es una foto, no un tick en vivo.</li>
-  <li>Excluidas del conteo LIVE: lane de investigación E_K5, símbolos ghost y posiciones nunca ejecutadas (barra atrasada, drenaje, sin margen o rechazo del executor); ninguna llegó a ser una posición real.</li>
+  <li>Excluidas del conteo de testnet: lane de investigación E_K5, símbolos ghost y posiciones que nunca llegaron a Binance (barra atrasada, drenaje, sin margen o rechazo del executor); estas últimas sí aparecen como MOTOR (sombra) mientras estén abiertas.</li>
   <li>La barra de progreso va de &minus;1R (SL) a +TP; la marca vertical es la entrada. MAX_HOLD típico: 96&nbsp;h.</li>
 </ul></div></details>
   </div>
@@ -262,22 +263,22 @@
 
   <div class="kpis" id="abiertasKpis"></div>
   <div class="grid2">
-    <div class="panel"><h2>Distribución del uPnL (R) · LIVE y SOMBRA</h2><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
-    <div class="panel"><h2>Abiertas por familia · LIVE y SOMBRA</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
+    <div class="panel"><h2>Distribución del uPnL (R) · MOTOR y DENEGADAS</h2><div class="chart-wrap small"><canvas id="chartAbHist"></canvas></div></div>
+    <div class="panel"><h2>Abiertas por familia · MOTOR y DENEGADAS</h2><div id="chartAbFamWrap" style="position:relative; height:320px"><canvas id="chartAbFam"></canvas></div></div>
   </div>
   <div class="grid2">
     <div class="panel"><h2>Distribución del uPnL (R) · espejos</h2><div class="chart-wrap small"><canvas id="chartAbHistEsp"></canvas></div></div>
     <div class="panel"><h2>Espejos abiertos por familia base</h2><div id="chartAbEspWrap" style="position:relative; height:320px"><canvas id="chartAbEsp"></canvas></div></div>
   </div>
-  <div class="panel"><h2>LIVE · progreso de cada posición entre SL y TP</h2><div id="liveProgreso"></div></div>
+  <div class="panel"><h2>Testnet · progreso de cada posición entre SL y TP</h2><div id="liveProgreso"></div></div>
 
   <div class="panel">
-    <h2>LIVE · posiciones abiertas en Binance</h2>
+    <h2>Testnet · posiciones reales abiertas en Binance (sin aperturas nuevas desde el 28-oct)</h2>
     <div class="tablewrap"><table id="tablaAbiertasLive"><thead></thead><tbody></tbody></table></div>
   </div>
 
   <div class="panel">
-    <h2>SOMBRA · posiciones abiertas</h2>
+    <h2>Simuladas · posiciones abiertas (MOTOR sin orden y DENEGADAS)</h2>
     <div class="tablewrap"><table id="tablaAbiertasSombra"><thead></thead><tbody></tbody></table></div>
   </div>
 
@@ -364,16 +365,16 @@
 <div id="tab-simbolo" style="display:none;">
   <div class="panel tabhead">
     <h2>Por símbolo</h2>
-    <div class="sub">Rendimiento por símbolo para LIVE + SOMBRA y, aparte, para ESPEJO.</div>
+    <div class="sub">Rendimiento por símbolo para MOTOR + DENEGADAS y, aparte, para ESPEJO.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
-  <li>Cada origen es una población distinta aunque comparta símbolo y barra: LIVE + SOMBRA son las familias en su dirección real; ESPEJO es la dirección contraria. Nunca se promedian entre sí: en la tabla el espejo va en columnas aparte.</li>
+  <li>Cada grupo es una población distinta aunque comparta símbolo y barra: MOTOR + DENEGADAS son las familias en su dirección real; ESPEJO es la dirección contraria. Nunca se promedian entre sí: en la tabla el espejo va en columnas aparte.</li>
   <li>El IC90 por símbolo es un bootstrap simple con N&ge;3. En las burbujas el tamaño es |&Sigma;R| y el color indica si el IC90 queda fuera de 0; un N bajo con mean_R extremo es ruido.</li>
-  <li>El chip de origen (LIVE / SOMBRA) filtra la población base; el de dirección filtra ambas poblaciones.</li>
+  <li>El chip de grupo (MOTOR / DENEGADAS) filtra la población base; el de dirección filtra ambas poblaciones.</li>
   <li>Cada espejo cuenta una sola vez aunque cumpla varios cortes armados (en la pestaña Espejos, por segmento, sí se repite: allí cada fila es un segmento distinto).</li>
 </ul></div></details>
   </div>
   <div class="panel"><div class="filters" id="simboloFilters"></div></div>
-  <div class="grouplabel">LIVE + SOMBRA</div>
+  <div class="grouplabel">MOTOR + DENEGADAS</div>
   <div class="kpis" id="simboloKpis"></div>
   <div class="grouplabel">ESPEJO</div>
   <div class="kpis" id="simboloKpisEsp"></div>
@@ -383,7 +384,7 @@
   </div>
   <div class="grid2">
     <div class="panel">
-      <h2>N vs mean_R · LIVE + SOMBRA</h2>
+      <h2>N vs mean_R · MOTOR + DENEGADAS</h2>
       <div class="chart-wrap"><canvas id="chartSimboloBub"></canvas></div>
     </div>
     <div class="panel">
@@ -400,7 +401,7 @@
 <div id="tab-curva" style="display:none;">
   <div class="panel tabhead">
     <h2>Curva de acumulación - base</h2>
-    <div class="sub">MFE hora a hora por familia &times; dirección &times; segmento de los trades base (LIVE y SOMBRA), y qué TP, tiempo de vida o SL lo habría capturado.</div>
+    <div class="sub">MFE hora a hora por familia &times; dirección &times; segmento de los trades base (MOTOR y DENEGADAS), y qué TP, tiempo de vida o SL lo habría capturado.</div>
     <details class="ayuda"><summary>Cómo leer este tab</summary><div class="ayuda-body"><ul>
   <li>Se reconstruye desde klines crudas (no desde el log del motor): el MFE se acumula hora a hora solo sobre los trades que siguen vivos en esa hora (supervivientes). Se recalcula cada 3&nbsp;h.</li>
   <li>La celda se muestra desde N&ge;15; el badge <b>sugerido</b> solo aparece con N&ge;40, el mismo ganador en ambas mitades del histórico e IC90 sin solape con el valor actual.</li>
@@ -408,7 +409,7 @@
   <li>La <b>grilla conjunta</b> cruza 6 TP &times; 6 SL &times; 7 MAX_HOLD (252 combinaciones) y mueve los tres parámetros a la vez; el selector de SL muestra el corte TP&times;MAX_HOLD de cada stop. El <b>borde rojo</b> es la mejor combinación de las 252 (la de mayor mean_R) y el <b>azul</b> la actual (TP 4R, SL 2R, 96&nbsp;h). Es el máximo de 252 comparaciones: sesgado al alza.</li>
   <li>Para juzgarla, la mejor trae un <b>p ajustado</b> por haber elegido entre 252 (prueba de permutación por símbolo del máximo de las mejoras sobre la actual), el signo de la mejora en cada mitad temporal, la <b>validación temporal</b> (elegir con una mitad y medir en la otra) y la media de sus vecinas (meseta o pico aislado). Es <b>sugerida</b> solo con N&ge;40, p&lt;0,05 y mejora en ambas mitades; si no, es orientativa.</li>
   <li>El panorama resume las celdas del alcance elegido; en la dispersión, el punto amarillo es la celda seleccionada y lo que se aleja de la diagonal es en parte selección del mejor de 6.</li>
-  <li>La población es el corpus LIVE de cualquier familia más SOMBRA, con ruta de velas reconstruible: el N puede diferir del Resumen en familias con historia LIVE previa o sin ruta completa.</li>
+  <li>La población es el corpus del grupo MOTOR de cualquier familia más las DENEGADAS, con ruta de velas reconstruible: el N puede diferir del Resumen en familias con historia previa del motor o sin ruta completa.</li>
   <li>Es diagnóstico: nada se cablea hasta que una celda concreta se pre-registre y confirme aparte.</li>
 </ul></div></details>
   </div>
@@ -562,7 +563,7 @@
   <li><b>R es una unidad fija (la distancia de 1 ATR-proxy), no riesgo constante.</b> Con SL 4R cada p&eacute;rdida pesa el doble que con SL 2R; el mean_R es comparable porque el motor opera con nocional fijo, pero el peor trade y el drawdown por trade se duplican. Un TP lejano (12R) casi nunca se toca: la posici&oacute;n suele cerrar por MAX_HOLD y ocupa slot m&aacute;s horas.</li>
   <li><b>p familia</b> = prob. de que el mejor de 252 supere a la salida actual solo por haber elegido el mayor (permutaci&oacute;n). <b>OOS</b> = elegir en una mitad del tiempo y evaluar en la otra, en ambos sentidos: &check; si la elecci&oacute;n bate a la actual en las dos.</li>
   <li><b>Afinable</b> = determinable, &Delta; con IC90 &gt; 0, p &lt; 0,05 y OOS &check; en un segmento que NO es negativo. Un negativo armado (candidato a vetar) no se afina: si hoy pierde, mejorar la salida solo lo lleva a ~0; si hoy ya es positivo, su armado hist&oacute;rico est&aacute; contradicho y se revisa en Graduaci&oacute;n.</li>
-  <li>Es la misma muestra sobre la que se eligi&oacute; la salida: es una pista para pre-registrar, no un cambio de spec. Los cortes que cubren el 100 % de la familia son id&eacute;nticos a TODOS.</li>
+  <li>Es la misma muestra sobre la que se eligió la salida: es una pista para pre-registrar, no un cambio de spec. <b>Ruta (política SOMBRA total)</b>: el afinamiento no decide nada por sí solo. Se sella UNA salida candidata en la mirada del segmento y se evalúa con datos posteriores al sello, pareada contra entradas al azar con esa misma salida, en paralelo a la confirmación de la entrada. Solo un segmento CONFIRMADO pasa a capital, con la salida que haya ganado. Los cortes que cubren el 100 % de la familia son idénticos a TODOS.</li>
 </ul></div></details>
   </div>
   <div class="kpis" id="salKpis"></div>
@@ -588,13 +589,13 @@
   <li>Base y espejo son las mismas señales vistas de lados opuestos (correlación por par cercana a &minus;1): no cuentan como dos fuentes independientes.</li>
   <li><b>Graduación del espejo</b> (#S123d, camino B; columnas Paso 1, solo para los negativos armados): se evalúa con el mismo estándar que la base (N&ge;100, &ge;8 semanas, dif vs azar C2 con IC90, ambas mitades, A-02) desde su primer trade, sin esperar a que la base sea rechazada. <b>Candidato</b> = cumple todo ganando (candidato a invertir; operar la contraria exige confirmación y Paso 2); <b>descartado</b> = el espejo pierde con evidencia; si no, observando. No gradúa si la base ya es candidata a graduar.</li>
   <li>Colores de Paso 1: verde a favor del espejo (R &gt; 0), rojo en contra, gris sin evidencia (IC90 que cruza 0, mitades de signo distinto).</li>
-  <li>Espejos nativos (#S123e): el motor registra además el espejo de cada trade LIVE y SOMBRA desde su fecha de activación; sirve de fuente para los segmentos cuando se arman (no se muestra aparte).</li>
-  <li>En LIVE la base es el R real (con costes) y el espejo es bruto (&asymp;0,03&nbsp;R de diferencia).</li>
+  <li>Espejos nativos (#S123e): el motor registra además el espejo de cada trade del grupo MOTOR y de las DENEGADAS desde su fecha de activación; sirve de fuente para los segmentos cuando se arman (no se muestra aparte).</li>
+  <li>En el grupo MOTOR la base es el R del modelo con costes (hasta el 28-oct coincidía con la ejecución en testnet) y el espejo es bruto (&asymp;0,03&nbsp;R de diferencia).</li>
 </ul></div></details>
   </div>
   <div class="toolbar">
     <div class="segmented" id="espOrigen">
-      <div class="seg-btn active" data-o="todos">LIVE + SOMBRA</div><div class="seg-btn" data-o="LIVE">LIVE</div><div class="seg-btn" data-o="SOMBRA">SOMBRA</div>
+      <div class="seg-btn active" data-o="todos">MOTOR + DENEGADAS</div><div class="seg-btn" data-o="LIVE">MOTOR</div><div class="seg-btn" data-o="SOMBRA">DENEGADAS</div>
     </div>
     <div class="toolbar-right">
       <input id="espBusca" type="search" placeholder="buscar familia o corte…" style="background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:7px; padding:6px 10px; font-size:0.82rem;">
@@ -820,6 +821,30 @@ function bindSort(theadEl, sortState, rerender){
 function fmtR(x){ return (x>=0?'+':'') + x.toFixed(3); }
 function fmtUsd(x){ return (x>=0?'+':'') + '$' + x.toFixed(2); }
 function colorFor(origen){ return origen === 'LIVE' ? '#5eb0ef' : '#c792ea'; }
+// 2026-10-28 · POLÍTICA SOMBRA TOTAL: nada tiene capital. Los datos publican origen='SOMBRA' para todo y el grupo aparte (`grupo`: 'motor' = las 4 familias
+// que opera el motor · 'resto'). La lógica sigue agrupando con los tokens internos de siempre ('LIVE' = grupo motor, 'SOMBRA' = resto): así ninguna
+// cuenta cambia. Lo que se MUESTRA pasa por etq().
+const ETQ = { LIVE:'MOTOR', SOMBRA:'DENEGADAS', ESPEJO:'ESPEJO' };
+function etq(o){ return ETQ[o] || o; }
+// Convierte `grupo`/`grupo_base` en el token interno. Compatible con datos antiguos (sin `grupo`, origen='LIVE'): no toca nada.
+function normalizarGrupos(d){
+  const tok = (o, g) => (g === 'motor' ? 'LIVE' : (g === 'resto' ? 'SOMBRA' : o));
+  (d.trades||[]).forEach(t=>{ t.origen = tok(t.origen, t.grupo); });
+  (d.espejo_trades||[]).forEach(t=>{ t.origen_base = tok(t.origen_base, t.grupo_base); });
+  Object.values(d.armados||{}).forEach(cs=>Object.values(cs).forEach(a=>{ if (a && a.grupo) a.origen = tok(a.origen, a.grupo); }));
+  (d.espejos||[]).forEach(f=>{ if (f.gate && f.gate.grupo) f.gate.origen = tok(f.gate.origen, f.gate.grupo); });
+  ((d.rescate||{}).segmentos||[]).forEach(s=>{ if (s && s.grupo) s.origen = tok(s.origen, s.grupo); });
+  const ab = d.abiertas;
+  if (ab && ab.espejo) ab.espejo.forEach(p=>{ p.origen_base = tok(p.origen_base, p.grupo_base); });
+  return d;
+}
+function mostrarPolitica(d){
+  const el = document.getElementById('politicaSombra'), p = d.politica_sombra;
+  if (!el || !p || !p.activa) return;
+  const f = p.desde || '';
+  el.style.display = '';
+  el.innerHTML = `<b>Política SOMBRA total${f?' desde '+f:''}</b>: ninguna familia tiene capital ni recibe órdenes nuevas. Todas se miden con el mismo estándar de graduación (mirada única → confirmación en datos nuevos → cohorte); el capital solo llega con una regla CONFIRMADA. Las posiciones que el motor abrió antes en Binance Testnet se gestionan hasta su salida normal.`;
+}
 
 // 🔧 2026-09-23 · BUG: `Math.random()` sin semilla + recalculado en CADA render
 // (cada click de filtro, cada click de columna para ordenar) hacía que la estrella
@@ -936,7 +961,7 @@ function loadURL(){
   });
 }
 
-const GROUP_LABELS = { origen:'Origen', dir:'Dirección', btc_1h:'Régimen BTC', familia:'Familia' };
+const GROUP_LABELS = { origen:'Grupo', dir:'Dirección', btc_1h:'Régimen BTC', familia:'Familia' };
 
 // 🔧 2026-09-23 · el segmented control reemplaza TODO el filtro de origen (es un
 // "modo de vista": Todo / Solo LIVE / Solo SOMBRA) — visualmente distinto de un
@@ -946,8 +971,8 @@ function renderToolbar(){
   const seg = document.getElementById('vistaSegmented');
   const modos = [
     { id:'todo', label:'Todo', test:()=>state.filters.origen.size===0 },
-    { id:'live', label:'Solo LIVE', test:()=>state.filters.origen.size===1 && state.filters.origen.has('LIVE') },
-    { id:'sombra', label:'Solo SOMBRA', test:()=>state.filters.origen.size===1 && state.filters.origen.has('SOMBRA') },
+    { id:'live', label:'Solo MOTOR', test:()=>state.filters.origen.size===1 && state.filters.origen.has('LIVE') },
+    { id:'sombra', label:'Solo DENEGADAS', test:()=>state.filters.origen.size===1 && state.filters.origen.has('SOMBRA') },
   ];
   seg.innerHTML = '';
   modos.forEach(m=>{
@@ -975,7 +1000,7 @@ function renderToolbar(){
     [...state.filters[k]].forEach(v=>{
       const pill = document.createElement('div');
       pill.className = 'filterpill';
-      pill.innerHTML = `${GROUP_LABELS[k]}: <b>${v}</b> <span class="x">&times;</span>`;
+      pill.innerHTML = `${GROUP_LABELS[k]}: <b>${k==='origen'?etq(v):v}</b> <span class="x">&times;</span>`;
       pill.querySelector('.x').onclick = ()=>{
         state.filters[k].delete(v);
         syncURL(); buildFilterUI(); render();
@@ -1020,7 +1045,7 @@ function buildFilterUI(){
   // pero no tiene resultados con el resto de filtros activos, en vez de que el chip
   // simplemente no aparezca (que es indistinguible de "no existe esa combinación").
   const groups = [
-    { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
+    { key:'origen', label:'Grupo', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
     { key:'btc_1h', label:'Régimen BTC', values:['RANGE','BULL','BEAR'] },
     { key:'familia', label:'Familia', values:[...new Set(trades.map(t=>t.familia).concat((state.data.familias_catalogo||[]).map(c=>c.familia)))].sort() },
@@ -1038,7 +1063,7 @@ function buildFilterUI(){
       // togglear la clase a mano — así un preset que muta state.filters directamente
       // (sin pasar por este onclick) también queda reflejado al reconstruir la UI.
       chip.className = 'chip' + (state.filters[g.key].has(v) ? ' active' : '') + (n===0 ? ' chip-empty' : '');
-      chip.textContent = v + ' (' + n + ')';
+      chip.textContent = (g.key==='origen' ? etq(v) : v) + ' (' + n + ')';
       chip.title = n === 0 ? 'Sin trades con los demás filtros activos' : '';
       chip.onclick = ()=>{
         const set = state.filters[g.key];
@@ -1149,8 +1174,8 @@ function statsOf(rows){
 
 // Leyenda manual para gráficos de barras cuyo color codifica el ORIGEN (un solo dataset => Chart.js no la dibuja).
 const LEGEND_ORIGEN = { display:true, onClick:()=>{}, labels:{ color:'#8b96a8', font:{size:11}, usePointStyle:true,
-  generateLabels:()=>[ { text:'LIVE (capital real)', fillStyle:'#5eb0ef', strokeStyle:'#5eb0ef', fontColor:'#8b96a8', pointStyle:'rectRounded' },
-                       { text:'SOMBRA (capital cero)', fillStyle:'#c792ea', strokeStyle:'#c792ea', fontColor:'#8b96a8', pointStyle:'rectRounded' } ] } };
+  generateLabels:()=>[ { text:'MOTOR', fillStyle:'#5eb0ef', strokeStyle:'#5eb0ef', fontColor:'#8b96a8', pointStyle:'rectRounded' },
+                       { text:'DENEGADAS', fillStyle:'#c792ea', strokeStyle:'#c792ea', fontColor:'#8b96a8', pointStyle:'rectRounded' } ] } };
 let chartFamilias, chartFamiliasPnl, chartEquity, chartEquityUsd, chartHist, chartRegimen;
 
 function render(){
@@ -1173,23 +1198,23 @@ function render(){
   const notionalRefSombra = (sombraRows.find(r=>r.notional_simulado) || {}).notional || 0;
   kpis.innerHTML = `
     <div class="kpi"><div class="label">Trades (filtro)</div><div class="value">${filtered.length}</div>${filtered.some(t=>t.pnl_R==null) ? `<div class="ksub">${filtered.filter(t=>t.pnl_R==null).length} sin R válido</div>` : ''}</div>
-    <div class="kpi"><div class="label"><span class="tag LIVE">LIVE</span> N / mean_R / Suma R</div>
+    <div class="kpi"><div class="label"><span class="tag LIVE">MOTOR</span> N / mean_R / Suma R</div>
       <div class="value ${stLive.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stLive.n} · ${stLive.n?fmtR(stLive.mean):'—'} · ${stLive.n?fmtR(stLive.sum):'—'}</div></div>
-    <div class="kpi"><div class="label"><span class="tag SOMBRA">SOMBRA</span> N / mean_R / Suma R</div>
+    <div class="kpi"><div class="label"><span class="tag SOMBRA">DENEGADAS</span> N / mean_R / Suma R</div>
       <div class="value ${stSombra.mean>=0?'pos':'neg'}" style="font-size:1.05rem">${stSombra.n} · ${stSombra.n?fmtR(stSombra.mean):'—'} · ${stSombra.n?fmtR(stSombra.sum):'—'}</div></div>
-    <div class="kpi"><div class="label">ROI LIVE (capital real desplegado)</div>
+    <div class="kpi"><div class="label">ROI MOTOR (nocional de cada época)</div>
       <div class="value ${roiCls(stLive.roi)}">${roiTxt(stLive.roi)}</div></div>
-    <div class="kpi"><div class="label">ROI SOMBRA (simulado)</div>
+    <div class="kpi"><div class="label">ROI DENEGADAS (simulado)</div>
       <div class="value ${roiCls(stSombra.roi)}">${roiTxt(stSombra.roi)}</div></div>
-    <div class="kpi"><div class="label">Win rate LIVE / SOMBRA</div><div class="value" style="font-size:1.05rem">${stLive.n?stLive.wr.toFixed(0)+'%':'—'} / ${stSombra.n?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
-    <div class="kpi"><div class="label">IC90 LIVE (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
-    <div class="kpi"><div class="label">IC90 SOMBRA (clúster)</div><div class="value" style="font-size:1rem">${stSombra.ic?`[${stSombra.ic[0].toFixed(2)},${stSombra.ic[1].toFixed(2)}]`:'n/a'}</div></div>
+    <div class="kpi"><div class="label">Win rate MOTOR / DENEGADAS</div><div class="value" style="font-size:1.05rem">${stLive.n?stLive.wr.toFixed(0)+'%':'—'} / ${stSombra.n?stSombra.wr.toFixed(0)+'%':'—'}</div></div>
+    <div class="kpi"><div class="label">IC90 MOTOR (clúster)</div><div class="value" style="font-size:1rem">${stLive.ic?`[${stLive.ic[0].toFixed(2)},${stLive.ic[1].toFixed(2)}]`:'n/a'}</div></div>
+    <div class="kpi"><div class="label">IC90 DENEGADAS (clúster)</div><div class="value" style="font-size:1rem">${stSombra.ic?`[${stSombra.ic[0].toFixed(2)},${stSombra.ic[1].toFixed(2)}]`:'n/a'}</div></div>
   `;
 
   const byGroup = aggregate(filtered);
   const groupEntries = Object.entries(byGroup).map(([k,g])=>({...g, ...statsOf(g.rows)}))
     .sort((a,b)=>b.mean-a.mean);
-  const labels = groupEntries.map(g=>`${g.origen}·${g.familia} ${g.dir}`);
+  const labels = groupEntries.map(g=>`${etq(g.origen)}·${g.familia} ${g.dir}`);
   const values = groupEntries.map(g=>g.mean);
   const colors = groupEntries.map(g=>colorFor(g.origen));
   // 🔧 2026-10-03 · con ~50+ grupos y altura fija (340px) Chart.js omitía etiquetas del eje Y (autoSkip) y varias barras
@@ -1208,7 +1233,7 @@ function render(){
   // grafica roi.pnlUsd (dólares) en vez de mean (múltiplo de riesgo R). Grupos sin
   // notional/pnl_pct (roiOf devuelve null) se excluyen — no hay $ que graficar ahí.
   const pnlEntries = groupEntries.filter(g=>g.roi).sort((a,b)=>b.roi.pnlUsd - a.roi.pnlUsd);
-  const pnlLabels = pnlEntries.map(g=>`${g.origen}·${g.familia} ${g.dir}`);
+  const pnlLabels = pnlEntries.map(g=>`${etq(g.origen)}·${g.familia} ${g.dir}`);
   const pnlValues = pnlEntries.map(g=>g.roi.pnlUsd);
   const pnlColors = pnlEntries.map(g=>colorFor(g.origen));
   document.getElementById('chartFamiliasPnl').parentElement.style.height = Math.min(1600, Math.max(340, pnlLabels.length*15+60)) + 'px';
@@ -1261,8 +1286,8 @@ function render(){
   chartEquity = new Chart(document.getElementById('chartEquity'), {
     type:'line',
     data:{ datasets:[
-      { label:'LIVE (capital real)', data:eqSeries(liveRows), borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.08)', fill:true, pointRadius:0, borderWidth:2 },
-      { label:'SOMBRA (capital cero)', data:eqSeries(sombraRows), borderColor:'#c792ea', backgroundColor:'rgba(199,146,234,.06)', fill:true, pointRadius:0, borderWidth:2, borderDash:[4,3] },
+      { label:'MOTOR (nocional de cada época)', data:eqSeries(liveRows), borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.08)', fill:true, pointRadius:0, borderWidth:2 },
+      { label:'DENEGADAS (simulado)', data:eqSeries(sombraRows), borderColor:'#c792ea', backgroundColor:'rgba(199,146,234,.06)', fill:true, pointRadius:0, borderWidth:2, borderDash:[4,3] },
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:true, labels:{color:'#8b96a8', font:{size:11}}}},
@@ -1273,8 +1298,8 @@ function render(){
   chartEquityUsd = new Chart(document.getElementById('chartEquityUsd'), {
     type:'line',
     data:{ datasets:[
-      { label:'LIVE (capital real)', data:eqSeries(liveRows, usdOf), borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.08)', fill:true, pointRadius:0, borderWidth:2 },
-      { label:'SOMBRA (simulado)', data:eqSeries(sombraRows, usdOf), borderColor:'#c792ea', backgroundColor:'rgba(199,146,234,.06)', fill:true, pointRadius:0, borderWidth:2, borderDash:[4,3] },
+      { label:'MOTOR (nocional de cada época)', data:eqSeries(liveRows, usdOf), borderColor:'#5eb0ef', backgroundColor:'rgba(94,176,239,.08)', fill:true, pointRadius:0, borderWidth:2 },
+      { label:'DENEGADAS (simulado)', data:eqSeries(sombraRows, usdOf), borderColor:'#c792ea', backgroundColor:'rgba(199,146,234,.06)', fill:true, pointRadius:0, borderWidth:2, borderDash:[4,3] },
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{display:true, labels:{color:'#8b96a8', font:{size:11}}},
@@ -1403,7 +1428,7 @@ function renderTable(filtered){
     return `<tr class="${r.esTotal?'totalrow':'segrow'}">
       <td>${r.familia}${r.esTotal ? etiquetaBrazoX(r.familia, r.dir) : ''}</td>
       <td>${r.dir}</td>
-      <td>${r.origen?`<span class="tag ${r.origen}">${r.origen}</span>`:''}</td>
+      <td>${r.origen?`<span class="tag ${r.origen}">${etq(r.origen)}</span>`:''}</td>
       <td>${r.esTotal?`<b>${r.segmento}</b>`:r.segmento}</td>
       <td>${r.n}</td>
       <td class="${r.n?(r.mean>=0?'pos':'neg'):''}">${r.n?fmtR(r.mean):'—'}</td>
@@ -1657,7 +1682,7 @@ function renderGraduacion(){
   if (state.gradMejor){
     const k = rows.filter(r=>r.best && r.best.j && r.best.j.disponible).length;
     notaMejor.style.display = '';
-    notaMejor.innerHTML = `<b>MEJOR SALIDA DE LA CURVA</b>: las columnas N, mean_R, PnL e IC90 de cada segmento muestran la mejor combinación TP × SL × MAX_HOLD de la curva de acumulación (valores históricos sobre LIVE+SOMBRA de esa familia·dirección·segmento; su N puede no coincidir con el N hist. al armar). Disponible en ${k} de ${rows.length} segmentos (hace falta N&ge;40); el resto sale «n/d». La mejor de 252 combinaciones sesga al alza: solo vale lo marcado <span class="pos">&#10003; determinable</span> (p ajustado, ambas mitades). El estado, Paso 0/1 y los KPIs de arriba no cambian.`;
+    notaMejor.innerHTML = `<b>MEJOR SALIDA DE LA CURVA</b>: las columnas N, mean_R, PnL e IC90 de cada segmento muestran la mejor combinación TP × SL × MAX_HOLD de la curva de acumulación (valores históricos sobre MOTOR+DENEGADAS de esa familia·dirección·segmento; su N puede no coincidir con el N hist. al armar). Disponible en ${k} de ${rows.length} segmentos (hace falta N&ge;40); el resto sale «n/d». La mejor de 252 combinaciones sesga al alza: solo vale lo marcado <span class="pos">&#10003; determinable</span> (p ajustado, ambas mitades). El estado, Paso 0/1 y los KPIs de arriba no cambian.`;
   } else { notaMejor.style.display = 'none'; notaMejor.innerHTML = ''; }
   thead.innerHTML = '<tr>' + cols.map(c=>{
     const cls = [c.sortable===false ? 'nosort' : '', c.espejo ? 'col-espejo' : ''].filter(Boolean).join(' ');
@@ -1775,7 +1800,7 @@ function renderGraduacion(){
     // si el espejo tuviera ese N histórico, imposible (el espejo nace DESPUÉS del
     // armado, con N=0). La columna "estado" ya dice `🎓 vetando (espejo)` — no hace
     // falta duplicarlo aquí cambiando el significado de `origen`.
-    const origenTag = `<span class="tag ${r.origen}">${r.origen}</span>`;
+    const origenTag = `<span class="tag ${r.origen}">${etq(r.origen)}</span>`;
     const paso0 = r.armado
       ? `<span class="checkcell ok">✅ armado</span>${(r.gate && r.gate.watch_v2 === false) ? ' <span class="hint" style="margin:0" title="Armado con el criterio anterior (N≥15). Con su histórico de HOY todavía no cumple el Paso 0 v2 (N≥30, ≥15 por mitad, mismo signo). No se desarma ni afecta su forward; pasa a v2 solo cuando lo cumpla.">v1</span>' : ''}`
       : `<span class="checkcell wait">—</span>`;
@@ -2148,7 +2173,7 @@ function renderSimboloFilters(universo){
     return t[key]===value;
   }).length;
   const groups = [
-    { key:'origen', label:'Origen', values:['LIVE','SOMBRA'] },
+    { key:'origen', label:'Grupo', values:['LIVE','SOMBRA'] },
     { key:'dir', label:'Dirección', values:['LONG','SHORT'] },
   ];
   groups.forEach(g=>{
@@ -2160,7 +2185,7 @@ function renderSimboloFilters(universo){
       const n = countFor(g.key, v);
       const chip = document.createElement('div');
       chip.className = 'chip' + (simboloState.filters[g.key].has(v)?' active':'') + (n===0?' chip-empty':'');
-      chip.textContent = v + ' (' + n + ')';
+      chip.textContent = (g.key==='origen' ? etq(v) : v) + ' (' + n + ')';
       chip.onclick = ()=>{
         const set = simboloState.filters[g.key];
         if (set.has(v)) set.delete(v); else set.add(v);
@@ -2253,7 +2278,7 @@ function renderSimbolo(){
   const cols = [
     {k:'sym', label:'símbolo'}, {k:'n', label:'N'}, {k:'mean', label:'mean_R'},
     {k:'sum', label:'Suma R'}, {k:'wr', label:'WR'}, {k:'ic', label:'IC90'},
-    {k:'mix', label:'LIVE / SOMBRA', sortable:false},
+    {k:'mix', label:'MOTOR / DENEGADAS', sortable:false},
     {k:'ne', label:'N espejo'}, {k:'meane', label:'mean_R espejo'}, {k:'sume', label:'Σ R espejo'},
   ];
   thead.innerHTML = '<tr>' + cols.map(c=>
@@ -2271,7 +2296,7 @@ function renderSimbolo(){
   tbody.innerHTML = rows.map(r=>{
     const excl = r.ic && (r.ic[0]>0 || r.ic[1]<0);
     const mix = ['LIVE','SOMBRA'].filter(o=>r.origenes[o]).map(o=>
-      `<span class="tag" style="background:${colorForOrigenSimbolo(o)}22;color:${colorForOrigenSimbolo(o)}">${o} ${r.origenes[o]}</span>`).join(' ');
+      `<span class="tag" style="background:${colorForOrigenSimbolo(o)}22;color:${colorForOrigenSimbolo(o)}">${etq(o)} ${r.origenes[o]}</span>`).join(' ');
     return `<tr>
       <td>${r.sym}</td><td>${r.n}</td>
       <td class="${r.mean>=0?'pos':'neg'}">${fmtR(r.mean)}</td>
@@ -2318,11 +2343,11 @@ function renderAbiertas(){
   const err = a.binance_error ? ` · <span class="neg">Binance no respondió: ${a.binance_error}</span>` : '';
   const huerf = a.binance_huerfanas.length ? ` · <span class="neg">${a.binance_huerfanas.length} en Binance sin registro en el motor</span>` : '';
   const exNoReales = a.excluidas_no_reales || {ek5:0, ghost:0, no_ejecutadas:0, no_ejecutadas_motivos:{}};
-  const nExcl = (exNoReales.ek5||0) + (exNoReales.ghost||0) + (exNoReales.no_ejecutadas||0);
+  const nExcl = (exNoReales.ek5||0) + (exNoReales.ghost||0) + 0;
   const motivosTxt = Object.entries(exNoReales.no_ejecutadas_motivos||{}).map(([m,n])=>`${n} ${m.toLowerCase()}`).join(', ');
   meta.title = nExcl ? `Excluidas: ${exNoReales.ek5||0} E_K5 · ${exNoReales.ghost||0} ghost · ${exNoReales.no_ejecutadas||0} nunca ejecutadas${motivosTxt?' ('+motivosTxt+')':''}` : '';
   const desync = (nBinance!==null && nBinance!==nLiveState) ? ' <span class="neg">· el state va por detrás</span>' : '';
-  meta.innerHTML = `Motor: <b>${nLiveState}</b> LIVE${nCerr ? ` <span class="hint" style="margin:0">(+${nCerr} cerrada${nCerr>1?'s':''} esperando sombras)</span>` : ''} · <b>${a.sombra.length}</b> SOMBRA · <b>${a.espejo.length}</b> ESPEJO · Binance confirma <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>${desync}${err}${huerf}${nExcl ? ` · +${nExcl} excluidas` : ''}`;
+  meta.innerHTML = `Motor: <b>${nLiveState}</b> en testnet (sin aperturas nuevas)${nCerr ? ` <span class="hint" style="margin:0">(+${nCerr} cerrada${nCerr>1?'s':''} esperando sombras)</span>` : ''} · <b>${a.sombra.filter(p=>p.grupo==='motor').length}</b> MOTOR (sombra) · <b>${a.sombra.filter(p=>p.grupo!=='motor').length}</b> DENEGADAS · <b>${a.espejo.length}</b> ESPEJO · Binance confirma <b class="${nBinance===nLiveState?'pos':'neg'}">${nBinance===null?'n/a':nBinance}</b>${desync}${err}${huerf}${nExcl ? ` · +${nExcl} excluidas` : ''}`;
 
   const upnlCell = (p) => {
     if (p.upnl_pct == null) return '<td>—</td><td>—</td>';
@@ -2376,7 +2401,7 @@ function renderAbiertas(){
       <td class="${upnl==null?'':(upnl>=0?'pos':'neg')}">${upnl==null?'—':(upnl>=0?'+':'')+upnl.toFixed(2)}</td>
       ${upnlCell(p)}
     </tr>`;
-  }).join('') || '<tr><td colspan="11">Sin posiciones LIVE abiertas.</td></tr>';
+  }).join('') || '<tr><td colspan="11">Sin posiciones reales abiertas en testnet.</td></tr>';
   bindSort(theadL, sortA.live, renderAbiertas);
 
   // SOMBRA
@@ -2393,11 +2418,11 @@ function renderAbiertas(){
                                          : [...a.sombra].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
   const sombraRows = sombraSorted.slice(0, 200);
   tbodyS.innerHTML = sombraRows.map(p=>`<tr>
-      <td>${p.familia||'—'}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
+      <td>${p.familia||'—'}${p.grupo==='motor' ? ' <span class="tag LIVE" title="Apertura del motor sin orden (política SOMBRA total)">MOTOR</span>' : ''}</td><td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.entry_price}</td><td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
       <td>${brazoTag(p)}</td>
       ${upnlCell(p)}
-    </tr>`).join('') || '<tr><td colspan="10" class="vacio">Sin posiciones SOMBRA abiertas.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="10" class="vacio">Sin posiciones simuladas abiertas.</td></tr>';
   if (a.sombra.length > 200){
     tbodyS.innerHTML += `<tr><td colspan="10" class="vacio">Mostrando 200 de ${a.sombra.length}; ordena una columna para ver otras.</td></tr>`;
   }
@@ -2413,7 +2438,7 @@ function renderAbiertas(){
   const espejoRows = sortA.espejo.col ? sortRows(a.espejo, sortA.espejo)
                                        : [...a.espejo].sort((x,y)=> (y.entry_ts||0) - (x.entry_ts||0));
   tbodyE.innerHTML = espejoRows.map(p=>`<tr>
-      <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${p.origen_base}</span></td>
+      <td>${p.familia||'—'}</td><td>${p.corte}</td><td><span class="tag ${p.origen_base}">${etq(p.origen_base)}</span></td>
       <td>${p.dir}</td><td>${p.sym}</td><td>${fmtAge(p.entry_ts)}</td>
       <td>${p.TP_price?.toFixed?.(6) ?? p.TP_price}</td><td>${p.SL_price?.toFixed?.(6) ?? p.SL_price}</td>
       <td>${brazoTag(p)}</td>
@@ -2785,7 +2810,7 @@ function renderExtrasResumen(filtered){
     s.forEach((r,i)=>{ acc+=r.pnl_R; if (i>=VENT) acc-=s[i-VENT].pnl_R; if (i>=VENT-1) out.push({ x:new Date(r.ts), y:acc/VENT }); });
     return out;
   };
-  const dsOf = (fn, fill)=> origs.map(x=>({ label:x.o, data:fn(x.rows), borderColor:col[x.o], backgroundColor:col[x.o]+'22',
+  const dsOf = (fn, fill)=> origs.map(x=>({ label:etq(x.o), data:fn(x.rows), borderColor:col[x.o], backgroundColor:col[x.o]+'22',
       fill:!!fill, pointRadius:0, borderWidth:2, borderDash:x.o==='SOMBRA'?[4,3]:[], stepped:false }));
   const timeScales = (yTitle)=>({ x:{ type:'time', time:{unit:'day'}, grid:{color:'#232a36'}, ticks:{color:X_MUT} },
                                   y:{ grid:{color:'#232a36'}, ticks:{color:X_MUT}, title:{display:true,text:yTitle,color:X_MUT} } });
@@ -2798,7 +2823,7 @@ function renderExtrasResumen(filtered){
   // calidad de la serie por origen
   const mets = origs.map(x=>({ o:x.o, s:xStats(x.rows) }));
   const fila = (label, f, tip)=> `<tr><td title="${tip||''}">${label}</td>${mets.map(m=>`<td>${m.s ? f(m.s) : '—'}</td>`).join('')}</tr>`;
-  document.getElementById('calidadSerie').innerHTML = mets.length ? `<table><thead><tr><th>métrica</th>${mets.map(m=>`<th>${m.o}</th>`).join('')}</tr></thead><tbody>`
+  document.getElementById('calidadSerie').innerHTML = mets.length ? `<table><thead><tr><th>métrica</th>${mets.map(m=>`<th>${etq(m.o)}</th>`).join('')}</tr></thead><tbody>`
     + fila('N', s=>xInt(s.n))
     + fila('mean_R (expectancy)', s=>`<span class="${xCls(s.mean)}">${xR(s.mean)}</span>`)
     + fila('WR', s=>s.wr.toFixed(0)+'%')
@@ -2826,7 +2851,7 @@ function renderExtrasResumen(filtered){
   };
   document.getElementById('matrizDirReg').innerHTML = origs.map(x=>{
     const sub = (d, g)=> x.rows.filter(t=>(d===null||t.dir===d) && (g===null || (g==='s/d' ? !t.btc_1h : t.btc_1h===g)));
-    const head = `<tr><th>${x.o}</th>${REGS.map(g=>`<th>${g}</th>`).join('')}<th>s/d</th><th>TODOS</th></tr>`;
+    const head = `<tr><th>${etq(x.o)}</th>${REGS.map(g=>`<th>${g}</th>`).join('')}<th>s/d</th><th>TODOS</th></tr>`;
     const body = DIRS.concat([null]).map(d=>`<tr><td><b>${d||'TODAS'}</b></td>${REGS.concat(['s/d',null]).map(g=>cell(sub(d,g))).join('')}</tr>`).join('');
     return `<div class="tablewrap" style="max-height:none; margin-bottom:10px"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
   }).join('');
@@ -2839,7 +2864,7 @@ function renderExtrasResumen(filtered){
   const hh = Math.max(300, mostrar.length*17 + 60);
   document.getElementById('chartAporteWrap').style.height = hh + 'px';
   xChart('chartAporte', { type:'bar',
-    data:{ labels: mostrar.map(g=>`${g.o==='LIVE'?'L':'S'}·${g.f}`), datasets:[{ data: mostrar.map(g=>g.s), backgroundColor: mostrar.map(g=>g.s>=0?X_POS:X_NEG) }] },
+    data:{ labels: mostrar.map(g=>`${g.o==='LIVE'?'M':'D'}·${g.f}`), datasets:[{ data: mostrar.map(g=>g.s), backgroundColor: mostrar.map(g=>g.s>=0?X_POS:X_NEG) }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
       tooltip:{callbacks:{label:(c)=>`Σ R ${xR(c.raw,1)} · N=${mostrar[c.dataIndex].n}`}}},
       scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
@@ -2848,7 +2873,7 @@ function renderExtrasResumen(filtered){
 // ── POSICIONES ABIERTAS ────────────────────────────────────────────────────────────────────
 function renderExtrasAbiertas(){
   const a = state.data.abiertas; if (!a || !a.disponible) return;
-  const grupos = [['LIVE', a.live.filter(p=>!p.real_closed), X_LIVE], ['SOMBRA', a.sombra, X_SOM], ['ESPEJO', a.espejo, X_ESP]];
+  const grupos = [['LIVE', a.live.filter(p=>!p.real_closed).concat(a.sombra.filter(p=>p.grupo==='motor')), X_LIVE], ['SOMBRA', a.sombra.filter(p=>p.grupo!=='motor'), X_SOM], ['ESPEJO', a.espejo, X_ESP]];
   const stat = (rows)=>{
     const u = rows.filter(p=>p.upnl_R!=null);
     return { n: rows.length, nu: u.length, sumR: u.reduce((s,p)=>s+p.upnl_R,0), mean: u.length ? u.reduce((s,p)=>s+p.upnl_R,0)/u.length : null,
@@ -2862,14 +2887,14 @@ function renderExtrasAbiertas(){
   const symDup = Object.entries(symCount).filter(([,n])=>n>1);
   const k = (o)=> st[o];
   document.getElementById('abiertasKpis').innerHTML =
-      xKpi('LIVE abiertas', xInt(k('LIVE').n), `L ${k('LIVE').L} · S ${k('LIVE').S}`)
-    + xKpi('uPnL LIVE (R, suma)', xR(k('LIVE').sumR,2), k('LIVE').nu ? `${k('LIVE').pos}/${k('LIVE').nu} en positivo` : '', xCls(k('LIVE').sumR))
+      xKpi('MOTOR abiertas', xInt(k('LIVE').n), `testnet ${a.live.filter(p=>!p.real_closed).length} · L ${k('LIVE').L} · S ${k('LIVE').S}`)
+    + xKpi('uPnL MOTOR (R, suma)', xR(k('LIVE').sumR,2), k('LIVE').nu ? `${k('LIVE').pos}/${k('LIVE').nu} en positivo` : '', xCls(k('LIVE').sumR))
     + xKpi('uPnL$ Binance', nUsd ? ((sumUsd>=0?'+':'')+'$'+sumUsd.toFixed(2)) : '—', nUsd ? `${nUsd} posiciones confirmadas` : 'sin confirmar', xCls(nUsd?sumUsd:null))
-    + xKpi('Nocional neto LIVE', (notL||notS) ? ('L $'+notL.toFixed(0)+' / S $'+notS.toFixed(0)) : '—', (notL||notS) ? ('neto '+((notL-notS)>=0?'+$':'−$')+Math.abs(notL-notS).toFixed(0)+(notL+notS? ' · '+(100*Math.abs(notL-notS)/(notL+notS)).toFixed(0)+'% sesgo':'')) : 'Binance sin datos')
-    + xKpi('SOMBRA abiertas', xInt(k('SOMBRA').n), `L ${k('SOMBRA').L} · S ${k('SOMBRA').S} · sin E_K3 ${a.sombra.filter(p=>p.brazo==='sin_E_K3').length}`)
-    + xKpi('uPnL SOMBRA (mean R)', xR(k('SOMBRA').mean,3), k('SOMBRA').nu ? `${(100*k('SOMBRA').pos/k('SOMBRA').nu).toFixed(0)}% en positivo` : '', xCls(k('SOMBRA').mean))
+    + xKpi('Nocional neto testnet', (notL||notS) ? ('L $'+notL.toFixed(0)+' / S $'+notS.toFixed(0)) : '—', (notL||notS) ? ('neto '+((notL-notS)>=0?'+$':'−$')+Math.abs(notL-notS).toFixed(0)+(notL+notS? ' · '+(100*Math.abs(notL-notS)/(notL+notS)).toFixed(0)+'% sesgo':'')) : 'Binance sin datos')
+    + xKpi('DENEGADAS abiertas', xInt(k('SOMBRA').n), `L ${k('SOMBRA').L} · S ${k('SOMBRA').S} · sin E_K3 ${a.sombra.filter(p=>p.brazo==='sin_E_K3').length}`)
+    + xKpi('uPnL DENEGADAS (mean R)', xR(k('SOMBRA').mean,3), k('SOMBRA').nu ? `${(100*k('SOMBRA').pos/k('SOMBRA').nu).toFixed(0)}% en positivo` : '', xCls(k('SOMBRA').mean))
     + xKpi('ESPEJO abiertas', xInt(k('ESPEJO').n), `uPnL mean ${xR(k('ESPEJO').mean,3)}`, '')
-    + xKpi('Símbolos repetidos LIVE', symDup.length ? String(symDup.length) : '0', symDup.length ? symDup.map(([s,n])=>`${s}×${n}`).join(' · ') : 'sin concentración por símbolo');
+    + xKpi('Símbolos repetidos (testnet)', symDup.length ? String(symDup.length) : '0', symDup.length ? symDup.map(([s,n])=>`${s}×${n}`).join(' · ') : 'sin concentración por símbolo');
 
   // distribución del uPnL_R — LIVE y SOMBRA juntos (familias, dirección real) y ESPEJO APARTE
   // (otra población: dirección contraria, capital cero). Cada serie como % de sus propias posiciones.
@@ -2885,11 +2910,11 @@ function renderExtrasAbiertas(){
     label:(c)=>{ const h = hs[c.datasetIndex]; return `${c.dataset.label}: ${c.raw.toFixed(1)}% (${h.cnt[c.dataIndex]} de ${h.tot})`; } } });
   const scH = { x:{ grid:{display:false}, ticks:{color:X_MUT, maxTicksLimit:16}, title:{display:true,text:'uPnL (R)',color:X_MUT} },
                 y:{ grid:{color:'#232a36'}, ticks:{color:X_MUT, callback:(v)=>v+'%'} } };
-  const hL = histPct(a.live.filter(p=>!p.real_closed)), hS = histPct(a.sombra), hE = histPct(a.espejo);
+  const hL = histPct(grupos[0][1]), hS = histPct(grupos[1][1]), hE = histPct(a.espejo);
   xChart('chartAbHist', { type:'bar',
     data:{ labels: labelsH, datasets:[
-      { label:`LIVE (n=${hL.tot})`, data:hL.pct, backgroundColor:X_LIVE+'dd' },
-      { label:`SOMBRA (n=${hS.tot})`, data:hS.pct, backgroundColor:X_SOM+'aa' } ] },
+      { label:`MOTOR (n=${hL.tot})`, data:hL.pct, backgroundColor:X_LIVE+'dd' },
+      { label:`DENEGADAS (n=${hS.tot})`, data:hS.pct, backgroundColor:X_SOM+'aa' } ] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:X_LEG, tooltip:tipH([hL,hS])}, scales:scH } });
   xChart('chartAbHistEsp', { type:'bar',
     data:{ labels: labelsH, datasets:[ { label:`ESPEJO (n=${hE.tot})`, data:hE.pct, backgroundColor:X_ESP+'bb' } ] },
@@ -2897,7 +2922,7 @@ function renderExtrasAbiertas(){
 
   // abiertas por familia: LIVE y SOMBRA (cada familia en su única dirección), apiladas por origen.
   const porFam = {};
-  [['LIVE', a.live.filter(p=>!p.real_closed)], ['SOMBRA', a.sombra]].forEach(([o,rows])=> rows.forEach(p=>{
+  [['LIVE', grupos[0][1]], ['SOMBRA', grupos[1][1]]].forEach(([o,rows])=> rows.forEach(p=>{
     const key = p.familia + ' · ' + p.dir;
     const g = (porFam[key] = porFam[key] || { k:key, LIVE:0, SOMBRA:0, sumR:0, nR:0 });
     g[o]++;
@@ -2907,8 +2932,8 @@ function renderExtrasAbiertas(){
   document.getElementById('chartAbFamWrap').style.height = Math.max(280, fams.length*19+60)+'px';
   xChart('chartAbFam', { type:'bar',
     data:{ labels: fams.map(g=>g.k), datasets:[
-      { label:'LIVE', data:fams.map(g=>g.LIVE), backgroundColor:X_LIVE+'dd', stack:'s' },
-      { label:'SOMBRA', data:fams.map(g=>g.SOMBRA), backgroundColor:X_SOM+'cc', stack:'s' } ] },
+      { label:'MOTOR', data:fams.map(g=>g.LIVE), backgroundColor:X_LIVE+'dd', stack:'s' },
+      { label:'DENEGADAS', data:fams.map(g=>g.SOMBRA), backgroundColor:X_SOM+'cc', stack:'s' } ] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
       plugins:{legend:X_LEG, tooltip:{callbacks:{afterBody:(it)=>{ const g = fams[it[0].dataIndex]; return g.nR ? `uPnL medio ${xR(g.sumR/g.nR,3)} R (n=${g.nR})` : ''; }}}},
       scales:{ x:{ stacked:true, grid:{color:'#232a36'}, ticks:{color:X_MUT} }, y:{ stacked:true, grid:{display:false}, ticks:{color:X_MUT, font:{size:10}} } } } });
@@ -2941,7 +2966,7 @@ function renderExtrasAbiertas(){
       <div style="position:relative; background:var(--panel2); border-radius:4px; height:12px"><div style="position:absolute; left:${100/(t+1)}%; top:-2px; bottom:-2px; width:1px; background:var(--muted)" title="entrada (0R)"></div>
         <div style="position:absolute; left:0; width:${pos}%; height:100%; background:${col}88; border-radius:4px"></div></div>
       <span class="${xCls(u)}">${xR(u,2)}R <span class="hint" style="margin:0">· ${fmtAge(p.entry_ts)}</span></span></div>`;
-  }).join('') : '<div class="vacio">Sin posiciones LIVE abiertas.</div>';
+  }).join('') : '<div class="vacio">Sin posiciones reales abiertas en testnet.</div>';
 }
 
 // ── GRADUACIÓN ───────────────────────────────────────────────────────────────────────────
@@ -3106,7 +3131,7 @@ function renderEspejos(){
   const barras = fuente.length>30 ? fuente.slice(0,15).concat(fuente.slice(-15)) : fuente;
   document.getElementById('chartEspFamWrap').style.height = Math.max(260, barras.length*19+60)+'px';
   xChart('chartEspFam', { type:'bar',
-    data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[L] ':''}${r.familia} · ${r.corte} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
+    data:{ labels: barras.map(r=>`${r.origen==='LIVE'?'[M] ':''}${r.familia} · ${r.corte} (${r.edir})`), datasets:[{ data: barras.map(r=>r.mean), backgroundColor: barras.map(r=>r.mean>=0?X_POS+'cc':X_NEG+'cc') }] },
     options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},
       tooltip:{callbacks:{label:(c)=>{ const r=barras[c.dataIndex]; return `espejo ${xR(r.mean)} · N=${r.n}${r.ice?` · IC90 [${r.ice[0].toFixed(2)}, ${r.ice[1].toFixed(2)}]`:''}`; }}}},
       scales:{ x:X_AX, y:{ grid:{display:false}, ticks:{color:X_MUT, font:{size:10}, autoSkip:false} } } } });
@@ -3139,7 +3164,7 @@ function renderEspejos(){
   rows = E.sort.col ? sortRows(rows, E.sort) : rows.sort((a,b)=> b.n - a.n);
   tbody.innerHTML = rows.slice(0, 600).map(r=>{
     const ex = r.ice && (r.ice[0]>0 || r.ice[1]<0), exb = r.icb && (r.icb[0]>0 || r.icb[1]<0), poco = r.n < 15;
-    return `<tr style="${poco?'opacity:.6':''}"><td><span class="tag ${r.origen}">${r.origen}</span></td><td>${r.familia}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td><td>${r.corte}</td><td>${r.n}</td>`
+    return `<tr style="${poco?'opacity:.6':''}"><td><span class="tag ${r.origen}">${etq(r.origen)}</span></td><td>${r.familia}</td><td>${r.dir}</td><td><span class="tag ESPEJO">${r.edir}</span></td><td>${r.corte}</td><td>${r.n}</td>`
       + `<td class="${r.mean==null?'':(r.mean>=0?'pos':'neg')}">${f2(r.mean)}</td><td>${r.ice ? `[${f2(r.ice[0])}, ${f2(r.ice[1])}]${ex?'<span class="star">*</span>':''}` : NA}</td><td>${r.wr!=null ? r.wr.toFixed(0)+'%' : '—'}</td>`
       + `<td class="${r.meanb==null?'':(r.meanb>=0?'pos':'neg')}">${f2(r.meanb)}</td><td>${r.icb ? `[${f2(r.icb[0])}, ${f2(r.icb[1])}]${exb?'<span class="star">*</span>':''}` : NA}</td>`
       + espPaso1(r.ge)
@@ -3658,7 +3683,7 @@ function renderEtFilters(){
   const base = (state.data.trades||[]).filter(t=>t.e);
   ['origen','dir'].forEach(k=>{
     const vals = k==='origen' ? ['LIVE','SOMBRA'] : ['LONG','SHORT'];
-    mk(k==='origen'?'Origen':'Dirección', vals.map(v=>chip(`${v} (${base.filter(t=>t[k]===v).length})`, etSt[k].has(v), ()=>{ if (etSt[k].has(v)) etSt[k].delete(v); else etSt[k].add(v); renderEtapas(); })));
+    mk(k==='origen'?'Grupo':'Dirección', vals.map(v=>chip(`${etq(v)} (${base.filter(t=>t[k]===v).length})`, etSt[k].has(v), ()=>{ if (etSt[k].has(v)) etSt[k].delete(v); else etSt[k].add(v); renderEtapas(); })));
   });
   mk('R', [chip('Quitar efecto del día', etSt.adj, ()=>{ etSt.adj = !etSt.adj; renderEtapas(); }), chip('Mejor salida de la curva', etSt.mejor, ()=>{ etSt.mejor = !etSt.mejor; renderEtapas(); })]);
   mk('Etapas', [chip('4 etapas', etSt.modo==='4', ()=>{ etSt.modo='4'; renderEtapas(); }), chip('E2 · E4 · Transición', etSt.modo==='3', ()=>{ etSt.modo='3'; renderEtapas(); })]);
@@ -3764,7 +3789,7 @@ fetch('data.json?_=' + Date.now())
     return JSON.parse(txt);
   })
   .then(d=>{
-    state.data = d;
+    normalizarGrupos(d); state.data = d; mostrarPolitica(d);
     umbralesCongelados = fitUmbralesCongelados(d.trades);   // una sola vez, sobre TODO
     umbralesMaduros = fitUmbralesCongelados(tradesMaduros());   // para el tab Graduación (evidencia madura)
     document.getElementById('ts-txt').textContent = d.generado_ts;
