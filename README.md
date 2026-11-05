@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-11-05 13:41:39
+Ultima actualizacion: 2026-11-05 14:07:55
 
 ```
 ========================================================================================================
@@ -454,7 +454,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
 ```
 
 ```
-  Régimen BTC: ret30d=-10.7%  ret7d=-6.0%  ·  fuera de régimen de impulso
+  Régimen BTC: ret30d=-11.4%  ret7d=-6.1%  ·  fuera de régimen de impulso
 
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ FAMILIA × RÉGIMEN DE BTC (btc_regime_1h) — MOTOR+DENEG, nunca agregado entre familias                │
@@ -495,7 +495,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │ DENEG·s100_macd_cruce_alLONG  BEAR       27    -1.174  -31.71   19% [-1.61,-0.68]                    │
 │ DENEG·s100_macd_cruce_baSHORT RANGE     399    +0.711 +283.59   65% [+0.58,+0.85]*                   │
 │ DENEG·s100_macd_cruce_baSHORT BULL       11    -0.440   -4.84   55% [-1.17,+0.34]                    │
-│ DENEG·s100_macd_cruce_baSHORT BEAR       22    +0.225   +4.95   55% [-0.28,+0.76]                    │
+│ DENEG·s100_macd_cruce_baSHORT BEAR       23    +0.125   +2.88   52% [-0.39,+0.70]                    │
 │ DENEG·s107_hch          SHORT RANGE      10    -0.514   -5.14   20% [-1.41,+0.60]                    │
 │ DENEG·s111_caja_piso    LONG  RANGE      22    -0.565  -12.43   32% [-0.94,-0.18]                    │
 │ DENEG·s111_caja_rupt_bajSHORT RANGE      11    +0.012   +0.13   55% [-0.21,+0.23]                    │
@@ -503,6 +503,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │ DENEG·s112_donchian_alc LONG  RANGE       9    -1.481  -13.33    0% [-1.87,-1.07]*                   │
 │ DENEG·s112_donchian_baj SHORT RANGE      52    -0.040   -2.07   54% [-0.33,+0.26]                    │
 │ DENEG·s114_hch_inv      LONG  RANGE      20    -1.093  -21.86   25% [-1.61,-0.52]*                   │
+│ DENEG·s114_hch_inv      LONG  BEAR        4    -1.583   -6.33    0% [-2.05,-0.67]                    │
 │ DENEG·s114_tri_sim_baj  SHORT RANGE      10    +1.083  +10.83   70% [-0.13,+2.18]                    │
 │ DENEG·s115_pos_rango_latSHORT RANGE     293    +0.663 +194.16   62% [+0.49,+0.83]*                   │
 │ DENEG·s115_pos_rango_latSHORT BEAR       25    +0.051   +1.27   56% [-0.42,+0.51]                    │
@@ -526,7 +527,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │ DENEG·s83_quiebre_retestSHORT BEAR       16    +0.095   +1.52   62% [-0.33,+0.57]                    │
 │ DENEG·s84_volumen_regimeLONG  RANGE     655    -0.716 -468.89   28% [-0.80,-0.63]*                   │
 │ DENEG·s84_volumen_regimeLONG  BULL      110    +1.042 +114.62   72% [+0.77,+1.33]                    │
-│ DENEG·s84_volumen_regimeLONG  BEAR       72    -0.430  -30.99   33% [-0.60,-0.25]                    │
+│ DENEG·s84_volumen_regimeLONG  BEAR       73    -0.453  -33.06   33% [-0.63,-0.28]                    │
 │ DENEG·s85_vela_rev_alcisSHORT RANGE     192    +0.544 +104.46   64% [+0.36,+0.73]*                   │
 │ DENEG·s85_vela_rev_alcisSHORT BULL       22    -0.769  -16.92   27% [-1.17,-0.36]                    │
 │ DENEG·s85_vela_rev_alcisSHORT BEAR        5    -0.072   -0.36   60% [-0.40,+0.30]                    │
@@ -542,13 +543,13 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │ DENEG·s87_fib_cont_alcisLONG  BEAR       75    -0.472  -35.43   29% [-0.64,-0.31]                    │
 │ DENEG·s87_fib_cont_bajisSHORT RANGE     621    +0.675 +419.23   65% [+0.58,+0.77]*                   │
 │ DENEG·s87_fib_cont_bajisSHORT BULL       99    -0.970  -96.05   24% [-1.14,-0.80]                    │
-│ DENEG·s87_fib_cont_bajisSHORT BEAR       68    +0.110   +7.51   71% [-0.09,+0.31]                    │
+│ DENEG·s87_fib_cont_bajisSHORT BEAR       69    +0.166  +11.48   71% [-0.04,+0.38]                    │
 │ DENEG·s92_doble_suelo   LONG  RANGE     419    -0.737 -308.78   26% [-0.84,-0.62]*                   │
 │ DENEG·s92_doble_suelo   LONG  BULL       30    +0.428  +12.85   47% [-0.18,+1.10]                    │
 │ DENEG·s92_doble_suelo   LONG  BEAR       59    -0.661  -38.99   25% [-0.91,-0.40]                    │
 │ DENEG·s92_doble_techo   SHORT RANGE     306    +0.962 +294.32   64% [+0.78,+1.17]*                   │
 │ DENEG·s92_doble_techo   SHORT BULL       12    +0.149   +1.78   67% [-0.53,+0.79]                    │
-│ DENEG·s92_doble_techo   SHORT BEAR        5    -0.071   -0.36   60% [-0.93,+0.61]                    │
+│ DENEG·s92_doble_techo   SHORT BEAR        6    -0.402   -2.41   50% [-1.30,+0.44]                    │
 │ DENEG·s93_inside_bar    LONG  RANGE     555    -0.720 -399.85   26% [-0.81,-0.63]*                   │
 │ DENEG·s93_inside_bar    LONG  BULL       52    +0.754  +39.22   58% [+0.30,+1.23]                    │
 │ DENEG·s93_inside_bar    LONG  BEAR       72    -0.372  -26.78   31% [-0.55,-0.20]                    │
@@ -563,19 +564,19 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │ DENEG·s95_rebote_ma_alciLONG  BEAR       42    -1.151  -48.35   24% [-1.46,-0.85]                    │
 │ DENEG·s95_rebote_ma_bajiSHORT RANGE     496    +0.689 +341.59   64% [+0.56,+0.82]*                   │
 │ DENEG·s95_rebote_ma_bajiSHORT BULL       30    -0.622  -18.67   43% [-1.04,-0.13]                    │
-│ DENEG·s95_rebote_ma_bajiSHORT BEAR       58    +0.127   +7.38   57% [-0.19,+0.45]                    │
+│ DENEG·s95_rebote_ma_bajiSHORT BEAR       59    +0.153   +9.03   58% [-0.16,+0.46]                    │
 │ DENEG·s96_cuna_bajista  LONG  RANGE       9    +0.809   +7.28   67% [+0.18,+1.60]                    │
 │ DENEG·s97_rechazo_resistSHORT RANGE      19    -0.513   -9.74   37% [-0.85,-0.16]                    │
 │ DENEG·s97_rechazo_resistSHORT BULL        5    -0.451   -2.25   40% [-2.02,+1.24]                    │
 │ DENEG·s97_rechazo_soportLONG  RANGE      12    -0.248   -2.98   42% [-1.15,+0.71]                    │
 │ DENEG·s97_rechazo_soportLONG  BULL        7    +1.575  +11.02   57% [+0.30,+2.92]                    │
 │ DENEG·s98_climax_swing_hSHORT RANGE     422    +0.899 +379.54   70% [+0.76,+1.04]*                   │
-│ DENEG·s98_climax_swing_hSHORT BEAR       19    -0.110   -2.09   53% [-0.63,+0.40]                    │
+│ DENEG·s98_climax_swing_hSHORT BEAR       20    -0.097   -1.94   55% [-0.59,+0.39]                    │
 │ DENEG·s98_climax_swing_lLONG  RANGE     474    -0.557 -264.00   35% [-0.65,-0.47]*                   │
 │ DENEG·s98_climax_swing_lLONG  BEAR       79    -0.078   -6.19   44% [-0.25,+0.09]                    │
 │ DENEG·s99_squeeze_cono  LONG  RANGE     563    -0.829 -466.46   26% [-0.92,-0.73]*                   │
 │ DENEG·s99_squeeze_cono  LONG  BULL       54    +1.101  +59.48   70% [+0.65,+1.56]                    │
-│ DENEG·s99_squeeze_cono  LONG  BEAR       68    -1.047  -71.22   25% [-1.30,-0.80]                    │
+│ DENEG·s99_squeeze_cono  LONG  BEAR       69    -1.062  -73.27   25% [-1.30,-0.82]                    │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -815,23 +816,23 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        27   100%  -1.174  -31.71   19%       [-1.61,-0.68]  R0 B0 Be27   [neg] │
 │                               rs24_alto      169   100%  -0.937 -158.35   22%      [-1.11,-0.76]*  R152 B10 Be7 [ARMADA] │
 │                               rs24_bajo      164   100%  -0.445  -72.91   38%       [-0.67,-0.22]  R153 B5 Be6  [ARMADA] │
-│ DENEG·s100_macd_cruce_baSHORT (TOTAL)        432   100%  +0.657 +283.70   64%      [+0.53,+0.78]*  R399 B11 Be22    │
-│                               alt1d_range    200   100%  +0.720 +144.09   65%      [+0.52,+0.94]*  R184 B8 Be8  [ARMADA] │
+│ DENEG·s100_macd_cruce_baSHORT (TOTAL)        433   100%  +0.650 +281.63   64%      [+0.53,+0.77]*  R399 B11 Be23    │
+│                               alt1d_range    201   100%  +0.707 +142.01   65%      [+0.51,+0.91]*  R184 B8 Be9  [ARMADA] │
 │                               age4h_alto     149   100%  +0.644  +95.98   60%      [+0.38,+0.91]*  R139 B5 Be5  [ARMADA] │
 │                               age4h_bajo     145   100%  +0.801 +116.18   68%      [+0.54,+1.07]*  R134 B0 Be11 [ARMADA] │
-│                               vol_rel_alto   147   100%  +0.415  +60.94   57%       [+0.15,+0.66]  R144 B0 Be3  [ARMADA] │
+│                               vol_rel_alto   147   100%  +0.397  +58.31   56%       [+0.14,+0.64]  R143 B0 Be4  [ARMADA] │
 │                               vol_rel_bajo   143   100%  +0.862 +123.20   68%      [+0.56,+1.15]*  R129 B5 Be9  [ARMADA] │
 │                               btc_range      399   100%  +0.711 +283.59   65%      [+0.58,+0.85]*  R399 B0 Be0  [ARMADA] │
-│                               celda_bear_bear  47   100%  +0.574  +26.96   57%       [+0.07,+1.07]  R34 B0 Be13  [ARMADA] │
+│                               celda_bear_bear  48   100%  +0.518  +24.88   56%       [+0.02,+1.01]  R34 B0 Be14  [ARMADA] │
 │                               celda_bear_range  19   100%  +0.320   +6.09   58%       [-0.28,+0.94]  R10 B0 Be9     │
 │                               celda_range_bull  83   100%  +0.459  +38.09   71%      [+0.19,+0.71]*  R83 B0 Be0   [ARMADA] │
 │                               celda_range_bear 108   100%  +0.789  +85.23   69%      [+0.49,+1.09]*  R108 B0 Be0  [ARMADA] │
 │                               celda_range_range 154   100%  +0.718 +110.54   59%       [+0.49,+0.97]  R154 B0 Be0  [ARMADA] │
 │                               sqz4h_alto     147   100%  +1.008 +148.20   73%      [+0.73,+1.29]*  R142 B3 Be2  [ARMADA] │
-│                               sqz4h_bajo     143   100%  +0.167  +23.84   55%       [-0.08,+0.41]  R129 B4 Be10 [ARMADA] │
+│                               sqz4h_bajo     143   100%  +0.152  +21.73   54%       [-0.09,+0.38]  R128 B4 Be11 [ARMADA] │
 │                               alt1d_bear      59   100%  +1.013  +59.77   68%      [+0.74,+1.29]*  R48 B2 Be9   [ARMADA] │
 │                               alt1d_bull     173   100%  +0.462  +79.85   61%      [+0.28,+0.67]*  R167 B1 Be5  [ARMADA] │
-│                               btc_bear        22   100%  +0.225   +4.95   55%       [-0.28,+0.76]  R0 B0 Be22       │
+│                               btc_bear        23   100%  +0.125   +2.88   52%       [-0.39,+0.70]  R0 B0 Be23       │
 │                               rs24_alto      147   100%  +0.565  +82.99   73%      [+0.35,+0.77]*  R136 B5 Be6  [ARMADA] │
 │                               rs24_bajo      143   100%  +0.458  +65.46   56%       [+0.18,+0.76]  R134 B2 Be7  [ARMADA] │
 │ DENEG·s105_bandera_alcisLONG  (TOTAL)          1   100%  -2.039   -2.04    0%                 n/a  R0 B0 Be1        │
@@ -858,7 +859,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               alt1d_bull      17   100%  +0.085   +1.44   65%       [-0.26,+0.40]  R17 B0 Be0       │
 │                               rs24_alto       18   100%  +0.270   +4.85   61%       [-0.31,+0.85]  R18 B0 Be0       │
 │                               rs24_bajo       18   100%  -0.306   -5.51   39%       [-0.75,+0.14]  R17 B0 Be1       │
-│ DENEG·s114_hch_inv      LONG  (TOTAL)         22   100%  -1.180  -25.95   23%      [-1.67,-0.65]*  R20 B0 Be2       │
+│ DENEG·s114_hch_inv      LONG  (TOTAL)         24   100%  -1.175  -28.19   21%      [-1.59,-0.69]*  R20 B0 Be4       │
 │                               btc_range       20   100%  -1.093  -21.86   25%      [-1.61,-0.52]*  R20 B0 Be0   [neg] │
 │ DENEG·s114_tri_sim_alc  LONG  (TOTAL)          6   100%  -1.835  -11.01    0%      [-2.03,-1.45]*  R6 B0 Be0        │
 │ DENEG·s114_tri_sim_baj  SHORT (TOTAL)         10   100%  +1.083  +10.83   70%       [-0.13,+2.18]  R10 B0 Be0       │
@@ -965,28 +966,28 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        16   100%  +0.095   +1.52   62%       [-0.33,+0.57]  R0 B0 Be16       │
 │                               rs24_alto      139   100%  +0.887 +123.30   65%      [+0.64,+1.14]*  R126 B4 Be9  [ARMADA] │
 │                               rs24_bajo      134   100%  +0.154  +20.67   60%       [-0.06,+0.36]  R125 B5 Be4  [ARMADA] │
-│ DENEG·s84_volumen_regimeLONG  (TOTAL)        837   100%  -0.460 -385.25   34%       [-0.53,-0.38]  R655 B110 Be72   │
+│ DENEG·s84_volumen_regimeLONG  (TOTAL)        838   100%  -0.462 -387.33   34%       [-0.53,-0.38]  R655 B110 Be73   │
 │                               alt1d_range    411   100%  -0.388 -159.48   36%       [-0.50,-0.26]  R306 B80 Be25[ARMADA] │
 │                               age4h_alto     286   100%  -0.506 -144.75   33%      [-0.65,-0.36]*  R246 B29 Be11[ARMADA] │
 │                               age4h_bajo     278   100%  -0.480 -133.38   35%       [-0.62,-0.32]  R201 B41 Be36[ARMADA] │
 │                               vol_rel_alto   285   100%  -0.469 -133.78   34%       [-0.61,-0.33]  R215 B48 Be22[ARMADA] │
-│                               vol_rel_bajo   276   100%  -0.454 -125.20   35%      [-0.59,-0.31]*  R226 B24 Be26[ARMADA] │
+│                               vol_rel_bajo   277   100%  -0.457 -126.53   35%      [-0.60,-0.32]*  R226 B25 Be26[ARMADA] │
 │                               btc_range      655   100%  -0.716 -468.89   28%      [-0.80,-0.63]*  R655 B0 Be0  [ARMADA] │
 │                               celda_bull_bull 103   100%  +1.037 +106.81   72%      [+0.78,+1.30]*  R3 B100 Be0  [ARMADA] │
 │                               celda_bull_range  23   100%  -1.009  -23.22   26%       [-1.57,-0.35]  R14 B9 Be0   [neg] │
-│                               celda_bear_bear  99   100%  -0.542  -53.71   30%      [-0.75,-0.32]*  R38 B0 Be61  [ARMADA] │
+│                               celda_bear_bear 100   100%  -0.558  -55.78   30%      [-0.76,-0.34]*  R38 B0 Be62  [ARMADA] │
 │                               celda_bear_range  32   100%  -0.398  -12.74   38%       [-0.84,+0.07]  R21 B0 Be11    │
 │                               celda_range_bull 102   100%  -0.806  -82.18   24%      [-1.06,-0.56]*  R102 B0 Be0  [ARMADA] │
 │                               celda_range_bear 259   100%  -0.709 -183.67   26%      [-0.85,-0.56]*  R259 B0 Be0  [ARMADA] │
 │                               celda_range_range 216   100%  -0.626 -135.17   32%       [-0.81,-0.44]  R216 B0 Be0  [ARMADA] │
 │                               sqz4h_alto     285   100%  -0.557 -158.79   31%       [-0.72,-0.38]  R193 B75 Be17[neg] │
-│                               sqz4h_bajo     276   100%  -0.306  -84.47   39%       [-0.45,-0.15]  R237 B17 Be22[ARMADA] │
-│                               alt1d_bear     116   100%  -0.350  -40.60   34%       [-0.63,-0.05]  R73 B17 Be26 [ARMADA] │
+│                               sqz4h_bajo     277   100%  -0.312  -86.55   39%       [-0.46,-0.15]  R237 B17 Be23[ARMADA] │
+│                               alt1d_bear     117   100%  -0.365  -42.68   34%       [-0.65,-0.06]  R73 B17 Be27 [ARMADA] │
 │                               alt1d_bull     310   100%  -0.597 -185.17   31%      [-0.73,-0.47]*  R276 B13 Be21[ARMADA] │
 │                               btc_bull       110   100%  +1.042 +114.62   72%       [+0.77,+1.33]  R0 B110 Be0  [ARMADA] │
-│                               btc_bear        72   100%  -0.430  -30.99   33%       [-0.60,-0.25]  R0 B0 Be72   [ARMADA] │
+│                               btc_bear        73   100%  -0.453  -33.06   33%       [-0.63,-0.28]  R0 B0 Be73   [ARMADA] │
 │                               rs24_alto      285   100%  -0.491 -139.87   32%       [-0.67,-0.30]  R217 B59 Be9 [ARMADA] │
-│                               rs24_bajo      276   100%  -0.215  -59.41   38%       [-0.36,-0.06]  R197 B23 Be56[ARMADA] │
+│                               rs24_bajo      277   100%  -0.209  -57.98   39%       [-0.36,-0.05]  R197 B24 Be56[ARMADA] │
 │ DENEG·s85_vela_rev_alcisSHORT (TOTAL)        219   100%  +0.398  +87.19   60%       [+0.24,+0.57]  R192 B22 Be5     │
 │                               alt1d_range     98   100%  +0.298  +29.16   54%       [+0.07,+0.52]  R77 B18 Be3  [ARMADA] │
 │                               age4h_alto      75   100%  +0.087   +6.50   51%       [-0.18,+0.38]  R66 B8 Be1       │
@@ -1073,28 +1074,28 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        75   100%  -0.472  -35.43   29%       [-0.64,-0.31]  R0 B0 Be75   [ARMADA] │
 │                               rs24_alto      291   100%  -0.573 -166.87   27%      [-0.72,-0.42]*  R199 B46 Be46[ARMADA] │
 │                               rs24_bajo      283   100%  -0.455 -128.85   35%      [-0.61,-0.29]*  R243 B27 Be13[ARMADA] │
-│ DENEG·s87_fib_cont_bajisSHORT (TOTAL)        788   100%  +0.420 +330.69   60%       [+0.34,+0.49]  R621 B99 Be68    │
+│ DENEG·s87_fib_cont_bajisSHORT (TOTAL)        789   100%  +0.424 +334.65   60%       [+0.35,+0.50]  R621 B99 Be69    │
 │                               alt1d_range    391   100%  +0.362 +141.40   59%       [+0.23,+0.49]  R288 B76 Be27[ARMADA] │
 │                               age4h_alto     269   100%  +0.527 +141.87   59%       [+0.35,+0.71]  R230 B29 Be10[ARMADA] │
-│                               age4h_bajo     264   100%  +0.438 +115.60   61%       [+0.26,+0.61]  R188 B41 Be35[ARMADA] │
-│                               vol_rel_alto   268   100%  +0.310  +83.06   57%       [+0.12,+0.50]  R221 B37 Be10[ARMADA] │
-│                               vol_rel_bajo   260   100%  +0.311  +80.93   62%       [+0.14,+0.47]  R197 B21 Be42[ARMADA] │
+│                               age4h_bajo     265   100%  +0.451 +119.57   61%       [+0.27,+0.62]  R188 B41 Be36[ARMADA] │
+│                               vol_rel_alto   268   100%  +0.332  +89.06   57%       [+0.14,+0.52]  R220 B37 Be11[ARMADA] │
+│                               vol_rel_bajo   261   100%  +0.318  +83.06   62%       [+0.16,+0.48]  R198 B21 Be42[ARMADA] │
 │                               btc_range      621   100%  +0.675 +419.23   65%      [+0.58,+0.77]*  R621 B0 Be0  [ARMADA] │
 │                               celda_bull_bull  98   100%  -0.845  -82.86   27%      [-1.03,-0.65]*  R6 B92 Be0   [ARMADA] │
 │                               celda_bull_range  22   100%  +1.423  +31.30   77%       [+0.79,+2.06]  R16 B6 Be0   [pos] │
 │                               celda_bear_bear 102   100%  +0.225  +22.94   69%       [+0.03,+0.42]  R44 B0 Be58  [ARMADA] │
-│                               celda_bear_range  24   100%  -0.339   -8.13   46%       [-0.85,+0.15]  R15 B0 Be9     │
+│                               celda_bear_range  25   100%  -0.167   -4.17   48%       [-0.67,+0.30]  R15 B0 Be10    │
 │                               celda_range_bull 115   100%  +0.353  +40.59   63%       [+0.14,+0.57]  R115 B0 Be0  [ARMADA] │
 │                               celda_range_bear 187   100%  +0.631 +118.04   65%       [+0.42,+0.85]  R187 B0 Be0  [ARMADA] │
 │                               celda_range_range 235   100%  +0.892 +209.69   66%      [+0.68,+1.10]*  R235 B0 Be0  [ARMADA] │
-│                               sqz4h_alto     268   100%  +0.460 +123.19   59%       [+0.28,+0.64]  R207 B59 Be2 [pos] │
-│                               sqz4h_bajo     260   100%  +0.215  +55.98   61%       [+0.08,+0.35]  R204 B13 Be43[pos] │
+│                               sqz4h_alto     268   100%  +0.475 +127.33   59%       [+0.30,+0.66]  R207 B58 Be3 [pos] │
+│                               sqz4h_bajo     261   100%  +0.207  +53.96   61%       [+0.07,+0.34]  R205 B13 Be43[pos] │
 │                               alt1d_bear     103   100%  +0.416  +42.88   61%       [+0.13,+0.72]  R69 B13 Be21 [ARMADA] │
-│                               alt1d_bull     293   100%  +0.492 +144.25   62%      [+0.35,+0.65]*  R263 B10 Be20[ARMADA] │
+│                               alt1d_bull     294   100%  +0.504 +148.22   62%      [+0.36,+0.66]*  R263 B10 Be21[ARMADA] │
 │                               btc_bull        99   100%  -0.970  -96.05   24%       [-1.14,-0.80]  R0 B99 Be0   [ARMADA] │
-│                               btc_bear        68   100%  +0.110   +7.51   71%       [-0.09,+0.31]  R0 B0 Be68   [ARMADA] │
+│                               btc_bear        69   100%  +0.166  +11.48   71%       [-0.04,+0.38]  R0 B0 Be69   [ARMADA] │
 │                               rs24_alto      268   100%  +0.468 +125.49   62%       [+0.28,+0.66]  R210 B42 Be16[ARMADA] │
-│                               rs24_bajo      260   100%  +0.116  +30.11   57%       [-0.03,+0.27]  R195 B32 Be33    │
+│                               rs24_bajo      261   100%  +0.131  +34.07   57%       [-0.02,+0.28]  R196 B32 Be33    │
 │ DENEG·s92_doble_suelo   LONG  (TOTAL)        508   100%  -0.659 -334.91   27%      [-0.76,-0.56]*  R419 B30 Be59    │
 │                               alt1d_range    237   100%  -0.572 -135.52   27%      [-0.74,-0.38]*  R195 B20 Be22[ARMADA] │
 │                               age4h_alto     173   100%  -0.604 -104.55   31%       [-0.79,-0.42]  R156 B9 Be8  [ARMADA] │
@@ -1117,11 +1118,11 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        59   100%  -0.661  -38.99   25%       [-0.91,-0.40]  R0 B0 Be59   [ARMADA] │
 │                               rs24_alto      173   100%  -0.639 -110.58   27%      [-0.83,-0.46]*  R126 B12 Be35[ARMADA] │
 │                               rs24_bajo      168   100%  -0.679 -114.02   28%      [-0.88,-0.47]*  R144 B11 Be13[ARMADA] │
-│ DENEG·s92_doble_techo   SHORT (TOTAL)        323   100%  +0.916 +295.75   64%      [+0.73,+1.12]*  R306 B12 Be5     │
-│                               alt1d_range    159   100%  +1.135 +180.40   69%      [+0.87,+1.38]*  R149 B9 Be1  [ARMADA] │
+│ DENEG·s92_doble_techo   SHORT (TOTAL)        324   100%  +0.906 +293.69   64%      [+0.72,+1.11]*  R306 B12 Be6     │
+│                               alt1d_range    160   100%  +1.115 +178.34   68%      [+0.85,+1.36]*  R149 B9 Be2  [ARMADA] │
 │                               age4h_alto     110   100%  +0.970 +106.66   65%       [+0.66,+1.31]  R106 B3 Be1  [ARMADA] │
 │                               age4h_bajo     107   100%  +1.260 +134.85   69%      [+0.90,+1.64]*  R103 B1 Be3  [ARMADA] │
-│                               vol_rel_alto   110   100%  +0.703  +77.32   59%       [+0.34,+1.04]  R107 B2 Be1  [ARMADA] │
+│                               vol_rel_alto   110   100%  +0.682  +75.02   58%       [+0.29,+1.03]  R106 B2 Be2  [ARMADA] │
 │                               vol_rel_bajo   107   100%  +1.035 +110.70   70%      [+0.71,+1.35]*  R97 B7 Be3   [ARMADA] │
 │                               btc_range      306   100%  +0.962 +294.32   64%      [+0.78,+1.17]*  R306 B0 Be0  [ARMADA] │
 │                               celda_bull_bull  16   100%  +0.651  +10.42   75%       [-0.08,+1.39]  R5 B11 Be0      │
@@ -1215,16 +1216,16 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        42   100%  -1.151  -48.35   24%       [-1.46,-0.85]  R0 B0 Be42   [ARMADA] │
 │                               rs24_alto      174   100%  -0.425  -73.99   32%       [-0.64,-0.22]  R142 B16 Be16[ARMADA] │
 │                               rs24_bajo      168   100%  -0.837 -140.70   28%      [-1.03,-0.64]*  R141 B17 Be10[ARMADA] │
-│ DENEG·s95_rebote_ma_bajiSHORT (TOTAL)        584   100%  +0.566 +330.30   62%      [+0.45,+0.68]*  R496 B30 Be58    │
-│                               alt1d_range    257   100%  +0.588 +151.23   64%      [+0.39,+0.80]*  R213 B22 Be22[ARMADA] │
+│ DENEG·s95_rebote_ma_bajiSHORT (TOTAL)        585   100%  +0.567 +331.94   62%      [+0.45,+0.69]*  R496 B30 Be59    │
+│                               alt1d_range    258   100%  +0.593 +152.87   64%      [+0.40,+0.80]*  R213 B22 Be23[ARMADA] │
 │                               age4h_alto     200   100%  +0.571 +114.28   59%       [+0.33,+0.83]  R179 B11 Be10[ARMADA] │
 │                               age4h_bajo     200   100%  +0.581 +116.12   64%      [+0.38,+0.79]*  R165 B5 Be30 [ARMADA] │
-│                               vol_rel_alto   199   100%  +0.626 +124.58   61%      [+0.38,+0.88]*  R182 B10 Be7 [ARMADA] │
+│                               vol_rel_alto   199   100%  +0.614 +122.27   61%      [+0.38,+0.86]*  R181 B10 Be8 [ARMADA] │
 │                               vol_rel_bajo   193   100%  +0.555 +107.15   65%      [+0.37,+0.75]*  R161 B8 Be24 [ARMADA] │
 │                               btc_range      496   100%  +0.689 +341.59   64%      [+0.56,+0.82]*  R496 B0 Be0  [ARMADA] │
 │                               celda_bull_bull  26   100%  -0.780  -20.28   38%       [-1.23,-0.28]  R2 B24 Be0   [ARMADA] │
 │                               celda_bear_bear  90   100%  +0.092   +8.30   56%       [-0.20,+0.40]  R43 B0 Be47  [ARMADA] │
-│                               celda_bear_range  29   100%  -0.250   -7.24   45%       [-0.64,+0.12]  R18 B0 Be11    │
+│                               celda_bear_range  30   100%  -0.187   -5.60   47%       [-0.58,+0.18]  R18 B0 Be12    │
 │                               celda_range_bull  58   100%  +0.559  +32.39   67%      [+0.28,+0.86]*  R58 B0 Be0   [ARMADA] │
 │                               celda_range_bear 178   100%  +0.922 +164.18   69%       [+0.69,+1.14]  R178 B0 Be0  [ARMADA] │
 │                               celda_range_range 187   100%  +0.839 +156.94   65%       [+0.61,+1.08]  R187 B0 Be0  [ARMADA] │
@@ -1233,30 +1234,30 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               alt1d_bear      92   100%  +0.679  +62.48   60%       [+0.39,+0.99]  R68 B4 Be20  [pos] │
 │                               alt1d_bull     234   100%  +0.489 +114.44   62%      [+0.33,+0.66]*  R214 B4 Be16 [ARMADA] │
 │                               btc_bull        30   100%  -0.622  -18.67   43%       [-1.04,-0.13]  R0 B30 Be0   [ARMADA] │
-│                               btc_bear        58   100%  +0.127   +7.38   57%       [-0.19,+0.45]  R0 B0 Be58       │
-│                               rs24_alto      199   100%  +0.754 +150.01   66%      [+0.54,+0.97]*  R160 B15 Be24[ARMADA] │
+│                               btc_bear        59   100%  +0.153   +9.03   58%       [-0.16,+0.46]  R0 B0 Be59       │
+│                               rs24_alto      199   100%  +0.755 +150.33   66%      [+0.55,+0.97]*  R159 B15 Be25[ARMADA] │
 │                               rs24_bajo      193   100%  +0.348  +67.23   61%       [+0.12,+0.56]  R174 B10 Be9 [pos] │
 │ DENEG·s96_cuna_bajista  LONG  (TOTAL)         11   100%  +0.823   +9.06   64%       [+0.23,+1.53]  R9 B2 Be0        │
 │ DENEG·s97_rechazo_resistSHORT (TOTAL)         24   100%  -0.500  -11.99   38%       [-0.92,-0.13]  R19 B5 Be0       │
 │                               btc_range       19   100%  -0.513   -9.74   37%       [-0.85,-0.16]  R19 B0 Be0   [neg] │
 │ DENEG·s97_rechazo_soportLONG  (TOTAL)         19   100%  +0.424   +8.05   47%       [-0.40,+1.25]  R12 B7 Be0       │
-│ DENEG·s98_climax_swing_hSHORT (TOTAL)        441   100%  +0.856 +377.45   70%      [+0.71,+1.00]*  R422 B0 Be19     │
+│ DENEG·s98_climax_swing_hSHORT (TOTAL)        442   100%  +0.854 +377.60   70%      [+0.71,+1.00]*  R422 B0 Be20     │
 │                               alt1d_range    187   100%  +0.756 +141.33   68%      [+0.53,+0.97]*  R181 B0 Be6  [ARMADA] │
 │                               age4h_alto     151   100%  +0.795 +120.09   65%       [+0.56,+1.04]  R147 B0 Be4  [ARMADA] │
-│                               age4h_bajo     149   100%  +0.936 +139.50   77%      [+0.69,+1.19]*  R143 B0 Be6  [ARMADA] │
-│                               vol_rel_alto   150   100%  +0.607  +91.06   65%      [+0.40,+0.84]*  R142 B0 Be8  [ARMADA] │
+│                               age4h_bajo     146   100%  +0.903 +131.82   76%      [+0.65,+1.15]*  R139 B0 Be7  [ARMADA] │
+│                               vol_rel_alto   150   100%  +0.622  +93.23   65%      [+0.41,+0.84]*  R141 B0 Be9  [ARMADA] │
 │                               vol_rel_bajo   146   100%  +1.361 +198.65   80%      [+1.12,+1.59]*  R141 B0 Be5  [ARMADA] │
 │                               btc_range      422   100%  +0.899 +379.54   70%      [+0.76,+1.04]*  R422 B0 Be0  [ARMADA] │
-│                               celda_bear_bear  32   100%  +0.255   +8.17   59%       [-0.19,+0.70]  R22 B0 Be10     │
+│                               celda_bear_bear  33   100%  +0.252   +8.31   61%       [-0.14,+0.67]  R22 B0 Be11     │
 │                               celda_bear_range  18   100%  +0.288   +5.19   72%       [-0.29,+0.75]  R9 B0 Be9      │
 │                               celda_range_bull  61   100%  +0.429  +26.15   66%      [+0.15,+0.72]*  R61 B0 Be0   [ARMADA] │
 │                               celda_range_bear 119   100%  +1.133 +134.83   75%      [+0.87,+1.39]*  R119 B0 Be0  [ARMADA] │
 │                               celda_range_range 194   100%  +0.878 +170.25   68%       [+0.64,+1.14]  R194 B0 Be0  [ARMADA] │
 │                               sqz4h_alto     150   100%  +1.236 +185.45   75%      [+0.91,+1.57]*  R147 B0 Be3  [ARMADA] │
-│                               sqz4h_bajo     146   100%  +0.304  +44.40   60%       [+0.09,+0.51]  R136 B0 Be10 [pos] │
+│                               sqz4h_bajo     146   100%  +0.297  +43.34   60%       [+0.09,+0.51]  R135 B0 Be11 [pos] │
 │                               alt1d_bear      55   100%  +1.094  +60.15   76%      [+0.76,+1.47]*  R49 B0 Be6   [ARMADA] │
-│                               alt1d_bull     198   100%  +0.899 +177.99   69%      [+0.66,+1.16]*  R191 B0 Be7  [ARMADA] │
-│                               btc_bear        19   100%  -0.110   -2.09   53%       [-0.63,+0.40]  R0 B0 Be19       │
+│                               alt1d_bull     199   100%  +0.895 +178.13   69%      [+0.66,+1.15]*  R191 B0 Be8  [ARMADA] │
+│                               btc_bear        20   100%  -0.097   -1.94   55%       [-0.59,+0.39]  R0 B0 Be20       │
 │                               rs24_alto      150   100%  +0.650  +97.51   74%      [+0.44,+0.86]*  R144 B0 Be6  [ARMADA] │
 │                               rs24_bajo      146   100%  +0.438  +63.91   58%       [+0.18,+0.71]  R137 B0 Be9  [ARMADA] │
 │ DENEG·s98_climax_swing_lLONG  (TOTAL)        553   100%  -0.489 -270.19   37%      [-0.56,-0.41]*  R474 B0 Be79     │
@@ -1278,28 +1279,28 @@ Ultima actualizacion: 2026-11-05 13:41:39
 │                               btc_bear        79   100%  -0.078   -6.19   44%       [-0.25,+0.09]  R0 B0 Be79       │
 │                               rs24_alto      188   100%  -0.791 -148.63   29%      [-0.94,-0.66]*  R180 B0 Be8  [ARMADA] │
 │                               rs24_bajo      183   100%  -0.280  -51.19   42%       [-0.43,-0.13]  R133 B0 Be50 [ARMADA] │
-│ DENEG·s99_squeeze_cono  LONG  (TOTAL)        685   100%  -0.698 -478.21   29%      [-0.78,-0.62]*  R563 B54 Be68    │
+│ DENEG·s99_squeeze_cono  LONG  (TOTAL)        686   100%  -0.700 -480.26   29%      [-0.78,-0.62]*  R563 B54 Be69    │
 │                               alt1d_range    321   100%  -0.607 -194.95   30%       [-0.73,-0.47]  R255 B41 Be25[ARMADA] │
 │                               age4h_alto     237   100%  -0.523 -124.02   30%      [-0.70,-0.34]*  R209 B19 Be9 [ARMADA] │
 │                               age4h_bajo     228   100%  -0.922 -210.29   26%      [-1.08,-0.77]*  R192 B7 Be29 [ARMADA] │
-│                               vol_rel_alto   233   100%  -0.792 -184.54   26%      [-0.98,-0.59]*  R205 B14 Be14[ARMADA] │
-│                               vol_rel_bajo   226   100%  -0.780 -176.36   30%      [-0.93,-0.62]*  R178 B12 Be36[ARMADA] │
+│                               vol_rel_alto   233   100%  -0.818 -190.56   25%      [-1.01,-0.61]*  R204 B14 Be15[ARMADA] │
+│                               vol_rel_bajo   227   100%  -0.786 -178.39   30%      [-0.94,-0.63]*  R179 B12 Be36[ARMADA] │
 │                               btc_range      563   100%  -0.829 -466.46   26%      [-0.92,-0.73]*  R563 B0 Be0  [ARMADA] │
 │                               celda_bull_bull  40   100%  +0.985  +39.42   65%       [+0.46,+1.54]  R4 B36 Be0   [ARMADA] │
 │                               celda_bull_range  28   100%  +0.147   +4.10   54%       [-0.46,+0.77]  R11 B17 Be0  [ARMADA] │
-│                               celda_bear_bear 115   100%  -1.065 -122.46   23%      [-1.26,-0.85]*  R59 B0 Be56  [ARMADA] │
+│                               celda_bear_bear 116   100%  -1.073 -124.52   22%      [-1.27,-0.85]*  R59 B0 Be57  [ARMADA] │
 │                               celda_bear_range  32   100%  -1.267  -40.54   16%      [-1.63,-0.81]*  R20 B0 Be12  [ARMADA] │
 │                               celda_range_bull  83   100%  -0.492  -40.81   30%      [-0.79,-0.19]*  R83 B0 Be0   [ARMADA] │
 │                               celda_range_bear 200   100%  -0.942 -188.35   26%      [-1.10,-0.77]*  R200 B0 Be0  [ARMADA] │
 │                               celda_range_range 186   100%  -0.686 -127.54   27%      [-0.88,-0.48]*  R186 B0 Be0  [ARMADA] │
 │                               sqz4h_alto     233   100%  -0.689 -160.51   28%      [-0.86,-0.50]*  R202 B17 Be14[ARMADA] │
-│                               sqz4h_bajo     226   100%  -0.601 -135.80   33%      [-0.74,-0.45]*  R181 B18 Be27[ARMADA] │
-│                               alt1d_bear      91   100%  -0.642  -58.42   35%       [-0.83,-0.45]  R61 B5 Be25  [ARMADA] │
+│                               sqz4h_bajo     227   100%  -0.592 -134.42   33%      [-0.74,-0.44]*  R182 B18 Be27[ARMADA] │
+│                               alt1d_bear      92   100%  -0.657  -60.47   35%       [-0.86,-0.45]  R61 B5 Be26  [ARMADA] │
 │                               alt1d_bull     273   100%  -0.824 -224.84   26%      [-0.96,-0.69]*  R247 B8 Be18 [ARMADA] │
 │                               btc_bull        54   100%  +1.101  +59.48   70%       [+0.65,+1.56]  R0 B54 Be0   [ARMADA] │
-│                               btc_bear        68   100%  -1.047  -71.22   25%       [-1.30,-0.80]  R0 B0 Be68   [ARMADA] │
+│                               btc_bear        69   100%  -1.062  -73.27   25%       [-1.30,-0.82]  R0 B0 Be69   [ARMADA] │
 │                               rs24_alto      233   100%  -0.884 -206.07   24%      [-1.06,-0.71]*  R195 B8 Be30 [ARMADA] │
-│                               rs24_bajo      226   100%  -0.334  -75.38   39%       [-0.50,-0.15]  R174 B37 Be15[neg] │
+│                               rs24_bajo      227   100%  -0.341  -77.40   39%       [-0.51,-0.16]  R175 B37 Be15[neg] │
 └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 ==================================================================================================================================
@@ -1330,7 +1331,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   41a_a2_confirmador      age4h_bajo      LONG        34.0     69   +1.021   [+0.64,+1.42]        0        48       -1.555       [-1.78,-1.32]     6%            -341.50%  R20 B20 Be8  N ok, IC90 no
   41a_a2_confirmador      vol_rel_alto    LONG         0.7     71   +1.634   [+1.18,+2.07]        0        63       -1.275       [-1.50,-1.06]    16%            -347.97%  R27 B29 Be7  N ok, IC90 no
   41a_a2_confirmador      vol_rel_bajo    LONG         0.5     34   -0.965   [-1.22,-0.70]        8        98       -0.165       [-0.41,+0.10]    47%            -115.79%  R71 B13 Be14  N ok, IC90 no
-  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       24       593       +0.270       [+0.17,+0.38]    54%            +298.59%  R593 B0 Be0  ✅ ambos
+  41a_a2_confirmador      btc_range       LONG      categ.    101   -0.905   [-1.09,-0.70]       38       593       +0.270       [+0.17,+0.38]    54%            +298.59%  R593 B0 Be0  ✅ ambos
   41a_a2_confirmador      celda_range_bullLONG      categ.     20   -1.499   [-1.81,-1.12]        0        35       +0.243       [-0.19,+0.69]    51%             +14.35%  R35 B0 Be0  35/40
   41a_a2_confirmador      celda_bear_bear LONG      categ.     30   +2.467   [+2.06,+2.93]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      celda_range_bearLONG      categ.     28   +1.194   [+0.46,+2.03]        0         0            —                   —      —                   —  —  0/40
@@ -1343,7 +1344,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   41a_a2_confirmador      alt1d_bull      LONG      categ.    156   -0.370   [-0.63,-0.12]       13       105       +0.437       [+0.19,+0.69]    63%            +174.81%  R80 B0 Be25  ✅ ambos
   41a_a2_confirmador      rs24_bajo       LONG        -2.6    196   +0.438   [+0.23,+0.63]        0         0            —                   —      —                   —  —  0/40
   41a_a2_confirmador      sqz4h_bajo      LONG        -0.0    245   -0.349   [-0.52,-0.18]       10        27       +0.402       [+0.12,+0.69]    59%             +41.97%  R4 B0 Be23  27/40
-  47_lower_lows_bear      btc_range       LONG      categ.     16   -0.988   [-1.67,-0.09]        3       337       +0.253       [+0.11,+0.39]    56%            +330.22%  R337 B0 Be0  ✅ ambos
+  47_lower_lows_bear      btc_range       LONG      categ.     16   -0.988   [-1.67,-0.09]       14       337       +0.253       [+0.11,+0.39]    56%            +330.22%  R337 B0 Be0  ✅ ambos
   47_lower_lows_bear      alt1d_range     LONG      categ.     30   +2.211   [+1.55,+2.92]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      age4h_alto      LONG        38.8     26   +1.881   [+1.05,+2.65]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      age4h_bajo      LONG         6.0     28   +2.201   [+1.50,+2.91]        0         0            —                   —      —                   —  —  0/40
@@ -1355,8 +1356,8 @@ Ultima actualizacion: 2026-11-05 13:41:39
   47_lower_lows_bear      btc_bear        LONG      categ.     38   +2.618   [+2.16,+3.12]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      rs24_alto       LONG        -1.6     49   +0.630   [+0.08,+1.15]        0         0            —                   —      —                   —  —  0/40
   47_lower_lows_bear      rs24_bajo       LONG        -4.0     48   +1.134   [+0.57,+1.75]        0         0            —                   —      —                   —  —  0/40
-  47_lower_lows_bear      sqz4h_alto      LONG        -0.0     65   -0.611   [-0.93,-0.28]       11        91       +0.308       [+0.02,+0.59]    64%             +98.24%  R77 B0 Be14  ✅ ambos
-  47_lower_lows_bear      alt1d_bull      LONG      categ.     15   -1.399   [-1.96,-0.68]        9       178       -0.059       [-0.24,+0.11]    49%             -23.22%  R158 B0 Be20  N ok, IC90 no
+  47_lower_lows_bear      sqz4h_alto      LONG        -0.0     65   -0.611   [-0.93,-0.28]       17        91       +0.308       [+0.02,+0.59]    64%             +98.24%  R77 B0 Be14  ✅ ambos
+  47_lower_lows_bear      alt1d_bull      LONG      categ.     15   -1.399   [-1.96,-0.68]       10       178       -0.059       [-0.24,+0.11]    49%             -23.22%  R158 B0 Be20  N ok, IC90 no
   54_x_sma20x50_dn        btc_range       SHORT     categ.     26   -0.512   [-1.02,-0.04]        2       100       -0.291       [-0.57,-0.02]    37%             -77.13%  R100 B0 Be0  N ok, IC90 no
   54_x_sma20x50_dn        alt1d_range     SHORT     categ.     20   -0.602   [-1.20,-0.02]        2        44       -0.517       [-0.85,-0.12]    34%             -64.17%  R42 B1 Be1  N ok, IC90 no
   54_x_sma20x50_dn        celda_bear_rangeSHORT     categ.     21   -0.713   [-1.26,-0.18]        1        22       -0.255       [-0.76,+0.24]    41%              -7.47%  R20 B0 Be2  22/40
@@ -1365,16 +1366,16 @@ Ultima actualizacion: 2026-11-05 13:41:39
   54_x_sma20x50_dn        age4h_bajo      SHORT       53.0     30   -0.761   [-1.13,-0.38]        2        24       -1.285       [-1.55,-0.98]     4%            -136.04%  R20 B0 Be4  24/40
   54_x_sma20x50_dn        rs24_bajo       SHORT       -2.4     31   -0.707   [-1.06,-0.33]        3        16       -0.390       [-0.90,+0.07]    31%             -26.95%  R13 B0 Be3  16/40
   54_x_sma20x50_dn        alt1d_bull      SHORT     categ.     33   -0.473   [-0.86,-0.08]        0        14       -0.853       [-1.37,-0.31]    14%             -42.84%  R12 B0 Be2  14/40
-  12a_cvd_distribucion    btc_range       SHORT     categ.     24   -0.651   [-1.21,-0.09]       27       281       -0.987       [-1.13,-0.84]    21%            -980.07%  R281 B0 Be0  N ok, IC90 no
-  12a_cvd_distribucion    alt1d_range     SHORT     categ.     26   -1.417   [-1.85,-0.92]       13       110       -1.069       [-1.31,-0.81]    19%            -418.91%  R110 B0 Be0  N ok, IC90 no
+  12a_cvd_distribucion    btc_range       SHORT     categ.     24   -0.651   [-1.21,-0.09]       26       282       -0.991       [-1.13,-0.84]    21%            -985.93%  R282 B0 Be0  N ok, IC90 no
+  12a_cvd_distribucion    alt1d_range     SHORT     categ.     26   -1.417   [-1.85,-0.92]       12       111       -1.077       [-1.31,-0.82]    19%            -424.77%  R111 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    age4h_alto      SHORT       50.8     17   -1.299   [-1.74,-0.77]        9        89       -1.032       [-1.26,-0.79]    19%            -311.43%  R89 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    age4h_bajo      SHORT        9.0     17   -1.544   [-1.88,-1.07]        0        62       -0.945       [-1.28,-0.57]    19%            -246.81%  R62 B0 Be0  N ok, IC90 no
-  12a_cvd_distribucion    vol_rel_alto    SHORT        0.8     17   -1.224   [-1.64,-0.79]       16        92       -1.097       [-1.32,-0.87]    18%            -337.12%  R92 B0 Be0  N ok, IC90 no
+  12a_cvd_distribucion    vol_rel_alto    SHORT        0.8     17   -1.224   [-1.64,-0.79]       15        93       -1.106       [-1.33,-0.88]    18%            -342.98%  R93 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    vol_rel_bajo    SHORT        0.6     16   -1.687   [-2.03,-1.31]        7       132       -0.966       [-1.19,-0.74]    22%            -485.29%  R132 B0 Be0  N ok, IC90 no
-  12a_cvd_distribucion    celda_range_bearSHORT     categ.     63   -1.427   [-1.65,-1.20]       27       281       -0.987       [-1.13,-0.84]    21%            -980.07%  R281 B0 Be0  N ok, IC90 no
+  12a_cvd_distribucion    celda_range_bearSHORT     categ.     63   -1.427   [-1.65,-1.20]       26       282       -0.991       [-1.13,-0.84]    21%            -985.93%  R282 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    sqz4h_bajo      SHORT       -0.0     34   -0.893   [-1.32,-0.47]        4        43       -0.476       [-0.85,-0.05]    30%             -81.36%  R43 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    alt1d_bear      SHORT     categ.     32   -1.277   [-1.60,-0.96]        8        48       -1.122       [-1.37,-0.87]    23%            -163.59%  R48 B0 Be0  N ok, IC90 no
-  12a_cvd_distribucion    rs24_alto       SHORT        0.6     35   -0.843   [-1.28,-0.40]        9        31       -1.259       [-1.62,-0.80]    13%            -148.89%  R31 B0 Be0  31/40
+  12a_cvd_distribucion    rs24_alto       SHORT        0.6     35   -0.843   [-1.28,-0.40]        8        32       -1.282       [-1.62,-0.83]    12%            -154.75%  R32 B0 Be0  32/40
   12a_cvd_distribucion    rs24_bajo       SHORT       -1.5     34   -1.100   [-1.44,-0.75]        7        63       -0.666       [-0.98,-0.32]    29%            -159.64%  R63 B0 Be0  N ok, IC90 no
   12a_cvd_distribucion    alt1d_bull      SHORT     categ.     69   +0.521   [+0.12,+0.98]        0         0            —                   —      —                   —  —  0/40
   12a_cvd_distribucion    sqz4h_alto      SHORT       -0.0     78   +0.398   [+0.07,+0.75]        0         0            —                   —      —                   —  —  0/40
@@ -1406,13 +1407,13 @@ Ultima actualizacion: 2026-11-05 13:41:39
   47_bajista_bear         celda_bear_bear LONG      categ.     34   +0.770   [+0.24,+1.29]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         age4h_alto      LONG        87.8     44   +0.613   [+0.13,+1.09]        0         0            —                   —      —                   —  —  0/40
   47_bajista_bear         alt1d_bear      LONG      categ.     19   +1.878   [+0.95,+2.79]        0         0            —                   —      —                   —  —  0/40
-  47_bajista_bear         alt1d_bull      LONG      categ.     38   -0.828   [-1.10,-0.51]        6        26       +0.502       [+0.01,+1.04]    65%             +47.01%  R24 B0 Be2  26/40
+  47_bajista_bear         alt1d_bull      LONG      categ.     38   -0.828   [-1.10,-0.51]        7        26       +0.502       [+0.01,+1.04]    65%             +47.01%  R24 B0 Be2  26/40
   36_fade_intradia        celda_bear_bear LONG      categ.     18   +2.283   [+1.39,+3.09]        0         0            —                   —      —                   —  —  0/40
   36_fade_intradia        btc_bear        LONG      categ.     23   +2.648   [+1.88,+3.35]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            celda_bear_bear LONG      categ.     23   +3.500   [+3.22,+3.76]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            alt1d_range     LONG      categ.     31   +1.505   [+0.87,+2.20]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            celda_range_bearLONG      categ.     47   -0.514   [-0.91,-0.07]        1        41       +1.155       [+0.77,+1.50]    80%            +165.36%  R41 B0 Be0  ✅ ambos
-  54_ext_dn_1h            btc_range       LONG      categ.     53   -0.404   [-0.81,-0.01]        1        56       +0.818       [+0.55,+1.07]    71%            +159.60%  R56 B0 Be0  ✅ ambos
+  54_ext_dn_1h            btc_range       LONG      categ.     53   -0.404   [-0.81,-0.01]       47        56       +0.818       [+0.55,+1.07]    71%            +159.60%  R56 B0 Be0  ✅ ambos
   54_ext_dn_1h            age4h_alto      LONG        32.3     44   +0.638   [+0.12,+1.14]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            age4h_bajo      LONG         5.0     46   +0.728   [+0.24,+1.24]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            vol_rel_alto    LONG         1.1     44   +0.422   [+0.01,+0.81]        0         0            —                   —      —                   —  —  0/40
@@ -1421,7 +1422,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   54_ext_dn_1h            rs24_alto       LONG        -3.4     44   +0.964   [+0.47,+1.49]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            vol_rel_bajo    LONG         0.8     44   +1.202   [+0.69,+1.72]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_1h            rs24_bajo       LONG        -4.7     54   +0.557   [+0.22,+0.92]        0         0            —                   —      —                   —  —  0/40
-  54_ext_dn_1h            sqz4h_alto      LONG        -0.0     81   -0.687   [-0.94,-0.42]        0         0            —                   —      —                   —  —  0/40
+  54_ext_dn_1h            sqz4h_alto      LONG        -0.0     81   -0.687   [-0.94,-0.42]       36         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            alt1d_range     LONG      categ.     16   +2.307   [+1.68,+2.93]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            celda_bear_bear LONG      categ.     20   +3.336   [+2.88,+3.73]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            age4h_alto      LONG        39.0     38   +0.800   [+0.30,+1.34]        0         0            —                   —      —                   —  —  0/40
@@ -1429,7 +1430,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   54_ext_dn_4h            vol_rel_bajo    LONG         0.7     36   +1.248   [+0.78,+1.76]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            sqz4h_bajo      LONG        -0.1     36   +0.555   [+0.09,+1.09]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            rs24_bajo       LONG        -5.4     36   +0.992   [+0.49,+1.59]        0         0            —                   —      —                   —  —  0/40
-  54_ext_dn_4h            btc_range       LONG      categ.     98   -0.240   [-0.44,-0.02]        1        42       +0.106       [-0.20,+0.44]    52%             +11.56%  R42 B0 Be0  N ok, IC90 no
+  54_ext_dn_4h            btc_range       LONG      categ.     98   -0.240   [-0.44,-0.02]        9        42       +0.106       [-0.20,+0.44]    52%             +11.56%  R42 B0 Be0  N ok, IC90 no
   54_ext_dn_4h            celda_range_bearLONG      categ.     35   -0.707   [-1.08,-0.28]        0        26       +0.235       [-0.22,+0.69]    62%             +15.23%  R26 B0 Be0  26/40
   54_ext_dn_4h            btc_bear        LONG      categ.     53   +1.795   [+1.46,+2.12]        0         0            —                   —      —                   —  —  0/40
   54_ext_dn_4h            rs24_alto       LONG        -3.5     55   +0.742   [+0.37,+1.16]        0         0            —                   —      —                   —  —  0/40
@@ -1439,18 +1440,18 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s84_volumen_regimen     age4h_bajo      LONG        18.0     30   +1.912   [+1.47,+2.36]        0         0            —                   —      —                   —  —  0/40
   s84_volumen_regimen     vol_rel_alto    LONG         1.7     27   +1.402   [+0.97,+1.83]        0         0            —                   —      —                   —  —  0/40
   s84_volumen_regimen     vol_rel_bajo    LONG         1.3     27   +1.021   [+0.31,+1.72]        0         0            —                   —      —                   —  —  0/40
-  s84_volumen_regimen     btc_range       LONG      categ.     32   -0.901   [-1.48,-0.21]       35       592       +0.578       [+0.47,+0.69]    63%           +1138.11%  R592 B0 Be0  ✅ ambos
+  s84_volumen_regimen     btc_range       LONG      categ.     32   -0.901   [-1.48,-0.21]       60       592       +0.578       [+0.47,+0.69]    63%           +1138.11%  R592 B0 Be0  ✅ ambos
   s84_volumen_regimen     celda_range_bullLONG      categ.     29   -0.991   [-1.61,-0.37]        1        55       +0.491       [+0.12,+0.87]    64%            +108.99%  R55 B0 Be0  ✅ ambos
   s84_volumen_regimen     celda_range_rangeLONG      categ.     44   +0.944   [+0.51,+1.40]        0         0            —                   —      —                   —  —  0/40
   s84_volumen_regimen     celda_range_bearLONG      categ.     34   -0.550   [-0.99,-0.06]       22       205       +0.523       [+0.34,+0.70]    68%            +411.47%  R205 B0 Be0  ✅ ambos
   s84_volumen_regimen     btc_bull        LONG      categ.     19   +2.388   [+1.51,+3.30]        0         0            —                   —      —                   —  —  0/40
-  s84_volumen_regimen     rs24_alto       LONG         1.2    145   -0.274   [-0.52,-0.01]       14        55       +0.857       [+0.49,+1.25]    67%            +245.99%  R48 B0 Be7  ✅ ambos
+  s84_volumen_regimen     rs24_alto       LONG         1.2    145   -0.274   [-0.52,-0.01]       15        55       +0.857       [+0.49,+1.25]    67%            +245.99%  R48 B0 Be7  ✅ ambos
   s84_volumen_regimen     alt1d_bear      LONG      categ.     22   +1.748   [+1.11,+2.39]        0         0            —                   —      —                   —  —  0/40
-  s84_volumen_regimen     alt1d_bull      LONG      categ.    168   -0.592   [-0.78,-0.39]       17       116       +0.475       [+0.20,+0.76]    60%            +167.58%  R98 B0 Be18  ✅ ambos
-  s84_volumen_regimen     sqz4h_bajo      LONG        -0.0    234   -0.226   [-0.42,-0.01]       19        21       +0.073       [-0.58,+0.73]    38%              -7.24%  R2 B0 Be19  21/40
-  s84_volumen_regimen     celda_bear_bear LONG      categ.     43   -0.634   [-0.99,-0.21]        6        53       +0.114       [-0.10,+0.33]    60%             +25.99%  R0 B0 Be53  N ok, IC90 no
+  s84_volumen_regimen     alt1d_bull      LONG      categ.    168   -0.592   [-0.78,-0.39]       18       116       +0.475       [+0.20,+0.76]    60%            +167.58%  R98 B0 Be18  ✅ ambos
+  s84_volumen_regimen     sqz4h_bajo      LONG        -0.0    234   -0.226   [-0.42,-0.01]       21        21       +0.073       [-0.58,+0.73]    38%              -7.24%  R2 B0 Be19  21/40
+  s84_volumen_regimen     celda_bear_bear LONG      categ.     43   -0.634   [-0.99,-0.21]       31        53       +0.114       [-0.10,+0.33]    60%             +25.99%  R0 B0 Be53  N ok, IC90 no
   s84_volumen_regimen     btc_bear        LONG      categ.     57   -0.308   [-0.50,-0.12]        5         0            —                   —      —                   —  —  0/40
-  s84_volumen_regimen     rs24_bajo       LONG        -2.1    271   -0.207   [-0.35,-0.06]        2         0            —                   —      —                   —  —  0/40
+  s84_volumen_regimen     rs24_bajo       LONG        -2.1    271   -0.207   [-0.35,-0.06]       16         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_alciscelda_bull_bull LONG      categ.     25   +0.860   [+0.19,+1.48]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_alcisalt1d_range     LONG      categ.     25   +0.824   [+0.18,+1.46]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_alcisage4h_bajo      LONG        20.0     15   +1.759   [+1.13,+2.36]        0         0            —                   —      —                   —  —  0/40
@@ -1481,7 +1482,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s87_fib_cont_alcista    vol_rel_alto    LONG         0.7     27   +0.974   [+0.51,+1.44]        0         0            —                   —      —                   —  —  0/40
   s87_fib_cont_alcista    vol_rel_bajo    LONG         0.5     26   +1.530   [+1.16,+1.93]        0         0            —                   —      —                   —  —  0/40
   s87_fib_cont_alcista    celda_bull_bull LONG      categ.     71   +1.450   [+1.17,+1.73]        0         0            —                   —      —                   —  —  0/40
-  s87_fib_cont_alcista    btc_range       LONG      categ.     15   -1.225   [-2.03,-0.42]       41       606       +0.462       [+0.35,+0.57]    62%           +1026.88%  R606 B0 Be0  ✅ ambos
+  s87_fib_cont_alcista    btc_range       LONG      categ.     15   -1.225   [-2.03,-0.42]       42       606       +0.462       [+0.35,+0.57]    62%           +1026.88%  R606 B0 Be0  ✅ ambos
   s87_fib_cont_alcista    celda_range_rangeLONG      categ.     50   +0.618   [+0.28,+0.98]        0         0            —                   —      —                   —  —  0/40
   s87_fib_cont_alcista    celda_range_bullLONG      categ.     80   -0.356   [-0.61,-0.10]        1        17       +0.503       [-0.10,+1.22]    65%             +76.86%  R17 B0 Be0  17/40
   s87_fib_cont_alcista    celda_bear_bear LONG      categ.     32   -1.216   [-1.64,-0.71]        2        68       +0.322       [+0.11,+0.53]    63%             +95.81%  R8 B0 Be60  ✅ ambos
@@ -1489,10 +1490,10 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s87_fib_cont_alcista    alt1d_bear      LONG      categ.     35   +1.054   [+0.58,+1.75]        0         0            —                   —      —                   —  —  0/40
   s87_fib_cont_alcista    celda_range_bearLONG      categ.     86   -0.856   [-1.17,-0.50]       24       148       +0.223       [-0.06,+0.52]    55%            +136.13%  R148 B0 Be0  N ok, IC90 no
   s87_fib_cont_alcista    sqz4h_bajo      LONG        -0.0    160   -0.392   [-0.64,-0.10]       16       133       +0.361       [+0.14,+0.58]    59%            +179.59%  R92 B0 Be41  ✅ ambos
-  s87_fib_cont_alcista    alt1d_bull      LONG      categ.    170   -0.723   [-0.89,-0.55]       16       111       +0.732       [+0.43,+1.03]    67%            +285.64%  R89 B0 Be22  ✅ ambos
+  s87_fib_cont_alcista    alt1d_bull      LONG      categ.    170   -0.723   [-0.89,-0.55]       17       111       +0.732       [+0.43,+1.03]    67%            +285.64%  R89 B0 Be22  ✅ ambos
   s87_fib_cont_alcista    rs24_bajo       LONG        -1.6    210   -0.370   [-0.55,-0.17]        5        27       +1.176       [+0.78,+1.57]    85%            +124.16%  R14 B0 Be13  27/40
   s87_fib_cont_alcista    btc_bear        LONG      categ.     61   -0.420   [-0.60,-0.25]        0         0            —                   —      —                   —  —  0/40
-  s87_fib_cont_alcista    rs24_alto       LONG         0.8    286   -0.576   [-0.72,-0.42]       12         0            —                   —      —                   —  —  0/40
+  s87_fib_cont_alcista    rs24_alto       LONG         0.8    286   -0.576   [-0.72,-0.42]       13         0            —                   —      —                   —  —  0/40
   s85_vela_rev_alcista    alt1d_range     SHORT     categ.     15   -1.067   [-1.44,-0.70]        8        75       -0.922       [-1.16,-0.66]    27%            -304.81%  R72 B0 Be3  N ok, IC90 no
   s85_vela_rev_alcista    celda_bull_bull SHORT     categ.     17   -1.164   [-1.51,-0.79]        0         1       +0.204           n/a (N<3)   100%              +2.43%  R1 B0 Be0  1/40
   s85_vela_rev_alcista    vol_rel_alto    SHORT        0.9     30   -0.687   [-1.15,-0.19]        4        46       -1.116       [-1.36,-0.85]    24%            -210.07%  R46 B0 Be0  N ok, IC90 no
@@ -1522,10 +1523,10 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s100_macd_cruce_alcista rs24_bajo       LONG        -2.4    138   -0.285   [-0.52,-0.06]        1         5       +0.615       [-0.44,+1.29]    80%              +9.85%  R1 B0 Be4  5/40
   s100_macd_cruce_alcista alt1d_bear      LONG      categ.     37   -0.521   [-0.96,-0.10]       12         9       +0.759       [-0.35,+1.95]    56%             +16.11%  R1 B0 Be8  9/40
   s95_rebote_ma_bajista   celda_bull_bull SHORT     categ.     15   -1.868   [-2.02,-1.56]        0         2       -1.533           n/a (N<3)     0%             -11.82%  R2 B0 Be0  2/40
-  s95_rebote_ma_bajista   alt1d_range     SHORT     categ.     24   -0.669   [-1.22,-0.09]       16       215       -1.077       [-1.22,-0.93]    20%            -785.01%  R192 B0 Be23  N ok, IC90 no
+  s95_rebote_ma_bajista   alt1d_range     SHORT     categ.     24   -0.669   [-1.22,-0.09]       15       216       -1.076       [-1.22,-0.93]    20%            -788.78%  R193 B0 Be23  N ok, IC90 no
   s95_rebote_ma_bajista   age4h_bajo      SHORT       41.0     15   -0.776   [-1.46,-0.05]       17       273       -1.053       [-1.19,-0.91]    19%           -1021.35%  R234 B0 Be39  N ok, IC90 no
   s95_rebote_ma_bajista   vol_rel_alto    SHORT        0.9     15   -0.991   [-1.60,-0.32]       17       134       -0.892       [-1.13,-0.64]    23%            -373.53%  R129 B0 Be5  N ok, IC90 no
-  s95_rebote_ma_bajista   btc_range       SHORT     categ.     16   -1.027   [-1.58,-0.32]       51       435       -1.029       [-1.15,-0.90]    19%           -1533.53%  R435 B0 Be0  N ok, IC90 no
+  s95_rebote_ma_bajista   btc_range       SHORT     categ.     16   -1.027   [-1.58,-0.32]       50       436       -1.029       [-1.15,-0.90]    19%           -1537.30%  R436 B0 Be0  N ok, IC90 no
   s95_rebote_ma_bajista   age4h_alto      SHORT       83.9     38   -0.567   [-0.98,-0.12]        6        84       -1.135       [-1.45,-0.81]    17%            -339.09%  R75 B0 Be9  N ok, IC90 no
   s95_rebote_ma_bajista   celda_range_rangeSHORT     categ.     39   -0.868   [-1.19,-0.54]       10       120       -1.305       [-1.55,-1.04]    13%            -570.17%  R120 B0 Be0  N ok, IC90 no
   s95_rebote_ma_bajista   celda_range_bullSHORT     categ.     42   +0.353   [+0.01,+0.71]        0         0            —                   —      —                   —  —  0/40
@@ -1577,46 +1578,46 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s93_inside_bar          alt1d_range     LONG      categ.     17   +1.171   [+0.17,+2.16]        0         0            —                   —      —                   —  —  0/40
   s93_inside_bar          vol_rel_alto    LONG         0.7     20   +0.846   [+0.01,+1.69]        0         0            —                   —      —                   —  —  0/40
   s93_inside_bar          celda_bull_bull LONG      categ.     41   +0.828   [+0.33,+1.36]        0         0            —                   —      —                   —  —  0/40
-  s93_inside_bar          age4h_alto      LONG        52.5     25   -0.568   [-1.07,-0.02]       14       214       +0.473       [+0.23,+0.73]    61%            +301.53%  R200 B0 Be14  ✅ ambos
+  s93_inside_bar          age4h_alto      LONG        52.5     25   -0.568   [-1.07,-0.02]       28       214       +0.473       [+0.23,+0.73]    61%            +301.53%  R200 B0 Be14  ✅ ambos
   s93_inside_bar          age4h_bajo      LONG        43.0     32   +0.796   [+0.17,+1.44]        0         0            —                   —      —                   —  —  0/40
   s93_inside_bar          celda_range_rangeLONG      categ.     43   +0.497   [+0.12,+0.88]        0         0            —                   —      —                   —  —  0/40
   s93_inside_bar          celda_range_bullLONG      categ.     58   -0.306   [-0.61,-0.01]        0        12       +1.051       [+0.44,+1.69]    83%             +74.05%  R12 B0 Be0  12/40
   s93_inside_bar          celda_range_bearLONG      categ.     43   -0.498   [-0.84,-0.12]       14       165       +0.298       [+0.06,+0.54]    60%            +191.46%  R165 B0 Be0  ✅ ambos
-  s93_inside_bar          btc_range       LONG      categ.    241   -0.469   [-0.63,-0.31]       26       256       +0.375       [+0.18,+0.57]    61%            +263.18%  R256 B0 Be0  ✅ ambos
+  s93_inside_bar          btc_range       LONG      categ.    241   -0.469   [-0.63,-0.31]       45       256       +0.375       [+0.18,+0.57]    61%            +263.18%  R256 B0 Be0  ✅ ambos
   s93_inside_bar          btc_bull        LONG      categ.     19   +1.637   [+0.80,+2.45]        0         0            —                   —      —                   —  —  0/40
-  s93_inside_bar          sqz4h_alto      LONG         0.0    100   -0.607   [-0.89,-0.34]       12        95       +0.763       [+0.46,+1.08]    69%            +196.87%  R75 B0 Be20  ✅ ambos
+  s93_inside_bar          sqz4h_alto      LONG         0.0    100   -0.607   [-0.89,-0.34]       17        95       +0.763       [+0.46,+1.08]    69%            +196.87%  R75 B0 Be20  ✅ ambos
   s93_inside_bar          alt1d_bull      LONG      categ.    131   -0.703   [-0.94,-0.47]       17       115       +0.594       [+0.31,+0.86]    66%            +206.41%  R94 B0 Be21  ✅ ambos
-  s93_inside_bar          sqz4h_bajo      LONG        -0.0    118   -0.513   [-0.73,-0.28]       17        83       +0.049       [-0.21,+0.32]    57%             +28.57%  R59 B0 Be24  N ok, IC90 no
+  s93_inside_bar          sqz4h_bajo      LONG        -0.0    118   -0.513   [-0.73,-0.28]       19        83       +0.049       [-0.21,+0.32]    57%             +28.57%  R59 B0 Be24  N ok, IC90 no
   s93_inside_bar          vol_rel_bajo    LONG         0.5    151   -0.534   [-0.72,-0.34]       12        43       -0.041       [-0.30,+0.23]    60%             +12.51%  R19 B0 Be24  N ok, IC90 no
-  s93_inside_bar          rs24_alto       LONG         0.8    155   -0.433   [-0.62,-0.23]        6        26       +0.851       [+0.27,+1.46]    65%             +80.07%  R17 B0 Be9  26/40
+  s93_inside_bar          rs24_alto       LONG         0.8    155   -0.433   [-0.62,-0.23]        7        26       +0.851       [+0.27,+1.46]    65%             +80.07%  R17 B0 Be9  26/40
   s93_inside_bar          btc_bear        LONG      categ.     44   -0.345   [-0.52,-0.15]        9         0            —                   —      —                   —  —  0/40
-  s93_inside_bar          rs24_bajo       LONG        -2.4    215   -0.218   [-0.39,-0.04]        2         0            —                   —      —                   —  —  0/40
+  s93_inside_bar          rs24_bajo       LONG        -2.4    215   -0.218   [-0.39,-0.04]       11         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   alt1d_range     LONG      categ.     16   +1.534   [+0.71,+2.34]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   celda_range_bullLONG      categ.     15   -0.999   [-1.63,-0.24]        1        33       +0.416       [-0.12,+1.02]    55%             +53.63%  R33 B0 Be0  33/40
   s95_rebote_ma_alcista   celda_range_rangeLONG      categ.     41   +0.715   [+0.34,+1.12]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   age4h_alto      LONG        82.8     46   +0.399   [+0.04,+0.75]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   btc_bull        LONG      categ.     19   +1.557   [+0.72,+2.29]        0         0            —                   —      —                   —  —  0/40
-  s95_rebote_ma_alcista   sqz4h_alto      LONG         0.0     80   -0.741   [-0.97,-0.50]        5        42       +0.538       [+0.10,+1.03]    57%             +89.23%  R39 B0 Be3  ✅ ambos
+  s95_rebote_ma_alcista   sqz4h_alto      LONG         0.0     80   -0.741   [-0.97,-0.50]        6        42       +0.538       [+0.10,+1.03]    57%             +89.23%  R39 B0 Be3  ✅ ambos
   s95_rebote_ma_alcista   celda_range_bearLONG      categ.     36   -1.557   [-1.87,-1.18]        6       101       +0.160       [-0.14,+0.49]    56%             +82.12%  R101 B0 Be0  N ok, IC90 no
-  s95_rebote_ma_alcista   age4h_bajo      LONG        44.0     92   -0.646   [-0.94,-0.34]        7       118       +0.327       [+0.05,+0.59]    61%            +135.50%  R89 B0 Be29  ✅ ambos
-  s95_rebote_ma_alcista   btc_range       LONG      categ.    245   -0.711   [-0.85,-0.57]       15       149       +0.393       [+0.12,+0.66]    60%            +214.55%  R149 B0 Be0  ✅ ambos
-  s95_rebote_ma_alcista   alt1d_bull      LONG      categ.    118   -0.780   [-1.00,-0.57]        7        74       +0.434       [+0.07,+0.82]    62%            +111.97%  R67 B0 Be7  ✅ ambos
-  s95_rebote_ma_alcista   vol_rel_alto    LONG         0.8    115   -0.630   [-0.89,-0.37]        6        35       +0.929       [+0.35,+1.56]    74%             +99.25%  R32 B0 Be3  35/40
+  s95_rebote_ma_alcista   age4h_bajo      LONG        44.0     92   -0.646   [-0.94,-0.34]        8       118       +0.327       [+0.05,+0.59]    61%            +135.50%  R89 B0 Be29  ✅ ambos
+  s95_rebote_ma_alcista   btc_range       LONG      categ.    245   -0.711   [-0.85,-0.57]       16       149       +0.393       [+0.12,+0.66]    60%            +214.55%  R149 B0 Be0  ✅ ambos
+  s95_rebote_ma_alcista   alt1d_bull      LONG      categ.    118   -0.780   [-1.00,-0.57]        8        74       +0.434       [+0.07,+0.82]    62%            +111.97%  R67 B0 Be7  ✅ ambos
+  s95_rebote_ma_alcista   vol_rel_alto    LONG         0.8    115   -0.630   [-0.89,-0.37]        7        35       +0.929       [+0.35,+1.56]    74%             +99.25%  R32 B0 Be3  35/40
   s95_rebote_ma_alcista   vol_rel_bajo    LONG         0.5    128   -0.526   [-0.77,-0.29]        7        34       +0.086       [-0.25,+0.39]    50%             +29.43%  R7 B0 Be27  34/40
   s95_rebote_ma_alcista   rs24_bajo       LONG        -0.7    134   -0.738   [-0.93,-0.55]        7        11       -0.055       [-1.03,+0.89]    45%              -4.82%  R3 B0 Be8  11/40
-  s95_rebote_ma_alcista   rs24_alto       LONG         1.1    140   -0.284   [-0.51,-0.06]        2        17       +0.393       [-0.09,+0.88]    59%             +19.60%  R1 B0 Be16  17/40
+  s95_rebote_ma_alcista   rs24_alto       LONG         1.1    140   -0.284   [-0.51,-0.06]        3        17       +0.393       [-0.09,+0.88]    59%             +19.60%  R1 B0 Be16  17/40
   s95_rebote_ma_alcista   sqz4h_bajo      LONG        -0.0    152   -0.525   [-0.75,-0.29]        3         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   celda_bear_bear LONG      categ.     34   -0.492   [-0.95,-0.02]        0         0            —                   —      —                   —  —  0/40
   s95_rebote_ma_alcista   btc_bear        LONG      categ.     42   -1.151   [-1.46,-0.85]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_bajista alt1d_range     SHORT     categ.     16   -1.231   [-1.78,-0.59]       18       156       -0.963       [-1.17,-0.74]    22%            -479.59%  R147 B0 Be9  N ok, IC90 no
-  s100_macd_cruce_bajista btc_range       SHORT     categ.     31   -0.544   [-0.94,-0.14]       38       329       -1.150       [-1.28,-1.03]    17%           -1280.37%  R329 B0 Be0  N ok, IC90 no
-  s100_macd_cruce_bajista age4h_bajo      SHORT       50.0     34   -0.422   [-0.74,-0.08]       22       179       -1.279       [-1.43,-1.11]    12%            -808.74%  R166 B0 Be13  N ok, IC90 no
-  s100_macd_cruce_bajista vol_rel_alto    SHORT        1.0     35   -0.577   [-0.92,-0.22]       16       133       -1.059       [-1.26,-0.85]    19%            -472.42%  R126 B0 Be7  N ok, IC90 no
+  s100_macd_cruce_bajista alt1d_range     SHORT     categ.     16   -1.231   [-1.78,-0.59]       16       159       -0.976       [-1.18,-0.76]    21%            -490.50%  R150 B0 Be9  N ok, IC90 no
+  s100_macd_cruce_bajista btc_range       SHORT     categ.     31   -0.544   [-0.94,-0.14]       36       334       -1.160       [-1.28,-1.04]    16%           -1299.23%  R334 B0 Be0  N ok, IC90 no
+  s100_macd_cruce_bajista age4h_bajo      SHORT       50.0     34   -0.422   [-0.74,-0.08]       21       182       -1.285       [-1.44,-1.12]    12%            -820.47%  R169 B0 Be13  N ok, IC90 no
+  s100_macd_cruce_bajista vol_rel_alto    SHORT        1.0     35   -0.577   [-0.92,-0.22]       16       134       -1.066       [-1.27,-0.86]    19%            -477.69%  R127 B0 Be7  N ok, IC90 no
   s100_macd_cruce_bajista celda_range_rangeSHORT     categ.     32   -1.033   [-1.34,-0.71]        3        99       -1.488       [-1.68,-1.28]    10%            -511.88%  R99 B0 Be0  N ok, IC90 no
-  s100_macd_cruce_bajista vol_rel_bajo    SHORT        0.7     40   -0.416   [-0.78,-0.02]       23       102       -1.499       [-1.67,-1.31]     8%            -523.46%  R92 B0 Be10  N ok, IC90 no
+  s100_macd_cruce_bajista vol_rel_bajo    SHORT        0.7     40   -0.416   [-0.78,-0.02]       22       105       -1.504       [-1.67,-1.32]     8%            -532.60%  R95 B0 Be10  N ok, IC90 no
   s100_macd_cruce_bajista age4h_alto      SHORT       95.0     53   +0.555   [+0.14,+0.97]        0         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista sqz4h_alto      SHORT        0.0     62   +0.670   [+0.34,+1.01]        0         0            —                   —      —                   —  —  0/40
-  s100_macd_cruce_bajista sqz4h_bajo      SHORT       -0.0     60   -0.486   [-0.80,-0.15]        7        91       -1.085       [-1.32,-0.84]    20%            -335.14%  R79 B0 Be12  N ok, IC90 no
+  s100_macd_cruce_bajista sqz4h_bajo      SHORT       -0.0     60   -0.486   [-0.80,-0.15]        6        94       -1.114       [-1.35,-0.87]    19%            -347.53%  R82 B0 Be12  N ok, IC90 no
   s100_macd_cruce_bajista celda_range_bullSHORT     categ.     73   +0.306   [+0.05,+0.57]        0         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista celda_range_bearSHORT     categ.     34   +1.533   [+0.91,+2.19]        0         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista alt1d_bull      SHORT     categ.     87   +0.364   [+0.07,+0.65]        0         0            —                   —      —                   —  —  0/40
@@ -1624,12 +1625,12 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s100_macd_cruce_bajista rs24_bajo       SHORT       -0.7     92   +0.360   [+0.04,+0.73]        0         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista alt1d_bear      SHORT     categ.     37   +0.659   [+0.27,+1.01]        0         0            —                   —      —                   —  —  0/40
   s100_macd_cruce_bajista celda_bear_bear SHORT     categ.     34   +0.820   [+0.20,+1.47]        0         0            —                   —      —                   —  —  0/40
-  s92_doble_techo         alt1d_range     SHORT     categ.     17   -0.782   [-1.37,-0.10]       21       117       -1.225       [-1.41,-1.02]    17%            -480.50%  R115 B0 Be2  N ok, IC90 no
-  s92_doble_techo         btc_range       SHORT     categ.     21   -1.229   [-1.65,-0.76]       52       258       -1.116       [-1.27,-0.96]    21%           -1005.10%  R258 B0 Be0  N ok, IC90 no
+  s92_doble_techo         alt1d_range     SHORT     categ.     17   -0.782   [-1.37,-0.10]       21       118       -1.232       [-1.42,-1.03]    17%            -484.16%  R116 B0 Be2  N ok, IC90 no
+  s92_doble_techo         btc_range       SHORT     categ.     21   -1.229   [-1.65,-0.76]       52       261       -1.126       [-1.28,-0.97]    21%           -1019.60%  R261 B0 Be0  N ok, IC90 no
   s92_doble_techo         celda_range_bullSHORT     categ.     18   -1.097   [-1.57,-0.63]        0        32       -1.109       [-1.45,-0.75]    19%            -174.64%  R32 B0 Be0  32/40
-  s92_doble_techo         vol_rel_alto    SHORT        0.8     32   -0.594   [-1.01,-0.16]       18        76       -1.327       [-1.57,-1.06]    16%            -305.36%  R74 B0 Be2  N ok, IC90 no
-  s92_doble_techo         age4h_bajo      SHORT       51.0     36   -0.430   [-0.80,-0.05]       26       130       -1.444       [-1.65,-1.23]    13%            -641.02%  R125 B0 Be5  N ok, IC90 no
-  s92_doble_techo         celda_range_rangeSHORT     categ.     30   -0.981   [-1.31,-0.65]        4        82       -1.334       [-1.60,-1.04]    15%            -407.26%  R82 B0 Be0  N ok, IC90 no
+  s92_doble_techo         vol_rel_alto    SHORT        0.8     32   -0.594   [-1.01,-0.16]       18        78       -1.344       [-1.59,-1.06]    15%            -316.20%  R76 B0 Be2  N ok, IC90 no
+  s92_doble_techo         age4h_bajo      SHORT       51.0     36   -0.430   [-0.80,-0.05]       26       132       -1.453       [-1.65,-1.24]    13%            -651.86%  R127 B0 Be5  N ok, IC90 no
+  s92_doble_techo         celda_range_rangeSHORT     categ.     30   -0.981   [-1.31,-0.65]        3        83       -1.342       [-1.60,-1.05]    14%            -414.20%  R83 B0 Be0  N ok, IC90 no
   s92_doble_techo         age4h_alto      SHORT       87.0     43   +0.484   [+0.03,+0.95]        0         0            —                   —      —                   —  —  0/40
   s92_doble_techo         vol_rel_bajo    SHORT        0.5     46   +0.430   [+0.08,+0.80]        0         0            —                   —      —                   —  —  0/40
   s92_doble_techo         celda_range_bearSHORT     categ.     35   +1.511   [+0.87,+2.17]        0         0            —                   —      —                   —  —  0/40
@@ -1670,9 +1671,9 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s94_vela_confirmada_bajirs24_alto       SHORT        2.0     78   +0.422   [+0.11,+0.73]        0         0            —                   —      —                   —  —  0/40
   s94_vela_confirmada_bajialt1d_bear      SHORT     categ.     41   +0.797   [+0.39,+1.22]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_bajisalt1d_range     SHORT     categ.     16   -1.351   [-1.80,-0.86]       10       142       -0.706       [-0.92,-0.50]    27%            -317.74%  R137 B0 Be5  N ok, IC90 no
-  s83_quiebre_retest_bajisbtc_range       SHORT     categ.     56   -0.772   [-1.02,-0.49]       29       291       -1.128       [-1.25,-1.00]    17%           -1180.35%  R291 B0 Be0  N ok, IC90 no
+  s83_quiebre_retest_bajisbtc_range       SHORT     categ.     56   -0.772   [-1.02,-0.49]       29       292       -1.131       [-1.25,-1.01]    17%           -1184.25%  R292 B0 Be0  N ok, IC90 no
   s83_quiebre_retest_bajiscelda_range_rangeSHORT     categ.     38   -0.822   [-1.11,-0.52]       10       104       -1.338       [-1.52,-1.14]    13%            -530.43%  R104 B0 Be0  N ok, IC90 no
-  s83_quiebre_retest_bajisage4h_bajo      SHORT       69.0     33   -0.513   [-0.88,-0.15]       25       217       -1.071       [-1.21,-0.92]    18%            -856.32%  R204 B0 Be13  N ok, IC90 no
+  s83_quiebre_retest_bajisage4h_bajo      SHORT       69.0     33   -0.513   [-0.88,-0.15]       25       218       -1.075       [-1.21,-0.93]    18%            -860.22%  R205 B0 Be13  N ok, IC90 no
   s83_quiebre_retest_bajisrs24_bajo       SHORT       -3.0     53   -0.504   [-0.86,-0.10]        5        32       -0.588       [-0.97,-0.25]    25%             -71.65%  R28 B0 Be4  32/40
   s83_quiebre_retest_bajiscelda_range_bearSHORT     categ.     33   +1.020   [+0.52,+1.52]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_bajisalt1d_bull      SHORT     categ.     92   +0.403   [+0.09,+0.77]        0         0            —                   —      —                   —  —  0/40
@@ -1683,11 +1684,11 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s83_quiebre_retest_bajisalt1d_bear      SHORT     categ.     41   +0.499   [+0.01,+1.08]        0         0            —                   —      —                   —  —  0/40
   s83_quiebre_retest_bajisvol_rel_bajo    SHORT        0.7    130   +0.590   [+0.31,+0.86]        0         0            —                   —      —                   —  —  0/40
   s98_climax_swing_high   alt1d_range     SHORT     categ.     38   -0.547   [-0.81,-0.27]       19       123       -1.295       [-1.47,-1.14]    11%            -642.72%  R117 B0 Be6  N ok, IC90 no
-  s98_climax_swing_high   btc_range       SHORT     categ.     66   -0.429   [-0.64,-0.21]       50       310       -1.275       [-1.38,-1.16]    13%           -1563.77%  R310 B0 Be0  N ok, IC90 no
+  s98_climax_swing_high   btc_range       SHORT     categ.     66   -0.429   [-0.64,-0.21]       51       310       -1.275       [-1.38,-1.16]    13%           -1563.77%  R310 B0 Be0  N ok, IC90 no
   s98_climax_swing_high   celda_range_rangeSHORT     categ.     37   -0.600   [-0.88,-0.29]        2       133       -1.403       [-1.56,-1.23]     8%            -788.02%  R133 B0 Be0  N ok, IC90 no
   s98_climax_swing_high   age4h_alto      SHORT       95.2     30   -0.696   [-1.07,-0.32]        5        38       -1.092       [-1.44,-0.80]    21%            -195.36%  R36 B0 Be2  38/40
   s98_climax_swing_high   vol_rel_bajo    SHORT        0.9     30   -0.707   [-1.04,-0.35]       36       167       -1.274       [-1.43,-1.11]    11%            -777.15%  R159 B0 Be8  N ok, IC90 no
-  s98_climax_swing_high   age4h_bajo      SHORT       70.0     34   -0.446   [-0.66,-0.21]       42       232       -1.226       [-1.35,-1.10]    13%           -1117.12%  R217 B0 Be15  N ok, IC90 no
+  s98_climax_swing_high   age4h_bajo      SHORT       70.0     34   -0.446   [-0.66,-0.21]       43       232       -1.226       [-1.35,-1.10]    13%           -1117.12%  R217 B0 Be15  N ok, IC90 no
   s98_climax_swing_high   sqz4h_alto      SHORT        0.0     58   +0.992   [+0.53,+1.44]        0         0            —                   —      —                   —  —  0/40
   s98_climax_swing_high   rs24_alto       SHORT        2.5     58   +0.486   [+0.21,+0.77]        0         0            —                   —      —                   —  —  0/40
   s98_climax_swing_high   vol_rel_alto    SHORT        1.2     73   +0.485   [+0.14,+0.86]        0         0            —                   —      —                   —  —  0/40
@@ -1739,7 +1740,7 @@ Ultima actualizacion: 2026-11-05 13:41:39
   s118_funding_bajo       sqz4h_bajo      LONG        -0.0     42   -0.448   [-0.78,-0.08]        0         0            —                   —      —                   —  —  0/40
   s118_funding_bajo       alt1d_bull      LONG      categ.     53   -0.456   [-0.88,-0.01]        0         0            —                   —      —                   —  —  0/40
   s86_div_bajista         btc_range       SHORT     categ.     35   +1.110   [+0.63,+1.56]        0         0            —                   —      —                   —  —  0/40
-  47_bajista_sweet        btc_range       LONG      categ.     31   -0.954   [-1.43,-0.43]        2        15       +2.615       [+1.92,+3.27]    93%            +115.87%  R15 B0 Be0  15/40
+  47_bajista_sweet        btc_range       LONG      categ.     31   -0.954   [-1.43,-0.43]        3        15       +2.615       [+1.92,+3.27]    93%            +115.87%  R15 B0 Be0  15/40
   47_bajista_sweet        celda_range_bearLONG      categ.     37   -0.724   [-1.12,-0.29]        2         0            —                   —      —                   —  —  0/40
   s112_donchian_baj       btc_range       SHORT     categ.     31   -0.365   [-0.70,-0.01]        1        20       -0.735       [-1.08,-0.39]    15%             -55.41%  R20 B0 Be0  20/40
   s86_div_alcista         btc_range       LONG      categ.     36   -0.562   [-0.97,-0.12]        1         6       +1.264       [+0.28,+2.02]    83%             +25.82%  R6 B0 Be0  6/40
