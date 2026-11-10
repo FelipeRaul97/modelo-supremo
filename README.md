@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-11-10 16:13:08
+Ultima actualizacion: 2026-11-10 16:49:15
 
 ```
 ========================================================================================================
