@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-11-11 16:53:03
+Ultima actualizacion: 2026-11-11 17:26:41
 
 ```
 ========================================================================================================
@@ -658,7 +658,7 @@ Ultima actualizacion: 2026-11-11 16:53:03
 │                               rs24_alto       37    76%  -0.115   -4.26   35%       [-0.55,+0.36]  R22 B15 Be0      │
 │                               rs24_bajo       36    76%  -0.222   -7.99   33%       [-0.91,+0.42]  R27 B7 Be2       │
 │ MOTOR·47_bajista_bear   LONG  (TOTAL)        305    83%  -0.232  -70.62   35%       [-0.40,-0.07]  R252 B1 Be52     │
-│                               alt1d_range    114    83%  -0.296  -33.78   32%       [-0.59,+0.03]  R95 B1 Be18  [ARMADA] │
+│                               alt1d_range    113    83%  -0.280  -31.68   33%       [-0.58,+0.04]  R94 B1 Be18  [ARMADA] │
 │                               age4h_alto     105    83%  +0.027   +2.86   38%       [-0.28,+0.31]  R85 B0 Be20  [ARMADA] │
 │                               age4h_bajo     104    83%  -0.102  -10.61   38%       [-0.40,+0.21]  R91 B1 Be12      │
 │                               vol_rel_alto   104    83%  -0.365  -38.01   31%       [-0.68,-0.06]  R88 B0 Be16  [neg] │
@@ -668,13 +668,13 @@ Ultima actualizacion: 2026-11-11 16:53:03
 │                               celda_range_bear 216    83%  -0.254  -54.96   35%       [-0.46,-0.06]  R213 B0 Be3  [ARMADA] │
 │                               sqz4h_alto     104    83%  -0.459  -47.76   28%      [-0.77,-0.14]*  R82 B1 Be21  [ARMADA] │
 │                               sqz4h_bajo     101    83%  -0.208  -20.99   40%       [-0.47,+0.05]  R85 B0 Be16      │
-│                               alt1d_bear     115    83%  +0.086   +9.88   41%       [-0.21,+0.36]  R89 B0 Be26  [ARMADA] │
+│                               alt1d_bear     116    83%  +0.067   +7.78   41%       [-0.24,+0.34]  R90 B0 Be26  [ARMADA] │
 │                               alt1d_bull      76    83%  -0.615  -46.72   29%      [-0.87,-0.36]*  R68 B0 Be8   [ARMADA] │
 │                               btc_bear        52    83%  +0.055   +2.87   35%       [-0.41,+0.52]  R0 B0 Be52       │
 │                               rs24_alto      104    83%  -0.392  -40.80   29%       [-0.68,-0.09]  R80 B0 Be24  [neg] │
 │                               rs24_bajo      101    83%  +0.085   +8.57   43%       [-0.16,+0.35]  R91 B1 Be9       │
 │ MOTOR·5_posicion_rango  SHORT (TOTAL)        482    73%  +0.205  +98.24   52%       [+0.06,+0.36]  R413 B39 Be30    │
-│                               alt1d_range    209    73%  -0.131  -27.44   44%       [-0.33,+0.07]  R182 B17 Be10[ARMADA] │
+│                               alt1d_range    206    73%  -0.147  -30.24   44%       [-0.34,+0.05]  R179 B17 Be10[ARMADA] │
 │                               age4h_alto     164    73%  +0.105  +17.19   47%       [-0.13,+0.35]  R147 B8 Be9      │
 │                               age4h_bajo     161    73%  +0.606  +97.63   63%      [+0.35,+0.84]*  R132 B20 Be9 [ARMADA] │
 │                               vol_rel_alto   164    73%  +0.394  +64.66   55%       [+0.12,+0.66]  R139 B15 Be10[ARMADA] │
@@ -685,7 +685,7 @@ Ultima actualizacion: 2026-11-11 16:53:03
 │                               celda_range_range 370    73%  +0.240  +88.95   50%       [+0.06,+0.43]  R369 B0 Be1  [ARMADA] │
 │                               sqz4h_alto     164    73%  +0.327  +53.60   52%       [+0.03,+0.62]  R153 B4 Be7  [ARMADA] │
 │                               sqz4h_bajo     157    73%  -0.194  -30.52   47%       [-0.40,+0.01]  R121 B23 Be13[ARMADA] │
-│                               alt1d_bear     159    73%  +0.490  +77.85   61%      [+0.19,+0.77]*  R135 B15 Be9 [ARMADA] │
+│                               alt1d_bear     162    73%  +0.498  +80.65   61%      [+0.21,+0.77]*  R138 B15 Be9 [ARMADA] │
 │                               alt1d_bull     111    73%  +0.431  +47.83   55%      [+0.12,+0.77]*  R94 B6 Be11  [ARMADA] │
 │                               btc_bull        38    73%  +0.405  +15.39   68%       [-0.04,+0.84]  R0 B38 Be0   [ARMADA] │
 │                               btc_bear        30    73%  -0.107   -3.21   57%       [-0.55,+0.41]  R0 B0 Be30       │
