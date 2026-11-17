@@ -4,7 +4,7 @@ Pagina HTML interactiva: ver GitHub Pages del repo (index.html + data.json).
 
 Actualizado automaticamente cada 15 minutos (tarea programada local, update_dashboard.ps1).
 
-Ultima actualizacion: 2026-11-16 18:32:38
+Ultima actualizacion: 2026-11-16 19:07:23
 
 ```
 ========================================================================================================
@@ -12,7 +12,7 @@ Ultima actualizacion: 2026-11-16 18:32:38
   pre-registro: SUPREMO/ESTUDIO_ESPEJO_CONDICIONAL.md
 ========================================================================================================
    (ninguna [familia,corte] nueva cruza el gate barato de armado)
-   total armadas históricamente: 513 (en 39 familias)
+   total armadas históricamente: 514 (en 39 familias)
       20_tl_res_range · btc_range SHORT · umbral=None · armada 2026-09-16
       20_tl_res_range · celda_range_range SHORT · umbral=None · armada 2026-09-21
       5_posicion_rango · alt1d_range SHORT · umbral=None · armada 2026-09-16
@@ -521,6 +521,7 @@ Ultima actualizacion: 2026-11-16 18:32:38
       47_bajista_sweet · rs24_bajo LONG · umbral=-2.7280640918307157 · armada 2026-11-16
       s112_donchian_baj · btc_range SHORT · umbral=None · armada 2026-10-22
       s112_donchian_baj · alt1d_range SHORT · umbral=None · armada 2026-11-08
+      s112_donchian_baj · age4h_bajo SHORT · umbral=13.0 · armada 2026-11-16
       s86_div_alcista · btc_range LONG · umbral=None · armada 2026-10-22
       s86_div_alcista · alt1d_range LONG · umbral=None · armada 2026-11-13
       s129_squeeze_libera_baja · btc_range SHORT · umbral=None · armada 2026-11-01
@@ -952,7 +953,7 @@ Ultima actualizacion: 2026-11-16 18:32:38
 │ DENEG·s112_donchian_baj SHORT (TOTAL)         82   100%  +0.015   +1.20   51%       [-0.29,+0.33]  R56 B0 Be26      │
 │                               alt1d_range     39   100%  -0.227   -8.85   44%       [-0.62,+0.17]  R28 B0 Be11  [ARMADA] │
 │                               age4h_alto      28   100%  +0.320   +8.96   68%       [-0.25,+0.85]  R12 B0 Be16      │
-│                               age4h_bajo      30   100%  -0.551  -16.52   33%       [-0.88,-0.20]  R28 B0 Be2   [neg] │
+│                               age4h_bajo      30   100%  -0.551  -16.52   33%       [-0.88,-0.20]  R28 B0 Be2   [ARMADA] │
 │                               vol_rel_alto    28   100%  -0.272   -7.60   46%       [-0.64,+0.09]  R17 B0 Be11      │
 │                               vol_rel_bajo    27   100%  +0.374  +10.09   63%       [-0.21,+1.02]  R16 B0 Be11      │
 │                               btc_range       56   100%  +0.014   +0.78   54%       [-0.31,+0.33]  R56 B0 Be0   [ARMADA] │
